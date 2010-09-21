@@ -376,16 +376,7 @@ abstract class FrontEnd {
 		return self::getUuid($parts, $prefix);
 	}
 	
-	public static function getUuid($parts=4, $prefix=false) {
-	
-		// uuid
-		$uuid = array_slice(explode('-',trim(`uuid`)),0,$parts);
-			
-			// prefix
-			if ( $prefix ) { $uuid = array_merge(array($prefix), $uuid); }
 
-		return strtolower(implode('-',$uuid));
-	}
 	
 	
 } // END framework

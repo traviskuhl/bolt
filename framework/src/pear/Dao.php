@@ -2,11 +2,15 @@
 
 abstract class Dao {
 
-	protected $data = array();
-	protected $items = array();
-	protected $private = array();	
-	protected $schema = false;
-	protected $changes = false;
+	// struct
+	private $_struct = array();
+	private $_changes = array();
+	
+	// protected
+	protected $_data = array();	
+	protected $_items = array();
+	protected $_useAddedTimestamp = false;
+	protected $_useModifiedTimestamp = true;
 	
 	// public stuff for paging
 	public $_total = 0;
@@ -16,31 +20,82 @@ abstract class Dao {
 	public $_start = 1;
 	public $_end = 20;
 	
-	public function __construct($type=false,$cfg=array()) {
 	
+	/////////////////////////////////////////////////
+	/// @brief construct a DAO
+    /////////////////////////////////////////////////	
+	public function __construct($type=false,$cfg=array()) {		
+		
+		// if there's a struct 
+		$this->_struct = $this->getStruct(); 
+		
+		// is empty array
+		// fall back to data and schema 
+		// for backwards compatability
+		if ( count($this->_struct) == 0 AND isset($this->data) AND is_array($this->data) ) {
+			
+			// copy data to _data and delete
+			foreach ( $this->data as $key => $value ) {
+				
+				// data
+				$this->_data[$key] = $value;
+				
+				// struct
+				$htis->_struct[$key] = array();
+			
+			}
+			
+			// unset
+			unset($this->data);
+			
+			// schema
+			if ( isset($this->schema) AND is_array($this->schema) ) {
+				
+				// loop
+				foreach ( $this->schema as $key => $value ) {
+					$this->_struct[$key] = $value;
+				}
+				
+				// unset
+				unset($this->schema);
+				
+			}
+			
+		}
+
+		// added and modified
+		if ( $this->_useAddedTimestamp === true ) {
+			$this->_struct['added'] = array( 'type' => 'added' );
+		}
+
+		if ( $this->_useModifiedTimestamp === true ) {
+			$this->_struct['modified'] = array( 'type' => 'modified' );							
+		}
+		
+		// struct
+		foreach ( $this->_struct as $key => $x ) {
+			if ( !array_key_exists($key, $this->_data) ) {
+				$this->_data[$key] = false;
+			}
+		}
+		
 		// if get param
 		if ( $type == 'get' ) {		
 			call_user_func_array(array($this,'get'),(array)$cfg);
 		}
 		else if ( $type == 'set' ) {
 			$this->set($cfg);
-		}		
+		}
 		
-		// transform our schema
-		if ( is_array($this->schema) ) {
-			foreach ( $this->schema as $k => $v ) {
-				if ( isset($v['map']) ) {
-					if ( is_string($v['map']) ) {
-					
-						$f = eval($v['map']);
-					
-						$this->schema[$k]['map'] = call_user_func($f);
-					}
-				}
-			}
-		}	
-	
 	}
+	
+	
+	/////////////////////////////////////////////////
+	/// @brief return the object construct
+	/// 
+	/// @return array with object construct
+    /////////////////////////////////////////////////	
+	protected function getStruct() { return array(); }
 	
 	
 	/////////////////////////////////////////////////
@@ -52,9 +107,9 @@ abstract class Dao {
 	///         if property does not exist
     /////////////////////////////////////////////////
 	public function __get($name) {
-	
+
         // data
-        $data = array_merge($this->data,$this->private);
+        $data = $this->_data;
 
 		// if it exists
 		if ( array_key_exists($name,$data) ) {		
@@ -71,34 +126,31 @@ abstract class Dao {
 
         // check for _
         else if ( mb_strpos($name,'_') !== false ) {
-            
+ 
             // explode out 
             $parts = explode('_',$name);
             
-            // set parts
-            $ary = $parts[0];
-            $key = $parts[1];
+            // value
+            $val = $data;
             
-            // what
-            if ( array_key_exists($ary,$data) AND is_array($data[$ary]) AND array_key_exists($key,$data[$ary]) ) {
-            
-            	// check if they want a key if the array
-				if ( isset($parts[2]) AND is_array($data[$ary][$key]) ) {
-            	            	
-            		// yes
-            		if ( array_key_exists($parts[2],$data[$ary][$key]) ) {
-            			return $this->objectify($data[$ary][$key][$parts[2]]);
-	            	}
-	            	else {
-	            		return false;
-	            	}
-            	
-     	       }
-     	       
-				// just return the array
-				return $this->objectify($data[$ary][$key]);   
-				
-			}
+        	// find it 
+        	array_walk($parts, function($in, $key, &$val){
+        		
+        		// false we skip
+        		if ( $val === false ) { return; }
+        		
+        		// if there's a _ we need to explode it 
+				if ( isset($val[$key]) ) {
+					$val = $val[$key];
+				}
+				else {
+					$val = false;
+				}
+        	
+        	}, &$val);	        		
+	        	
+	        // return
+	        return $val;
 			
         }
         else if ( isset($this->{"_{$name}"}) ) {
@@ -126,11 +178,8 @@ abstract class Dao {
 		$cur = $this->{$name};	   
 	   
 	   	// find some data 
-		if ( array_key_exists($name,$this->data)) {
-		 	$this->data[$name] = $val;
-		}
-		else if ( array_key_exists($name,$this->private) ) {
-			$this->private[$name] = $val;
+		if ( array_key_exists($name, $this->_data)) {
+		 	$this->_data[$name] = $val;
 		}
 			
         // check for _
@@ -144,29 +193,32 @@ abstract class Dao {
             $key = $parts[1];
             
             // what
-            if ( !isset($this->data[$ary]) ) {
-            	$this->data[$ary] = array();
+            if ( !isset($this->_data[$ary]) ) {
+            	$this->_data[$ary] = array();
             }
             
         	// check if they want a key if the array
 			if ( isset($parts[2]) ) {
-				if ( !is_array($this->data[$ary][$key]) ) {
-					$this->data[$ary][$key] = array();
+				if ( !is_array($this->_data[$ary][$key]) ) {
+					$this->_data[$ary][$key] = array();
 				}
         	            	
-      			$this->data[$ary][$key][$parts[2]] = $val;
+      			$this->_data[$ary][$key][$parts[2]] = $val;
         	
 			}
 			else {
 				// just return the array
-				$this->data[$ary][$key] = $val;				
+				$this->_data[$ary][$key] = $val;				
 			}
             
         }
+        else {
+        	$this->_data[$name] = $val;
+        }
         
 		// add it 
-		if ( isset($this->trackChanges) AND $this->trackChanges == true AND $val != $cur AND $name != 'changelog' ) {
-			$this->changes[$name] = array( 'new' => $val, 'old' => $cur );
+		if ( isset($this->_trackChanges) AND $this->_trackChanges == true AND $val != $cur AND $name != 'changelog' ) {
+			$this->_changes[$name] = array( 'new' => $val, 'old' => $cur );
 		}
 
 	}		
@@ -286,7 +338,7 @@ abstract class Dao {
                         $array = array();
                         
                         // loop
-                        foreach ( $this->items as $itm ) {
+                        foreach ( $this->_items as $itm ) {
                                 $k = $itm->$key;
                                 $v = $itm->$val;
                                 $array[$k] = $v;
@@ -348,7 +400,7 @@ abstract class Dao {
 	/// @return full data array
 	/////////////////////////////////////////////////
 	public function get() {
-		return $this->data;
+		return $this->_data;
 	}
 	
 	
@@ -359,100 +411,105 @@ abstract class Dao {
 	/// @return void
 	/////////////////////////////////////////////////
 	public function set($data){
-
-		// set the data
-		foreach ( $data as $k => $v ) {
-			$this->data[$k] = $v;
-		}
 		
-		// if schema is defined, loop
-		// through and format schema
-		if ( $this->schema !== false ) {
-            foreach ( $this->schema as $key => $info ) { 
-                if ( array_key_exists($key,$this->data) ) {          
-                    
-                    // value holder
-                    $value = $this->data[$key];
-                              
-                    // based on data type do the transform
-                    if ( isset($info['type']) ) {
-                        
-                        // which type
-                        switch ($info['type']) {
-                        
-                            // json we need to decode
-                            case 'json':                             
-                                $value = ( is_array($this->data[$key] ) ? $this->data[$key] : json_decode($this->data[$key],true) ); 
-                                if ( is_null($value) ) {
-                                	$value = false;
-                                }
-                                break;
-                                
-                            // tags need to be turned into
-                            // a tags array
-                            case 'tags':                            
-                                $value = new \dao\tags('set',$this->data[$key]); break;
-                                
-                            // dao
-                            case 'dao':
-                            	$cl = "\\dao\\{$info['class']}";
-                                $value = new $cl('get',array($this->data[$key])); break;                        
-                            
-                            // datetime
-                            case 'timestamp':
-                            	
-                            	// if no value
-                            	if ( !$value ) { break; }
-                            
-                            	// check user for a tzoffset
-						        $u = Session::getUser();
-						        
-                            	// ago
-                            	$this->private['f_'.$key.'_ago'] = ago($value);
-						        
-						        // offset
-						        if ( $u AND $u->profile_tzoffset ) {
-						        	$value += $u->profile_tzoffset;
-						        }
-						        
-						        // reset the main value
-						        $this->data[$key] = $value;						       
-                            
-                            	// info
-                            	$info['private'] = true;
-                            	$info['key'] = 'f_'.$key;                            
-                            	
-                            	// value
-                            	$value = date(DATE_LONG_FRM,$value);
-                            	
-                            	// break
-                            	break;
-                            	
-                            
-                        };
-                        
-                        // check if they want to set as new key
-                        if ( array_key_exists('key',$info) ) {
-                            $this->data[$info['key']] = $value;
-                            $key = $info['key'];
-                        }
-                        else {
-                            $this->data[$key] = $value;
-                        }
-                        
-                    }
-                    
-                    // if private, needs to be requested directly
-                    if ( isset($info['private']) ) {                   
-                        $this->private[$key] = $this->data[$key];
-                        unset($this->data[$key]);
-                    }
-                    
-                }
-            }		
-		}
+		$this->_data = $data;
+		
+		return;	
+			
+			
+		// normalize
+	//	array_walk($data, array($this, '__mapSet'), $this->_struct);			
+								
+		// give back data
+		foreach ($data as $key => $val ) {
+			$this->_data[$key] = $val;
+		}		
 		
 	}
+
+		// map normalized strucs
+		private function __mapSet(&$item, $key, $struct) {
+			
+			// the validate function
+			$set = function($info, $value) {      
+              
+                // based on data type do the transform
+                if ( isset($info['type']) ) {
+                    
+                    // which type
+                    switch ($info['type']) {
+                    
+                        // json we need to decode
+                        case 'json':                             
+                            $value = ( is_array($value ) ? $value : json_decode($value,true) ); 
+                            if ( is_null($value) ) {
+                            	$value = false;
+                            }
+                            break;
+                            
+                        // tags need to be turned into
+                        // a tags array
+                        case 'tags':                            
+                            $value = new \dao\tags('set',$value); break;
+                            
+                        // dao
+                        case 'dao':
+                        	$cl = "\\dao\\{$info['class']}";
+                            $value = new $cl('get',array($value)); break;                        
+                        
+                        // datetime
+                        case 'timestamp':
+                        	
+                        	// if no value
+                        	if ( !$value ) { break; }
+                        
+                        	// check user for a tzoffset
+					        $u = Session::getUser();
+					        
+                        	// ago
+                        	$this->private['f_'.$key.'_ago'] = ago($value);
+					        
+					        // offset
+					        if ( $u AND $u->profile_tzoffset ) {
+					        	$value += $u->profile_tzoffset;
+					        }
+					        
+					        // reset the main value
+					        $value = $value;						       
+                        
+                        	// info
+                        	$info['private'] = true;
+                        	$info['key'] = 'f_'.$key;                            
+                        	
+                        	// value
+                        	$value = date(DATE_LONG_FRM,$value);
+                        	
+                        	// break
+                        	break;
+                        	
+                        
+                    }
+                                       
+                }
+	            
+	            return $value;
+	            
+			};			
+			
+			// struct
+			if ( isset($struct[$key]) ) {
+	
+				// children
+				if ( isset($struct[$key]['children']) AND is_array($item) ) {
+					array_walk($item, array($this, '__mapSet'), $struct[$key]['children']);
+				}
+				else {
+					$item = $set($struct[$key], $item);				
+				}
+					
+			}		
+		
+		}
 
 	/////////////////////////////////////////////////
 	/// @brief normalize the data for insert
@@ -462,76 +519,95 @@ abstract class Dao {
 	public function normalize() {
 	
 		// data
-		$data = $this->data;
-	
-		// if schema is defined, loop
-		// through and format schema
-		if ( $this->schema !== false ) {
-            foreach ( $this->schema as $key => $info ) { 
-//                if ( $this->$key ) {          
-                    
-                    // value holder
-                    $value = $this->$key;
-                              
-                    // based on data type do the transform
-                    if ( isset($info['type']) ) {
-                        
-                        // which type
-                        switch ($info['type']) {
-                        
-                            // json we need to decode
-                            case 'json': 
-                                $value = json_encode($data[$key]); break;
-                                
-                            // tags need to be turned into
-                            // a tags array
-                            case 'tags':                            
-                                $value = (string)$data[$key]; break;
-                                
-                            // dao
-                            case 'dao':
-                            	if ( is_object($data[$key]) ) {
-                            		$id = p('id','id',$info);                            	
-									$value = $data[$key]->{$id}; 
-								}
-								break;
-								
-							// timestsamp
-							case 'timestamp':
-							
-                            	// check user for a tzoffset
-						        $u = Session::getUser();
-						        
-						        // offset
-						        if ( $u AND $u->profile_tzoffset ) {
-						        	$value -= $u->profile_tzoffset;
-						        }							
-							
-								break;
-                            
-                        };
-                        
-                    }
-                    
-                    // if private, needs to be requested directly
-                    if ( isset($info['private']) ) {                   
-                        if (isset($data[$key]) && isset($this->private[$key])) { 
-                        	$data[$key] = $this->private[$key];
-                        }
-                    }
-                    else {
-                    	$data[$key] = $value;
-                    }
-                    
-//                }
-            }		
-		}	
-		
+		$data = $this->_data;		
+			
+		// normalize
+		array_walk($data, array($this, '__mapNormalize'), $this->_struct);			
+			
 		// give back data
 		return $data;		
 	
 	}
-
+	
+		// map normalized strucs
+		private function __mapNormalize(&$item, $key, $struct) {
+			
+			// the validate function
+			$validate = function($info, $value) {      
+              
+	            // based on data type do the transform
+	            if ( isset($info['type']) ) {
+	                
+	                // which type
+	                switch ($info['type']) {
+	                
+	                	// uuid
+						case 'uuid':
+							$value = b::getUuid(); break;
+	                
+	                    // json we need to decode
+	                    case 'json': 
+	                        $value = json_encode($value); break;
+	                        
+	                    // tags need to be turned into
+	                    // a tags array
+	                    case 'tags':                            
+	                        $value = (string)$value; break;
+	                        
+	                    // dao
+	                    case 'dao':
+	                    	if ( is_object($value) ) {
+	                    		$id = p('id','id',$info);                            	
+								$value = $value->{$id}; 
+							}
+							break;
+							
+						// timestsamp
+						case 'timestamp':
+						
+	                    	// check user for a tzoffset
+					        $u = Session::getUser();
+					        
+					        // offset
+					        if ( $u AND $u->profile_tzoffset ) {
+					        	$value -= $u->profile_tzoffset;
+					        }							
+						
+							break;
+							
+						// added
+						case 'added':
+							if ( $value === false ) {
+								$value = b::utctime();
+							}							
+							break;
+							
+						// modified
+						case 'modified':
+							$value = b::utctime();
+	                    
+	                };
+	                
+	            }
+	            
+	            return $value;
+	            
+			};			
+			
+			// struct
+			if ( isset($struct[$key]) ) {
+		
+				// validate
+				$item = $validate($struct[$key], $item);
+	
+				// children
+				if ( isset($struct[$key]['children']) AND is_array($item) ) {
+					array_walk($item, array($this, '__mapNormalize'), $struct[$key]['children']);
+				}
+					
+			}		
+		
+		}
 
 	/////////////////////////////////////////////////
 	/// @brief turn an array into an object
@@ -573,8 +649,8 @@ abstract class Dao {
         
         // if there are items
         // go through and get array
-        if ( count($this->items) > 0 ) {
-            foreach ( $this->items as $item ) {
+        if ( count($this->_items) > 0 ) {
+            foreach ( $this->_items as $item ) {
                 $i = $item->asArray();
                 $resp[] = $i;
             }
@@ -582,11 +658,11 @@ abstract class Dao {
     	else {
     	
             // get it 
-    		if ( $key AND array_key_exists($key,$this->data) ) {
-    			$resp = $this->data;
+    		if ( $key AND array_key_exists($key,$this->_data) ) {
+    			$resp = $this->_data;
     		}
     		else {
-    			$resp = $this->data;
+    			$resp = $this->_data;
     		}
     		
         }
@@ -613,7 +689,7 @@ abstract class Dao {
 	/// @return data aray;
 	/////////////////////////////////////////////////
 	public function getData() {
-		return $this->data;
+		return $this->_data;
 	}
 	
 	
@@ -756,17 +832,17 @@ abstract class Dao {
 	/// @return value at given index
 	/////////////////////////////////////////////////		
 	public function item($idx=0) {
-		if ( count($this->items) == 0 ) { 
+		if ( count($this->_items) == 0 ) { 
 			return false; 
 		}
 		else if ( $idx == 'first' ) {
-			return array_shift( array_slice($this->items,0,1) );
+			return array_shift( array_slice($this->_items,0,1) );
 		}
 		else if ( $idx == 'last' ) {
-			return array_shift( array_slice($this->items,-1) );
+			return array_shift( array_slice($this->_items,-1) );
 		}
-		else if ( array_key_exists($idx,$this->items) ) {		
-			return $this->items[$idx];
+		else if ( array_key_exists($idx,$this->_items) ) {		
+			return $this->_items[$idx];
 		}
 		else {
 			return false;
@@ -781,7 +857,7 @@ abstract class Dao {
 	/// @return void
 	/////////////////////////////////////////////////	
     public function rewind() {
-        reset($this->items);
+        reset($this->_items);
     }
 
 
@@ -791,7 +867,7 @@ abstract class Dao {
 	/// @return value of current pointer item
 	/////////////////////////////////////////////////	
     public function current() {
-        $var = current($this->items);
+        $var = current($this->_items);
         return $var;
     }
 
@@ -802,7 +878,7 @@ abstract class Dao {
 	/// @return value of pointer item
 	/////////////////////////////////////////////////	
     public function key() {
-        $var = key($this->items);
+        $var = key($this->_items);
         return $var;
     }
 
@@ -813,7 +889,7 @@ abstract class Dao {
 	/// @return value of next item in set
 	/////////////////////////////////////////////////	
     public function next() {
-        $var = next($this->items);
+        $var = next($this->_items);
         return $var;
     }
 
@@ -837,26 +913,26 @@ class DaoMock implements Iterator {
 	private $data = array();
 	
 	public function __construct($data=array()) {
-		$this->data = $data;
+		$this->_data = $data;
 	}
 	
 	public function __set($name,$val) {
-		$this->data[$name] = $val;
+		$this->_data[$name] = $val;
 	}
 	public function __get($name) {
-		if ( array_key_exists($name,$this->data) ) {
-			if ( is_array($this->data[$name])) {			
-				return $this->objectify($this->data[$name]);
+		if ( array_key_exists($name,$this->_data) ) {
+			if ( is_array($this->_data[$name])) {			
+				return $this->objectify($this->_data[$name]);
 			}
 			else {		
-				return $this->data[$name];
+				return $this->_data[$name];
 			}
 		}
 		return false;
 	}
 	public function asArray() {
 		$a = array();
-		foreach ( $this->data as $k => $v ) {
+		foreach ( $this->_data as $k => $v ) {
 			if ( is_object($v) ) {
 				$v = $v->asArray();
 			}
@@ -865,7 +941,7 @@ class DaoMock implements Iterator {
 		return $a;
 	}
 	public function exists($key) {
-		if ( isset($this->data[$key]) ) {
+		if ( isset($this->_data[$key]) ) {
 			return true;
 		}
 		return false;
@@ -911,7 +987,7 @@ class DaoMock implements Iterator {
 	/// @return value at given index
 	/////////////////////////////////////////////////		
 	public function item($idx=0) {
-		return $this->data[$idx];
+		return $this->_data[$idx];
 	}
 
 
@@ -921,7 +997,7 @@ class DaoMock implements Iterator {
 	/// @return void
 	/////////////////////////////////////////////////	
     public function rewind() {
-        reset($this->data);
+        reset($this->_data);
     }
 
 
@@ -931,7 +1007,7 @@ class DaoMock implements Iterator {
 	/// @return value of current pointer item
 	/////////////////////////////////////////////////	
     public function current() {
-        $var = current($this->data);
+        $var = current($this->_data);
         return $var;
     }
 
@@ -942,7 +1018,7 @@ class DaoMock implements Iterator {
 	/// @return value of pointer item
 	/////////////////////////////////////////////////	
     public function key() {
-        $var = key($this->data);
+        $var = key($this->_data);
         return $var;
     }
 
@@ -953,7 +1029,7 @@ class DaoMock implements Iterator {
 	/// @return value of next item in set
 	/////////////////////////////////////////////////	
     public function next() {
-        $var = next($this->data);
+        $var = next($this->_data);
         return $var;
     }
 

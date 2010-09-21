@@ -2,7 +2,7 @@
 
 namespace Ext;
 
-require(FRAMEWORK . "Ext/Fb/facebook.php");
+require(bFramework . "Ext/Fb/facebook.php");
 
 ////////////////////////////////
 /// @breif facebook integration

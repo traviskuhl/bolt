@@ -12,23 +12,46 @@ abstract class Mongo extends \Dao {
 	private $_port = false;
 	private $_db = false;
 
-	// construct
-	public function __construct($type=false,$args=array()) {
+	// normaize
+	public function set($data) {
+	
+		// swithc out id 
+		if ( isset($data['_id']) ) {
+			$data['id'] = $data['_id'];
+		}	
+	
+		// parent normalize
+		parent::set($data);
+	
+	}
 
-		// get some
-		$this->_host = \Config::get('mongo/host');
-		$this->_port = \Config::get('mongo/port');
-		$this->_db = \Config::get('mongo/db');
+	// normaize
+	public function normalize() {
+	
+		// parent normalize
+		$data = parent::normalize();
 
-		// parent
-		parent::__construct($type,$args);
-
+	
+		// swithc out id 
+		if ( isset($data['id']) ) {
+			$data['_id'] = $data['id'];
+			unset($data['id']);
+		}
+		
+		// give back
+		return $data;
+	
 	}
 
 	private function _connect() {
 
 		// already connected
 		if ( $this->dbh ) { return; }
+
+		// get some
+		$this->_host = \Config::get('mongo/host');
+		$this->_port = \Config::get('mongo/port');
+		$this->_db = \Config::get('mongo/db');
 
 		// try to connect
 		try { 
@@ -45,7 +68,7 @@ abstract class Mongo extends \Dao {
 		$this->_db = $name;
 	}
 
-	public function query($collection,$query,$args=array()) {
+	public function query($collection, $query, $args=array()) {
 
 		// try connecting
 		$this->_connect();
@@ -55,6 +78,17 @@ abstract class Mongo extends \Dao {
 
 		// sth
 		$col = $db->{$collection};
+		
+		// id => _id
+		if ( isset($query['id']) ) {
+		
+			// query _id
+			$query['_id'] = $query['id'];
+			
+			// unset
+			unset($query['id']);
+
+		}
 
 		// find
 		$sth = $col->find($query);
@@ -182,7 +216,7 @@ class MongoResponse extends \Dao implements \Iterator {
 	public function __construct($items,$cur) {
 
 		// set items
-		$this->items = $items;
+		$this->_items = $items;
 
 		// set pager
 		$this->setPager($cur->count(),1,1);

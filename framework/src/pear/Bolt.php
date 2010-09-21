@@ -4,7 +4,7 @@
     // tell the autoloader where the locations to look
     // for our files are
     $GLOBALS['_auto_loader'] = array(
-        array( '.php', FRAMEWORK),
+        array( '.php', bFramework),
     	array( '.dao.php', "/home/bolt/share/pear/bolt/"), 
     );	
 	
@@ -51,7 +51,7 @@
 	}	
 	
 	// dev mode?
-//	if ( defined('DevMode') AND DevMode === true ) {
+//	if ( defined('bDevMode') AND bDevMode === true ) {
 	
 		// error reporting
 	    error_reporting(E_ALL^E_DEPRECATED);
@@ -99,10 +99,10 @@
 	date_default_timezone_set("UTC");
 		
 	// modules we always need that are not named
-	require(FRAMEWORK."Database.php");
+	require(bFramework."Database.php");
 	
 	// we need their project config
-	Config::load(CONFIG . PROJECT . ".ini");
+	Config::load( bConfig . bProject . ".ini");
 	
 		// add dao to autoload
 		if ( is_array(Config::get('autoload/file')) ) {
@@ -118,7 +118,7 @@
 	abstract class Bolt {
 	
 		// project
-		public static $project = PROJECT;
+		public static $project = bProject;
 	
 		////////////////////////////////
 		///  @breif start
@@ -152,7 +152,7 @@
     	    	}
        
 			// path
-        	$path = (getenv("REDIRECT_boltPath")?getenv("REDIRECT_boltPath"):getenv("boltPath"));
+        	$path = (getenv("REDIRECT_bPath")?getenv("REDIRECT_bPath"):getenv("bPath"));
                 
 	        // check for assets
     	    if ( trim($path,'/') == 'combo' ) {
@@ -308,7 +308,7 @@
 				}			
 
 			// what evn
-			$var_pf = $var . (DevMode?'_dev':'_prod');
+			$var_pf = $var . (bDevMode?'_dev':'_prod');
 			
 			// val
 			$val = false;
@@ -455,6 +455,33 @@
 
 	// bolt
 	class b {
+	
+		public static function makeSlug($str) {
+			
+			// remove any ' in the str
+			$str = str_replace("'",'', html_entity_decode($str, ENT_QUOTES, 'utf-8') );
+		
+			// search
+			$search = array(
+				"/([^a-zA-Z0-9]+)/",
+				"/([-]{2,})/"
+			);
+		
+			// now the bug stuff
+			return preg_replace($search, '-', $str);
+		
+		}
+			
+		public static function getUuid($parts=4, $prefix=false) {
+		
+			// uuid
+			$uuid = array_slice(explode('-',trim(`uuid`)),0,$parts);
+				
+				// prefix
+				if ( $prefix ) { $uuid = array_merge(array($prefix), $uuid); }
+	
+			return strtolower(implode('-',$uuid));
+		}		
 	
 		public static function utctime() {
 		
@@ -665,8 +692,11 @@
 	 */
 	function pp($pos,$default=false,$filter=false) {
 		
+		// path
+		$path = getenv("bPath");
+		
 		// path 
-		$path = explode('/',trim(p('path'),'/'));
+		$path = explode('/',trim($path,'/'));
 		
 		// yes?
 		if ( count($path)-1 < $pos OR ( count($path)-1 >= $pos AND $path[$pos] == "" ) ) {

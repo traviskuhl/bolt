@@ -1,21 +1,21 @@
 <?php
         
 	// framework
-	define("FRAMEWORK",	"/home/bolt/share/pear/bolt/framework/");
-	define("CONFIG",	"/home/bolt/config/");
-	define("_404",		"/home/bolt/share/htdocs/404.php");
+	define("bFramework",	"/home/bolt/share/pear/bolt/framework/");
+	define("bConfig",		"/home/bolt/config/");
+	define("b404",			"/home/bolt/share/htdocs/404.php");
 	
 	// dev
-	define("DevMode",( getenv("bolt_framework__dev_mode") == 'true' ? true : false ));
+	define("bDevMode",( getenv("bolt_framework__dev_mode") == 'true' ? true : false ));
 	
 	// project
-	define("PROJECT", getenv("boltProject"));
+	define("bProject", getenv("bProject"));
 	
 	// include our Bold file
-	require(FRAMEWORK . "Bolt.php");
+	require(bFramework . "Bolt.php");
 	
 	//figure out the project name passed from apache rewrite
-	$project = PROJECT;
+	$project = bProject;
 		
 		// no project we show a 404
 		if ( $project === false ) {
@@ -24,7 +24,7 @@
 			error_log("No project defined");
 			
 			// exit
-			exit( include(_404) );
+			exit( include(b404) );
 			
 		}
 	
@@ -38,7 +38,7 @@
 			error_log("Unable to find project class");
 		
 			// class
-			exit( include(_404) );
+			exit( include(b404) );
 			
 		}	
 

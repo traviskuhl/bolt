@@ -4,25 +4,23 @@ namespace Dao;
 
 class user extends Db {
 
-	protected $trackChanges = true;
-
-	protected $data = array(
-		'username' => false,
-		'password' => false,
-		'firstname' => false,
-		'lastname' => false,
-		'email' => false,
-		'tags' => false,
-		'profile' => false,
-		'changelog' => false	
-	);
+	// track changes
+	protected $_trackChanges = true;
+	protected $_useAddedTimestamp = true;
+	protected $_useModifiedTimestamp = true;
 	
-	protected $schema = array(
-	   'password' => array( 'private' => true ),
-	   'profile' => array( 'type' => 'json' ),
-	   'tags' => array( 'type' => 'tags' ),
-	   'changelog' => array( 'type' => 'json' )
-	);
+	// sturct
+	protected function getStruct() {
+		return array(
+			'username' => array(),
+			'password' => array( 'private' => true ),
+			'firstname' => array(),
+			'lastname' => array(),
+			'email' => array( 'type' => 'email' ),
+			'tags' => array( 'type' => 'tags' ),
+			'profile' => array()
+		);	
+	}
 
 	public function get($by,$other=array()) {
 	
@@ -77,16 +75,16 @@ class user extends Db {
         parent::set($row);
 	
 		// set some stuff
-		$this->data['name'] = trim( implode(" ",array($row['firstname'],$row['lastname'])) );
+		$this->_data['name'] = trim( implode(" ",array($row['firstname'],$row['lastname'])) );
 			
 		// nick
-		$this->private['nick'] = trim($this->data['firstname'] . ' ' . substr($this->data['lastname'],0,1));
+		$this->_data['nick'] = trim($this->_data['firstname'] . ' ' . substr($this->_data['lastname'],0,1));
 			
 		// if no name we want email
-		if ( empty($this->data['name']) ) {
+		if ( empty($this->_data['name']) ) {
 			$this->name = $this->email;
 			$e = explode("@",$this->email);
-			$this->private['nick'] = $e[0];
+			$this->_data['nick'] = $e[0];
 		}
 						
 	}
