@@ -18,7 +18,8 @@ class user extends Db {
 			'lastname' => array(),
 			'email' => array( 'type' => 'email' ),
 			'tags' => array( 'type' => 'tags' ),
-			'profile' => array()
+			'profile' => array(),
+			'changelog' => array()
 		);	
 	}
 
