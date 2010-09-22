@@ -46,7 +46,7 @@ class Cache {
 		$cid = "{$this->basens}:{$ns}:{$key}";
 		
 		// turn caching off in dev
-		if ( DevMode ) {
+		if ( bDevMode ) {
 			return false;
 		}
 		
