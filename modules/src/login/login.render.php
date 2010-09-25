@@ -83,10 +83,13 @@ class login extends \FrontEnd {
 				if (!$user->tags) { $user->tags = new \dao\tags(); }
 				
 				// pick
-				$user->profile_pic = "https://graph.facebook.com/{$u['id']}/picture?type=square";
+				$user->profile_fbid = $fbuser; 
+				
+				// pick
+				$user->profile_pic = "https://graph.facebook.com/{$u['id']}/picture?type=square"; 
 				
 				// fb profile
-				$user->profile_fb = $u;											
+				//$user->profile_fb = $u;					
 				
 				// no user we have to send them to register
 				if ( !$user->id ) {
@@ -104,8 +107,8 @@ class login extends \FrontEnd {
 					$area = Session::getMeValue('area');				
 										
 					// add fb tag
-					$user->tags->add( 'fb',$fbuser );
-					
+					$user->tags->add( 'fb', $fbuser);
+
 					// save
 					$user->save();						
 					
@@ -130,7 +133,6 @@ class login extends \FrontEnd {
 				
 				// save
 				$user->save();				
-				
 				
 				// go home
 				if ( p('xhr') ) {
