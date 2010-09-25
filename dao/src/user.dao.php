@@ -19,7 +19,7 @@ class user extends Db {
 			'email' => array( 'type' => 'email' ),
 			'tags' => array( 'type' => 'tags' ),
 			'profile' => array( 'type' => 'json' ),
-			'changelog' => array()
+			'changelog' => array( 'type' => 'json' )
 		);	
 	}
 

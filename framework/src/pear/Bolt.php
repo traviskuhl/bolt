@@ -504,7 +504,7 @@
 		
 		public static function ago($tm,$rcs = 0) {
 		
-		    $cur_tm = utctime(); $dif = $cur_tm-$tm;	
+		    $cur_tm = b::utctime(); $dif = $cur_tm-$tm;	
 		
 	    	// check user for a tzoffset
 	        $u = Session::getUser();

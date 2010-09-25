@@ -413,13 +413,10 @@ abstract class Dao {
 	/////////////////////////////////////////////////
 	public function set($data){
 		
-		$this->_data = $data;
-		
-		return;	
-			
+		$this->_data = $data;			
 			
 		// normalize
-	//	array_walk($data, array($this, '__mapSet'), $this->_struct);			
+		array_walk($data, array($this, '__mapSet'), $this->_struct);			
 								
 		// give back data
 		foreach ($data as $key => $val ) {
@@ -432,7 +429,7 @@ abstract class Dao {
 		private function __mapSet(&$item, $key, $struct) {
 			
 			// the validate function
-			$set = function($info, $value) {      
+			$set = function($info, $value, $key, $obj) {      
               
                 // based on data type do the transform
                 if ( isset($info['type']) ) {
@@ -442,6 +439,7 @@ abstract class Dao {
                     
                         // json we need to decode
                         case 'json':                             
+                        
                             $value = ( is_array($value ) ? $value : json_decode($value,true) ); 
                             if ( is_null($value) ) {
                             	$value = false;
@@ -455,8 +453,26 @@ abstract class Dao {
                             
                         // dao
                         case 'dao':
+                        
+                        	// class
                         	$cl = "\\dao\\{$info['class']}";
-                            $value = new $cl('get',array($value)); break;                        
+                        	
+                        	// args
+                        	$args = p('args', array(), $info);
+                        	
+	                        	// args
+	                        	foreach ( $args as $k => $a ) {
+	                        		if ( substr($a,0,1) == '$' ) {
+	                        			$i = substr($a,1);
+	                        			$args[$k] = $obj->{$i};
+	                        		}
+ 	                        	}
+                        	
+                        	// o
+                        	$o = new $cl();
+                        	
+                        	// value
+                            $value = call_user_func_array(array($o, 'get'), $args); break;
                         
                         // datetime
                         case 'timestamp':
@@ -465,10 +481,7 @@ abstract class Dao {
                         	if ( !$value ) { break; }
                         
                         	// check user for a tzoffset
-					        $u = Session::getUser();
-					        
-                        	// ago
-                        	$this->private['f_'.$key.'_ago'] = ago($value);
+					        $u = Session::getUser();					        
 					        
 					        // offset
 					        if ( $u AND $u->profile_tzoffset ) {
@@ -505,7 +518,7 @@ abstract class Dao {
 					array_walk($item, array($this, '__mapSet'), $struct[$key]['children']);
 				}
 				else {
-					$item = $set($struct[$key], $item);				
+					$item = $set($struct[$key], $item, $key, $this);				
 				}
 					
 			}		
@@ -911,7 +924,7 @@ abstract class Dao {
 //
 class DaoMock implements Iterator {
 
-	private $data = array();
+	private $_data = array();
 	
 	public function __construct($data=array()) {
 		$this->_data = $data;
