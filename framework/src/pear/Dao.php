@@ -132,22 +132,23 @@ abstract class Dao {
             
             // value
             $val = $data;
+            $i = 0;
             
-        	// find it 
-        	array_walk($parts, function($in, $key, &$val){
-        		
-        		// false we skip
-        		if ( $val === false ) { return; }
-        		
-        		// if there's a _ we need to explode it 
-				if ( isset($val[$key]) ) {
-					$val = $val[$key];
+            // loop
+			while ( is_array($val) AND $i < 10 ) {
+			
+				// cur
+				if ( isset($val[current($parts)]) ) {
+					$val = $val[current($parts)];
 				}
-				else {
-					$val = false;
-				}
-        	
-        	}, &$val);	        		
+				
+				// up the cursor
+				next($parts);
+				
+				// count
+				$i++;
+				
+			}
 	        	
 	        // return
 	        return $val;
