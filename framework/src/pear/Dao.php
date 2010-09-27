@@ -451,6 +451,10 @@ abstract class Dao {
                         case 'tags':                            
                             $value = new \dao\tags('set',$value); break;
                             
+						// user
+						case 'user':
+							$value = new \dao\user('get', $value); break;
+                            
                         // dao
                         case 'dao':
                         
@@ -478,25 +482,7 @@ abstract class Dao {
                         case 'timestamp':
                         	
                         	// if no value
-                        	if ( !$value ) { break; }
-                        
-                        	// check user for a tzoffset
-					        $u = Session::getUser();					        
-					        
-					        // offset
-					        if ( $u AND $u->profile_tzoffset ) {
-					        	$value += $u->profile_tzoffset;
-					        }
-					        
-					        // reset the main value
-					        $value = $value;						       
-                        
-                        	// info
-                        	$info['private'] = true;
-                        	$info['key'] = 'f_'.$key;                            
-                        	
-                        	// value
-                        	$value = date(DATE_LONG_FRM,$value);
+                        	if ( !$value ) { break; }                        
                         	
                         	// break
                         	break;
@@ -927,13 +913,17 @@ class DaoMock implements Iterator {
 	private $_data = array();
 	
 	public function __construct($data=array()) {
-		$this->_data = $data;
+		$this->_data = $data;		
 	}
 	
 	public function __set($name,$val) {
 		$this->_data[$name] = $val;
 	}
 	public function __get($name) {
+		if ( $name == 'total' ) {
+			return count($this->_data);
+		}
+	
 		if ( array_key_exists($name,$this->_data) ) {
 			if ( is_array($this->_data[$name])) {			
 				return $this->objectify($this->_data[$name]);
@@ -1001,7 +991,15 @@ class DaoMock implements Iterator {
 	/// @return value at given index
 	/////////////////////////////////////////////////		
 	public function item($idx=0) {
-		return $this->_data[$idx];
+		if ( $idx == 'first' ) {
+			return array_shift($this->_data);		
+		}
+		else if ( $idx == 'last' ) {
+			return array_pop($this->_data);		
+		}
+		else {
+			return $this->_data[$idx];
+		}
 	}
 
 

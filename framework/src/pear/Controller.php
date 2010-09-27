@@ -481,7 +481,7 @@ class Controller {
 						if ( strpos($args, ':') !== false ) {
 							foreach ( explode(',', $args) as $a ) {
 								list($k, $v) = explode(':', $a);
-								$mod['cfg'][$k] = $v;
+								$mod['cfg'][trim($k)] = $v;
 							}
 						}
 						else {
@@ -554,6 +554,10 @@ class Controller {
 		
 		// print the list
 		foreach (  array_merge(self::$embeds[$type], $config) as $name => $file ) {
+			
+			// dev
+			if (bDevMode) { $file .= '?.r='.time(); }
+		
 			if ( $type == 'css' ) {
 				$list[] = "<link rel='stylesheet' href='/assets/{$file}' type='text/css'>";
 			}

@@ -1,6 +1,6 @@
 <?php
 
-namespace dao;
+namespace Dao;
 
 /////////////////////////////////////////////////
 /// @brief tags dao

@@ -97,6 +97,8 @@ class Webservice {
         	$url .= (strpos($uri,'?')===false?'?':':').implode('&',$p);
         }        
         
+//        var_dump($url); die;
+        
         // new curl request
         $ch = curl_init();
 

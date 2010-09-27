@@ -172,8 +172,8 @@
 					$page = $pg;			
 						
 						// override with page
-						if ( isset($args['_page']) ) {
-							$page = $args['_page'];	unset($args['_page']);
+						if ( isset($args['_bPage']) ) {
+							$page = $args['_bPage'];	unset($args['_bPage']);
 						}
 			                      
 					// set other arguments in the GET
@@ -189,7 +189,7 @@
 						else if ( !is_numeric($v) ) {
 							$_REQUEST[$a] = $v;                                            
 						}
-			
+					
 					}
 			
 					//no need to continue the matching
@@ -198,6 +198,17 @@
 				}
 			
             }
+            
+            // path
+			if ( p('bPath') ) { 
+			
+				// define
+				define("bUriPath", p('bPath'));
+				
+				// unset
+				unset($_REQUEST['bPath']);
+				
+			}            
                                 
     	    // give back
 	        return $page;		
@@ -692,8 +703,10 @@
 	 */
 	function pp($pos,$default=false,$filter=false) {
 		
+		if ( !defined('bUriPath') ) { return $default; }
+		
 		// path
-		$path = getenv("bPath");
+		$path = bUriPath;
 		
 		// path 
 		$path = explode('/',trim($path,'/'));
