@@ -5,7 +5,7 @@
 var f = function(Y) { 
 
 	// called to load
-	Y.on('domready',function(){ BLT.Obj = new BLT.Base(); BLT.execute('l'); },window);
+	Y.on('domready',function(){ BLT.Obj = new BLT.Base(); BLT.execute('i'); BLT.execute('l'); },window);
 
 	// shortcuts
 	var $ = Y.get, $j = Y.JSON;
@@ -30,7 +30,7 @@ var f = function(Y) {
 		
 		// args
 		store : { },
-		class : {},
+		cl : {},
 		
 		// init 
 		init : function() {
@@ -180,6 +180,52 @@ var f = function(Y) {
 			if ( !tar ) { return; }			
 		
 		},
+		
+		titleBubble: function (tar, event, type) {
+		
+		    if ( !$('#title-bubble') ) {				
+		        $(document.body).append("<div id='title-bubble'></div>");				        
+		    }
+		
+		    var bubble = $('#title-bubble');		
+		
+		    if (type == 'mouseout') {
+		
+		        bubble.setXY([-99, -99]);
+		
+		        tar.setAttribute('title', tar.getAttribute('xtitle'));
+		
+		        return;
+		
+		    }
+		
+		    var title = tar.getAttribute('title');
+		
+		    if (!title || title == "" || title == 'null') return;
+		
+		    bubble.set('innerHTML', title + "<span></span>");
+		
+		    tar.setAttribute('title', '');
+		    tar.setAttribute('xtitle', title);
+		
+		    // figure the bubble's width 
+		    var bReg = bubble.get('region');
+		    var tReg = tar.get('region');
+		
+		    var bw = (bReg.right - bReg.left);
+		    var bh = (bReg.bottom - bReg.top);
+		
+		    var tw = (tReg.right - tReg.left);
+		
+		    var txy = tar.getXY();
+		
+		    var x = (txy[0] + tw / 2) - (bw / 2);
+		    var y = (txy[1] - (bh + 5));
+		
+		    // set the bubbl's xy 
+		    bubble.setXY([x, y]);
+		
+		},		
 		
 		// keydown
 		keyup : function(e) {

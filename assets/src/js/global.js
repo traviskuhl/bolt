@@ -16,6 +16,7 @@ var BLT = {
 	'Class': {}, 
 	'Load': [], 
 	'Unload': [], 
+	'Init': [],
 	'Store':{}, 
 	'Obj': false, 
 	'Env': { 
@@ -30,7 +31,7 @@ var BLT = {
 };
 
 BLT.add = function(q,o,id) {
-    var qs = {'l':'Load','u':'Unload','s':'Store'};
+    var qs = {'l':'Load','u':'Unload','s':'Store','i':'Init'};
     var h = BLT[qs[q]];
     if ( typeof o == 'object' ) {
         if ( !id ) { id = '_d'; }
@@ -58,7 +59,7 @@ BLT.get = function(id,k) {
 	}				
 }
 BLT.execute = function(q) {
-    var qs = {'l':'Load','u':'Unload'};       
+    var qs = {'l':'Load','u':'Unload','i':'Init'};       
     var h = BLT[qs[q]];             
     for ( var e in h ) {
         h[e].call();

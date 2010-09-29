@@ -57,6 +57,11 @@ class Session extends DatabaseMask {
 		return Session::singleton()->logged;
 	}
 
+	public static function set($key, $val) {
+		$user = Session::singleton()->user;	
+		$user->{$key} = $val;
+	}
+
 	public function login($email,$pass,$encrypted=false) {
 	
 		// cookie names

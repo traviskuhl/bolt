@@ -11,6 +11,7 @@ abstract class Dao {
 	protected $_items = array();
 	protected $_useAddedTimestamp = false;
 	protected $_useModifiedTimestamp = true;
+	protected $_cache = false;
 	
 	// public stuff for paging
 	public $_total = 0;
@@ -25,6 +26,9 @@ abstract class Dao {
 	/// @brief construct a DAO
     /////////////////////////////////////////////////	
 	public function __construct($type=false,$cfg=array()) {		
+		
+		// cahce
+		$this->cache = Cache::singleton();
 		
 		// if there's a struct 
 		$this->_struct = $this->getStruct(); 
@@ -457,6 +461,7 @@ abstract class Dao {
                             
                         // dao
                         case 'dao':
+                       
                         
                         	// class
                         	$cl = "\\dao\\{$info['class']}";
@@ -471,12 +476,16 @@ abstract class Dao {
 	                        			$args[$k] = $obj->{$i};
 	                        		}
  	                        	}
+ 	                        	
                         	
                         	// o
                         	$o = new $cl();
                         	
+                        	// call
+                        	call_user_func_array(array($o, 'get'), $args);
+                        	
                         	// value
-                            $value = call_user_func_array(array($o, 'get'), $args); break;
+                            $value = $o; break;
                         
                         // datetime
                         case 'timestamp':

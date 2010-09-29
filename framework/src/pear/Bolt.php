@@ -35,8 +35,6 @@
 		
 			// file name
 			$file = b::formatDirName($path[1]).$class.$path[0];		
-			
-//			var_dump($file, $class);
 		
 			// does it exist
 			if ( file_exists($file) ) {
@@ -161,6 +159,16 @@
                 
 			// pages
 			$pages = Config::get('pages');
+			
+			// ajax 
+			if ( !isset($pages['ajax']) ) {
+				$pages['ajax'] = array(
+					"uri" => "ajax/([a-zA-Z0-9]+)/?(module|pages)?/?(.*)?/?",
+					'_bModule' => 1,
+					'_bType' => 2,
+					'_bPath' => 3
+				);
+			}
                   
 			// go through and parse the path, look for matches (defined above)
 			foreach ($pages as $pg => $args) {
@@ -200,13 +208,13 @@
             }
             
             // path
-			if ( p('bPath') ) { 
+			if ( p('_bPath') ) { 
 			
 				// define
-				define("bUriPath", p('bPath'));
+				define("bUriPath", p('_bPath'));
 				
 				// unset
-				unset($_REQUEST['bPath']);
+				unset($_REQUEST['_bPath']);
 				
 			}            
                                 
@@ -610,12 +618,12 @@
 			return $return;
 		} 	
 		
-		public static function show_404($page=_404) {
+		public static function show_404($page=b404) {
 			ob_clean();
 			header("HTTP/1.1 404 Not Found",TRUE,404); 
 		
-			if (!file_exists(_404)) {
-				$page = _404;
+			if (!file_exists(b404)) {
+				$page = b404;
 			} 
 		
 			

@@ -95,24 +95,23 @@ class Controller {
 	{
 
 		// module
-		$module = p('_module');
-		$origin = p('_origin');
-		$type = p('_type', 'modules');
-
+		$module = p('_bModule');
+		$origin = p('origin');
+		$type = p('_bType', 'modules');
 
 		// set it
 		$mod = self::initModule(array('class'=>$module), array(), $type);
 
 		// check the module
 		if ( !$mod ) {
-			show_404();
+			b::show_404();
 		}
 
 		// call xhr
 		$resp = $mod->ajax();
 
 		// check what to
-		if ( p('xhr') !== 'true' ) {
+		if ( p('xhr') !== 'true' AND $origin ) {
 			exit(header("Location:".$origin));
 		}
 		else {
@@ -409,8 +408,7 @@ class Controller {
 
 	}
 
-	public function initModule($mod, $args, $type='modules')
-	{
+	public function initModule($mod, $args, $type='modules') {
 
 		// include
 		list($_m, $bolt) = self::includeModule($mod['class'], $type);
@@ -423,6 +421,9 @@ class Controller {
 		// if bolt we need to namespace
 		if ( $bolt == true ) {
 			$mod['class'] = '\bolt\\'.$mod['class'];
+		}
+		else if ( $type == 'modules') {
+			$mod['class'] = '\modules\\'.$mod['class'];
 		}
 
 		// go for it
@@ -555,14 +556,13 @@ class Controller {
 		// print the list
 		foreach (  array_merge(self::$embeds[$type], $config) as $name => $file ) {
 			
-			// dev
-			if (bDevMode) { $file .= '?.r='.time(); }
-		
 			if ( $type == 'css' ) {
+				if (bDevMode) { $file .= '?.r='.time(); }
 				$list[] = "<link rel='stylesheet' href='/assets/{$file}' type='text/css'>";
 			}
-			else if ( $type == 'js') {
+			else if ( $type == 'js') {			
 				$n = key($file);
+				if (bDevMode) { $file[$n] .= '?.r='.time(); }				
 				$list[$n] = array('file' => "/assets/".$file[$n]);
 			}
 		}

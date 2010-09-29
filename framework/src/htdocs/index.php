@@ -6,7 +6,7 @@
 	define("b404",			"/home/bolt/share/htdocs/404.php");
 	
 	// dev
-	define("bDevMode",( getenv("bolt_framework__dev_mode") == 'true' ? true : false ));
+	define("bDevMode", true ); //( getenv("bolt_framework__dev_mode") == 'true' ? true : false ));
 	
 	// project
 	define("bProject", getenv("bProject"));
