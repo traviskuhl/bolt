@@ -145,6 +145,9 @@ abstract class Dao {
 				if ( isset($val[current($parts)]) ) {
 					$val = $val[current($parts)];
 				}
+				else {
+					return false;
+				}
 				
 				// up the cursor
 				next($parts);

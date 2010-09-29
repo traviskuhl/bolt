@@ -4,13 +4,15 @@ namespace Dao;
 
 class like extends Db {
 
-        protected $data = array(        
-            'asset_type' => false,
-            'asset_id' => false,
-            'entity' => false,
-            'user' => false,
-            'ts' => false
-		);
+        protected function getStruct() {
+        	return array(        
+	            'asset_type' => array(),
+	            'asset_id' => array(),
+	            'entity' => array(),
+	            'user' => array( 'type' => 'user' ),
+	            'ts' => array()
+			);
+		}
         
         public function save() { 
                 

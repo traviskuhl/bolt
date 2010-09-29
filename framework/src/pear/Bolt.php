@@ -523,16 +523,10 @@
 		
 		public static function ago($tm,$rcs = 0) {
 		
-		    $cur_tm = b::utctime(); $dif = $cur_tm-$tm;	
+		    $cur_tm = b::utctime();
+		    
+		     $dif = $cur_tm-$tm;	
 		
-	    	// check user for a tzoffset
-	        $u = Session::getUser();
-	        
-	        // offset
-	        if ( $u AND $u->profile_tzoffset ) {
-	        	$tm += $u->profile_tzoffset;
-	        	$cur_tm += $u->profile_tzoffset;
-	        }		
 		
 		    $pds = array('second','minute','hour','day','week','month','year','decade');
 		    $lngh = array(1,60,3600,86400,604800,2630880,31570560,315705600);
