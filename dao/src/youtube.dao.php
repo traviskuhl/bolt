@@ -19,7 +19,7 @@ class youtube extends Webservice {
 		if ( strpos($id, 'http') !== false ) {
 	
 			// get the youtube 
-			preg_match("#watch\?v=([a-zA-Z0-9]+)#i", trim($id), $m);
+			preg_match("#watch\?v=([a-zA-Z0-9_]+)#i", trim($id), $m);
 
 			// reset
 			$id = $m[1];
@@ -28,7 +28,7 @@ class youtube extends Webservice {
 		
 		// get it 
 		$resp = $this->sendRequest('feeds/api/videos/'.$id,array('alt' => 'jsonc', 'v' => '2'));	
-
+	
 		// set 
 		$this->set($resp['data']);
 	

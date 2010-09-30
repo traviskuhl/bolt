@@ -104,9 +104,7 @@
 	
 		// add dao to autoload
 		if ( is_array(Config::get('autoload/file')) ) {
-			foreach ( Config::get('autoload/file') as $file ) {
-				$GLOBALS['_auto_loader'][] = $file;
-			}
+			$GLOBALS['_auto_loader'] = array_merge(Config::get('autoload/file'), $GLOBALS['_auto_loader']);
 		}	
 	
 	
