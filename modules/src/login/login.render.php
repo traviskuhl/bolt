@@ -102,6 +102,7 @@ class login extends \FrontEnd {
 					$user->email = $u['email'];
 					$user->firstname = array_shift($name);
 					$user->lastname = implode(' ',$name);
+					$user->username = strtolower($user->firstname.'-'.$user->lastname.'-'.time());
 					
 					// area
 					$area = Session::getMeValue('area');				

@@ -56,7 +56,7 @@ class likes extends Db implements \Iterator {
                 
                 // check the cache
                 if ( ($sth = $this->cache->get($cid,$cg)) == false ) {
-                                                                
+                                                                                     
                         // sth
                         $sth = $this->query($sql,$p,$total);
                         
