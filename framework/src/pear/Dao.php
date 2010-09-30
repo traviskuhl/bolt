@@ -28,7 +28,7 @@ abstract class Dao {
 	public function __construct($type=false,$cfg=array()) {		
 		
 		// cahce
-		$this->cache = Cache::singleton();
+		$this->_cache = Cache::singleton();
 		
 		// if there's a struct 
 		$this->_struct = $this->getStruct(); 
