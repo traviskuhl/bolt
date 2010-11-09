@@ -66,19 +66,20 @@ class Controller {
 	static function xhr()
 	{
 
-		// try to figure out the
-		// path of the template
-		$base = Config::get('paths/page_templates', true);
+		// module
+		$module = p('_bModule');
+		$origin = p('origin');
+		$type = p('_bType', 'modules');
+		
+		// set it
+		$mod = self::initModule(array('class'=>$module), array(), $type);
 
-		// include the page
-		$pg = self::initModule(array('class'=>p('template')), array('parent'=>array(), 'template'=>array()), 'pages');
-
-		// now make sure the page exists
-		if ( !$pg ) {
-			show_404();
+		// check the module
+		if ( !$mod ) {
+			b::show_404();
 		}
 
-		$r = $pg->render( array() );
+		$r = $mod->render( array() );
 
 		// parse tmpl
 		list($html, $js) = self::parseHtmlForScriptTags($r->html);
@@ -103,7 +104,7 @@ class Controller {
 		$mod = self::initModule(array('class'=>$module), array(), $type);
 
 		// check the module
-		if ( !$mod ) {
+		if ( !$mod OR ( $mod AND !method_exists($mod, 'ajax') ) ) {
 			b::show_404();
 		}
 
@@ -338,9 +339,7 @@ class Controller {
 
 		// take out any object
 		foreach ( array_merge( self::$globals, $d_args ) as $k => $v ) {
-			if ( !is_object($v) ) {
 				$args[$k] = $v;
-			}
 		}
 
 		// parse the template
@@ -370,6 +369,7 @@ class Controller {
 				// see if there are . in the name
 				else if ( strpos($key, '.') !== false ) {
 
+
 						// break apart
 						$parts = explode('.', $key);
 
@@ -377,9 +377,12 @@ class Controller {
 						$k = $args;
 
 						// loop through
-						foreach ( $parts as $p ) {
+						foreach ( $parts as $p ) {										
 							if ( $k and array_key_exists($p, $k) ) {
 								$k = $k[$p];
+							}
+							else if ( $k AND is_object($k) AND $k->{$p} !== false ) {	
+								$k = $k->{$p};
 							}
 							else { $k = $default; break; }
 						}
@@ -482,7 +485,7 @@ class Controller {
 						if ( strpos($args, ':') !== false ) {
 							foreach ( explode(',', $args) as $a ) {
 								list($k, $v) = explode(':', $a);
-								$mod['cfg'][trim($k)] = $v;
+								$mod['cfg'][trim($k)] = trim($v);
 							}
 						}
 						else {

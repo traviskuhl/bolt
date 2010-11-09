@@ -1,8 +1,8 @@
 <?php
 
-namespace dao;
+namespace Dao;
 
-class users extends \DaoDb implements \Iterator {
+class users extends Db implements \Iterator {
 
 	public function get($limit=array()) {
 				
@@ -53,7 +53,7 @@ class users extends \DaoDb implements \Iterator {
 		}
 		
 		// global
-		$this->items = $items;
+		$this->_items = $items;
 		
 		$this->total = count($this->items);
 	

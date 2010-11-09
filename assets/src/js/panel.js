@@ -110,23 +110,31 @@ YUI.add("bolt-class-panel",function(Y) {
 				if ( !Y.get('#panel-modal') ) {
 					Y.get("body").insert("<div id='panel-modal' style='display:none'></div>");
 				}			
-
-				// set it 
-				$("#panel-modal").setStyles({'opacity':0,'display':'block','height':Y.one(window).get('docHeight')+'px'});
-			
-				// fade them out
-				var a = new Y.Anim({
-			        node: $('#panel-modal'),
-			        from: {
-			        	'opacity': 0
-			        },		        
-			        to: {
-						'opacity': .6
-	        		},
-	        		"duration": .5
-				});				
+	
+				// open
+				if ( !$('#panel-modal').hasClass('open') ) {
+		
+					// set it 
+					$("#panel-modal").setStyles({'opacity':0,'display':'block','height':Y.one(window).get('docHeight')+'px'});
 				
-				a.run();
+					// fade them out
+					var a = new Y.Anim({
+				        node: $('#panel-modal'),
+				        from: {
+				        	'opacity': 0
+				        },		        
+				        to: {
+							'opacity': .6
+		        		},
+						easing: Y.Easing.easeIn,	        		
+		        		"duration": (this.args.modalDuration?this.args.modalDuration:.5)
+					});				
+					
+					a.run();
+					
+					$('#panel-modal').addClass('open');
+					
+				}
 				
 			}
 			
@@ -152,6 +160,7 @@ YUI.add("bolt-class-panel",function(Y) {
 			        to: {
 						'opacity': 0
 	        		},
+					easing: Y.Easing.easeOut,	        		
 	        		"duration": .2
 				});				
 			
@@ -159,6 +168,8 @@ YUI.add("bolt-class-panel",function(Y) {
 					// set it 
 					$("#panel-modal").setStyles({'opacity':0,'display':'none'});								
 				});
+				
+				!$('#panel-modal').removeClass('open');
 				
 				a.run();
 			

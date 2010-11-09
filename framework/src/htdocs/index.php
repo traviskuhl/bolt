@@ -2,14 +2,6 @@
         
 	// framework
 	define("bFramework",	"/home/bolt/share/pear/bolt/framework/");
-	define("bConfig",		"/home/bolt/config/");
-	define("b404",			"/home/bolt/share/htdocs/404.php");
-	
-	// dev
-	define("bDevMode", true ); //( getenv("bolt_framework__dev_mode") == 'true' ? true : false ));
-	
-	// project
-	define("bProject", getenv("bProject"));
 	
 	// include our Bold file
 	require(bFramework . "Bolt.php");

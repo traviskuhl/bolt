@@ -12,6 +12,7 @@ class user extends Db {
 	// sturct
 	protected function getStruct() {
 		return array(
+			'id' => array(),
 			'username' => array(),
 			'password' => array( 'private' => true ),
 			'firstname' => array(),
@@ -76,7 +77,9 @@ class user extends Db {
         parent::set($row);
 	
 		// set some stuff
-		$this->_data['name'] = trim( implode(" ",array($row['firstname'],$row['lastname'])) );
+		if ( !isset($this->_data['name']) ) {
+			$this->_data['name'] = trim( implode(" ",array($row['firstname'],$row['lastname'])) );
+		}
 			
 		// nick
 		$this->_data['nick'] = trim($this->_data['firstname'] . ' ' . substr($this->_data['lastname'],0,1));
@@ -138,6 +141,9 @@ class user extends Db {
 				$this->id
 			);			
 		
+
+			return $this->query($sql,$p);
+		
 		}
 		else {
 			
@@ -168,13 +174,12 @@ class user extends Db {
 				$data['profile'],			
 				$data['changelog'],				
 			);		
+	
+			// do it
+			$this->_data['id'] = $this->query($sql,$p);
 			
 		}
 		
-		// do it
-		$this->data['id'] = $this->query($sql,$p);
-		
-		return $this->data['id'];
 	
 	}
 		

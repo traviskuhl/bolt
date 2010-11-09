@@ -7,6 +7,20 @@
         array( '.php', bFramework),
     	array( '.dao.php', "/home/bolt/share/pear/bolt/"), 
     );	
+    
+    // unless defined
+    if ( !defined("bConfig") ) {
+		define("bConfig",		"/home/bolt/config/");
+	}
+	if ( !defined("b404") ) {
+		define("b404",			"/home/bolt/share/htdocs/404.php");
+	}
+	if ( !defined("bDevMode") ) {
+		define("bDevMode", true ); //( getenv("bolt_framework__dev_mode") == 'true' ? true : false ));
+	}
+	if ( !defined("bProject") ) {
+		define("bProject", getenv("bProject"));    
+	}
 	
 	///////////////////////////////////
 	/// @brief autoload class class
@@ -161,13 +175,23 @@
 			// ajax 
 			if ( !isset($pages['ajax']) ) {
 				$pages['ajax'] = array(
-					"uri" => "ajax/([a-zA-Z0-9]+)/?(module|pages)?/?(.*)?/?",
-					'_bModule' => 1,
-					'_bType' => 2,
+					"uri" => "ajax/(modules|pages)/([a-zA-Z0-9]+)/?(.*)?/?",
+					'_bType' => 1,					
+					'_bModule' => 2,
 					'_bPath' => 3
 				);
 			}
-                  
+			
+			// xhr
+			if ( !isset($pages['xhr']) ) {
+				$pages['xhr'] = array(
+					"uri" => "xhr/(modules|pages)/([a-zA-Z0-9]+)/?(.*)?/?",
+					'_bType' => 1,					
+					'_bModule' => 2,
+					'_bPath' => 3
+				);
+			}
+			                  
 			// go through and parse the path, look for matches (defined above)
 			foreach ($pages as $pg => $args) {
 			
@@ -181,9 +205,10 @@
 						if ( isset($args['_bPage']) ) {
 							$page = $args['_bPage'];	unset($args['_bPage']);
 						}
+
 			                      
 					// set other arguments in the GET
-					foreach ($args as $a=>$v) {
+					foreach ($args as $a => $v) {
 			
 						// uri
 						if ( $a == 'uri' ) { continue; }
@@ -203,6 +228,18 @@
 			
 				}
 			
+            }
+            
+            // check for context
+            if ( p('_context') == 'xhr' AND $page != 'xhr' ) {
+            	
+            	// override _bPage
+            	$_REQUEST['_bModule'] = $page;
+				$_REQUEST['_bType'] = 'pages';	
+					
+				// page            	
+            	$page = "xhr";
+            
             }
             
             // path
@@ -288,6 +325,11 @@
 				
 				// need to sanatize 
 				foreach ( $set as $k => $v ) {
+				
+					// k is uri
+					if ( $sec == 'urls' ) {
+						$v = str_replace("--", "=", $v);
+					}
 				
 					// is v and 
 					if ( is_array($v) ) {
@@ -469,9 +511,82 @@
 	
 	}
 
-
 	// bolt
 	class b {
+	
+		private static $instance = false;
+		
+		private function __construct() {
+			
+			// lets create some shortcuts
+			$this->db = Database::singleton();
+			$this->session = Session::singleton();
+			$this->user = Session::singleton()->getUser();
+			$this->logged = Session::singleton()->getLogged();
+		
+		}
+		
+		public function singleton() {
+		
+			// if none create one	
+			if ( !self::$instance ) {
+				$instance = new b();
+			}
+
+			// give it
+			return $instance;
+		
+		}
+		
+		// call
+		public static function __callStatic($name, $args) {
+	
+			// single
+			$s = self::singleton();
+													
+			// is there
+			if ( property_exists($s, $name) ) {
+			
+				// method
+				$method = array_shift($args);			
+			
+				// call func
+				if ( $method ) {
+					return call_user_func_array(array($s->{$name}, $method), $args);
+				}
+				
+			}
+		
+			// nope
+			return false;
+		
+		}
+		
+		public static function url() {
+			return call_user_func_array(array("Config","url"), func_get_args());
+		}
+		
+		public static function config() {
+			
+			// need at least one
+			if ( func_num_args() == 0 ) { return false; }
+			
+			// args
+			$args = array_slice( func_get_args(), 1 );
+			
+			// call
+			return call_user_func_array(array("Config", func_get_arg(0)), $args);
+			
+		}
+	
+		// get 
+		public function _($key) {
+			return self::config('get',$key);
+		}
+
+		public function __($key, $val) {
+			return self::config('set', $key, $val);
+		}
 	
 		public static function makeSlug($str) {
 			

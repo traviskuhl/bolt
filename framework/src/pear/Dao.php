@@ -5,6 +5,8 @@ abstract class Dao {
 	// struct
 	private $_struct = array();
 	private $_changes = array();
+	private $_event = array();
+	private static $_callbacks = array( 'set' => array() );
 	
 	// protected
 	protected $_data = array();	
@@ -29,9 +31,10 @@ abstract class Dao {
 		
 		// cahce
 		$this->_cache = Cache::singleton();
+		$this->_event = Events::singleton();	
 		
 		// if there's a struct 
-		$this->_struct = $this->getStruct(); 
+		$this->_struct = $this->getStruct(); 	
 		
 		// is empty array
 		// fall back to data and schema 
@@ -290,6 +293,11 @@ abstract class Dao {
                         // give it 
                         return date($frm,$this->{$ts});
                         
+				// ago
+				case 'ago':
+				
+					return b::ago($this->{$args[0]});
+                        
                 // decode
                 case 'decode':
                                 return html_entity_decode($this->{$args[0]},ENT_QUOTES,'utf-8');
@@ -400,7 +408,30 @@ abstract class Dao {
 	public function __toString() {
 		return json_encode( $this->asArray() );
 	}	
+
+
+	/////////////////////////////////////////////////
+	/// @breif attach a callback to a dao
+	///
+	/// @return 
+	/////////////////////////////////////////////////
+	public static function attach($event, $dao,  $func, $params=array(), $pri=1) {
 	
+		// self
+		self::$_callbacks[$event][] = array( 'dao' => $dao, 'func' => $func, 'params' => $params, 'priority' => $pri );
+		
+		// order
+		uasort(self::$_callbacks[$event], function($aa,$bb){		
+			$a = $aa['priority'];
+			$b = $bb['priority'];
+		    if ($a == $b) {
+		        return 0;
+		    }
+		    return ($a < $b) ? -1 : 1;		
+		});
+		
+	}
+		
 	
 	/////////////////////////////////////////////////
 	/// @breif default get action
@@ -420,7 +451,8 @@ abstract class Dao {
 	/////////////////////////////////////////////////
 	public function set($data){
 		
-		$this->_data = $data;			
+		// data 
+		$this->_data = $data;					
 			
 		// normalize
 		array_walk($data, array($this, '__mapSet'), $this->_struct);			
@@ -428,6 +460,13 @@ abstract class Dao {
 		// give back data
 		foreach ($data as $key => $val ) {
 			$this->_data[$key] = $val;
+		}		
+		
+		// fire any attached callbacks
+		foreach ( self::$_callbacks['set'] as $cb ) {
+			if ( $cb['dao'] == array_pop(explode('\\',get_class($this))) ) {
+				$this->_data = call_user_func_array($cb['func'], array($this, $this->_data, $cb['params']));
+			}
 		}		
 		
 	}
@@ -473,12 +512,20 @@ abstract class Dao {
                         	$args = p('args', array(), $info);
                         	
 	                        	// args
-	                        	foreach ( $args as $k => $a ) {
-	                        		if ( substr($a,0,1) == '$' ) {
-	                        			$i = substr($a,1);
-	                        			$args[$k] = $obj->{$i};
-	                        		}
- 	                        	}
+	                        	if ( is_array($args) ) {
+		                        	foreach ( $args as $k => $a ) {
+		                        		if ( substr($a,0,1) == '$' ) {
+		                        			$i = substr($a,1);
+		                        			$args[$k] = $obj->{$i};
+		                        		}
+	 	                        	}
+	 	                        }
+	 	                        else {
+	                        		if ( substr($args,0,1) == '$' ) {
+	                        			$i = substr($args,1);
+	                        			$args = $obj->{$i};
+	                        		}	 	                        
+	 	                        }
  	                        	
                         	
                         	// o
@@ -564,7 +611,7 @@ abstract class Dao {
 	                    // tags need to be turned into
 	                    // a tags array
 	                    case 'tags':                            
-	                        $value = (string)$value; break;
+	                        $value = (string)$value; break; 
 	                        
 	                    // dao
 	                    case 'dao':
@@ -629,8 +676,14 @@ abstract class Dao {
 	/////////////////////////////////////////////////	
 	private function objectify($array) {
 	
-		if(!is_array($array) OR is_numeric(key($array)) ) {
-			return $array;
+		if(!is_array($array)) { return $array; }
+		
+		if ( is_numeric(key($array)) ) {
+			$a = array();
+			foreach ( $array as $_a ) {
+				$a[] = $this->objectify($_a);
+			}
+			return $a;
 		}
 	
 		$object = new DaoMock();

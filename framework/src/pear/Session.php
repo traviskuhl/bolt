@@ -20,6 +20,7 @@ class Session extends DatabaseMask {
 		// connect to the database
 		$this->db = Database::singleton();
 		$this->cache =  Cache::singleton();
+		$this->event = Events::singleton();
 	
 		// no session
 		if ( Config::get('site/noSession') == true ) {
@@ -107,6 +108,12 @@ class Session extends DatabaseMask {
 			setcookie($a,$sid,$expire,'/',COOKIE_DOMAIN,false,true);
 			setcookie($b,$bcookie,$expire,'/',COOKIE_DOMAIN,false,true);
 		
+			// fire event
+			$this->event->fire('login',array(
+				'user' => $user,
+				'sid' => $sid
+			));
+		
 			// good
 			return $row;
 		
@@ -120,6 +127,12 @@ class Session extends DatabaseMask {
 	public function logout() {
 	
 		$this->getSession();
+		
+		// fire event
+		$this->event->fire('logout',array(
+			'user' => $this->user,
+			'sid' => $this->sid
+		));			
 
 		// cookie names
 		$a = Config::get('site/cookieUserSession');
@@ -135,6 +148,7 @@ class Session extends DatabaseMask {
 		setcookie($a,false,$expire,'/',COOKIE_DOMAIN,false,true);
 		setcookie($b,false,$expire,'/',COOKIE_DOMAIN,false,true);	
 		
+		// logged
 		$this->loged = false;
 		$this->uid = false;
 		$this->user = false;
@@ -207,7 +221,7 @@ class Session extends DatabaseMask {
 						$this->loged = $this->logged = true;
 						
 						// set user
-						$this->user = new \dao\user('set',$data);
+						$this->user = new \dao\user('get',array($data['id']));
 					
 						// user id
 						$this->uid = $data['id'];

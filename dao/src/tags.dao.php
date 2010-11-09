@@ -6,7 +6,7 @@ namespace Dao;
 /// @brief tags dao
 /// @extends DaoDb
 /////////////////////////////////////////////////
-class tags extends Db {
+class tags extends \Dao implements \Iterator {
 
 
 	/////////////////////////////////////////////////
@@ -18,7 +18,7 @@ class tags extends Db {
 	public function get($ns=false,$pred=false,$val=false) {
         
         // $items
-        $items = $this->items;
+        $items = $this->_items;
         
         // if ns limit by ns
         if ( $ns !== false ) {
@@ -53,6 +53,7 @@ class tags extends Db {
             
         }        
 		        
+		        
         // return items
         return new tags('set',$items);
         
@@ -75,11 +76,11 @@ class tags extends Db {
         if ( is_array($list) ) {
         	foreach ( $list as $tg ) {	
         		if ( is_object($tg) ) {
-        			$this->items[] = $tg;
+        			$this->_items[] = $tg;
         		}
         		else {
         			list($ns,$pred,$val) = tag::parse($tg);
-	        		$this->items[] = new tag('set',array($ns,$pred,$val));
+	        		$this->_items[] = new tag('set',array($ns,$pred,$val));
         		}
         	}
         }
@@ -103,7 +104,7 @@ class tags extends Db {
 	                $tg = new tag('set',array($ns,$pred,$val));
 	            
 	                // now add to the list
-	                $this->items[] = $tg;
+	                $this->_items[] = $tg;
 	                
 	            }            
 	        }	                  
@@ -111,14 +112,14 @@ class tags extends Db {
 		}
     
     	// set pager
-    	$this->setPager( count($this->items), 1, 1 );
+    	$this->setPager( count($this->_items), 1, 1 );
     
     }
 
 
 	public function asArray() {
 		$ary = array();
-		foreach ( $this->items as $item ) {
+		foreach ( $this->_items as $item ) {
 			$ary[] = $item->raw;
 		}
 		return $ary;
@@ -138,10 +139,10 @@ class tags extends Db {
 	/////////////////////////////////////////////////    
     public function add($ns,$pred=false,$val=false) {
     	if ( is_object($ns) ) {
-    		$this->items[] = $ns;
+    		$this->_items[] = $ns;
     	}
     	else {
-	        $this->items[] = new tag('set',array($ns,$pred,$val));
+	        $this->_items[] = new tag('set',array($ns,$pred,$val));
 		}
     }
     
@@ -153,9 +154,9 @@ class tags extends Db {
 	/// @return void
 	/////////////////////////////////////////////////    
     public function remove($tag) {
-        foreach ( $this->items as $k => $tg ) {
+        foreach ( $this->_items as $k => $tg ) {
             if ( $tag->id == $tg->id ) {
-                unset($this->items[$k]); break;
+                unset($this->_items[$k]); break;
             }
         }
     }
@@ -169,9 +170,9 @@ class tags extends Db {
 	/// @return void
 	/////////////////////////////////////////////////    
     public function replace($old,$new) {
-        foreach ( $this->items as $k => $tg ) {
+        foreach ( $this->_items as $k => $tg ) {
             if ( $tg->id == $old->id ) {
-                $this->items[$k] = $new;
+                $this->_items[$k] = $new;
             }
         }
     }
@@ -183,7 +184,7 @@ class tags extends Db {
 	/// @return void
 	/////////////////////////////////////////////////       
 	public function removeAll() {
-		$this->items = array();
+		$this->_items = array();
 	}
 
 
@@ -201,7 +202,7 @@ class tags extends Db {
 		}
 		
 		// loop
-		foreach ( $this->items as $tg ) {
+		foreach ( $this->_items as $tg ) {
 			if ( $tg->id == $tag->id ) {
 				return true;
 			}

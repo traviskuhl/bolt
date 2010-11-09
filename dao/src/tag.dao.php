@@ -1,6 +1,6 @@
 <?php
 
-namespace dao;
+namespace Dao;
 
 /////////////////////////////////////////////////
 /// @brief tag dao
@@ -58,7 +58,7 @@ class tag extends Db {
         else {
             
             // set our own data
-            $this->data['id'] = md5($raw);
+            $this->_data['id'] = md5($raw);
             
             // if no value we set as the pred
             if ( !$val ) {
@@ -68,10 +68,10 @@ class tag extends Db {
         }    
         
         // raw
-        $this->data['raw'] = $raw;
-        $this->data['namespace'] = $ns;
-        $this->data['predicate'] = $pred;
-        $this->data['value'] = $val;
+        $this->_data['raw'] = $raw;
+        $this->_data['namespace'] = $ns;
+        $this->_data['predicate'] = $pred;
+        $this->_data['value'] = $val;
         
     }
 

@@ -84,7 +84,7 @@ class Events extends DatabaseMask {
 		
 		// go throguh each and fire them 
 		foreach ( $this->events[$event] as $e ) {
-			call_user_func($e['func'],$event,$args,$e['params']);
+			call_user_func($e['func'], $event, $args, $e['params']);
 		}
 	
 		// return the guid

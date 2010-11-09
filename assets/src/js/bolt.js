@@ -32,6 +32,9 @@ var f = function(Y) {
 		store : { },
 		cl : {},
 		
+		// fbpersm
+		fbPerms : "read_stream,publish_stream,offline_access,user_about_me,email,user_location,friends_location,user_events,friends_events",
+		
 		// init 
 		init : function() {
 		
@@ -171,7 +174,7 @@ var f = function(Y) {
 				  } else {
 				    alert("Error with facebook login");
 				  }
-				}, {perms:'read_stream,publish_stream,offline_access,user_about_me,email,user_location,friends_location,user_events,friends_events'});				
+				}, {perms:this.fbPerms});				
 
 			}
 		
@@ -409,7 +412,23 @@ var f = function(Y) {
 	    		}
 	    	);
 		
-		}        
+		},
+		
+		bootstrap : function(json) {
+		
+			// if bootstrap
+			if ( json.bootstrap ) {
+				
+				// boot me
+				if ( json.bootstrap.js ) {
+					for ( var el in json.bootstrap.js ) {
+						eval(json.bootstrap.js[el]);
+					}
+				}
+				
+			}
+		
+		}    
         
 			
 	}
