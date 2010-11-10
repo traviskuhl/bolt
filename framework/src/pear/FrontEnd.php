@@ -275,6 +275,8 @@ abstract class FrontEnd {
 		
 		$r = $width / $height;
 		
+		if (!$h) { $h = $height; }
+		
 		if ($crop) {
 			if ($width > $height) {
 				$width = ceil($width-($width*($r-$w/$h)));

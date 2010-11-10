@@ -5,6 +5,7 @@
     // for our files are
     $GLOBALS['_auto_loader'] = array(
         array( '.php', bFramework),
+        array( '.php', bFramework.'Ext/'),
     	array( '.dao.php', "/home/bolt/share/pear/bolt/"), 
     );	
     

@@ -24,7 +24,7 @@ class user extends Db {
 		);	
 	}
 
-	public function get($by,$other=array()) {
+	public function get($by=false,$other=array()) {  
 	
 		// by is zero
 		if ( !$by ) {
