@@ -766,8 +766,11 @@ class S3 {
 	*/
 	public static function createDistribution($bucket, $enabled = true, $cnames = array(), $comment = '') {
 		self::$useSSL = true; // CloudFront requires SSL
-		$rest = new S3Request('POST', '', '2008-06-30/distribution', 'cloudfront.amazonaws.com');
-		$rest->data = self::__getCloudFrontDistributionConfigXML($bucket.'.s3.amazonaws.com', $enabled, $comment, (string)microtime(true), $cnames);
+		$rest = new S3Request('POST', '', '2010-11-01/distribution', 'cloudfront.amazonaws.com');
+		
+		$b = (stripos($bucket,"http:")!==false ? $bucket : $bucket.'.s3.amazonaws.com' );
+		
+		$rest->data = self::__getCloudFrontDistributionConfigXML($b, $enabled, $comment, (string)microtime(true), $cnames);
 		$rest->size = strlen($rest->data);
 		$rest->setHeader('Content-Type', 'application/xml');
 		$rest = self::__getCloudFrontResponse($rest);
@@ -792,15 +795,13 @@ class S3 {
 	*/
 	public static function getDistribution($distributionId) {
 		self::$useSSL = true; // CloudFront requires SSL
-		$rest = new S3Request('GET', '', '2008-06-30/distribution/'.$distributionId, 'cloudfront.amazonaws.com');
+		$rest = new S3Request('GET', '', '2010-11-01/distribution/'.$distributionId, 'cloudfront.amazonaws.com');
 		$rest = self::__getCloudFrontResponse($rest);
 
 		if ($rest->error === false && $rest->code !== 200)
 			$rest->error = array('code' => $rest->code, 'message' => 'Unexpected HTTP status');
 		if ($rest->error !== false) {
-			trigger_error(sprintf("S3::getDistribution($distributionId): [%s] %s",
-			$rest->error['code'], $rest->error['message']), E_USER_WARNING);
-			return false;
+			return $rest;
 		} elseif ($rest->body instanceof SimpleXMLElement) {
 			$dist = self::__parseCloudFrontDistributionConfig($rest->body);
 			$dist['hash'] = $rest->headers['hash'];
@@ -909,8 +910,24 @@ class S3 {
 		$dom = new DOMDocument('1.0', 'UTF-8');
 		$dom->formatOutput = true;
 		$distributionConfig = $dom->createElement('DistributionConfig');
-		$distributionConfig->setAttribute('xmlns', 'http://cloudfront.amazonaws.com/doc/2008-06-30/');
-		$distributionConfig->appendChild($dom->createElement('Origin', $bucket));
+
+		$distributionConfig->setAttribute('xmlns', 'http://cloudfront.amazonaws.com/doc/2010-11-01/');
+		
+		if (substr($bucket, 0, 7) === 'http://' || substr($bucket, 0, 8) === 'https://') {
+			
+			$custom_origin = $dom->createElement('CustomOrigin');
+			$custom_origin->appendChild($dom->createElement('DNSName', str_replace(array('http://', 'https://'), '', $bucket)));		
+			$custom_origin->appendChild($dom->createElement('OriginProtocolPolicy', 'match-viewer'));				
+			
+			$distributionConfig->appendChild($custom_origin);
+			
+		}
+		else {
+
+			$distributionConfig->appendChild($dom->createElement('Origin', $bucket));
+		
+		}
+		
 		$distributionConfig->appendChild($dom->createElement('CallerReference', $callerReference));
 		foreach ($cnames as $cname)
 			$distributionConfig->appendChild($dom->createElement('CNAME', $cname));

@@ -44,8 +44,7 @@ class Controller {
 	}
 
 
-	static function route($page)
-	{
+	static function route($page) {
 
 		// check for ajax request
 		if ( $page == 'ajax' ) {

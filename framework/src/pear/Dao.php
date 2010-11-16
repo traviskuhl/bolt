@@ -463,9 +463,9 @@ abstract class Dao {
 		}		
 		
 		// fire any attached callbacks
-		foreach ( self::$_callbacks['set'] as $cb ) {
+		foreach ( self::$_callbacks['set'] as $cb ) {			
 			if ( $cb['dao'] == array_pop(explode('\\',get_class($this))) ) {
-				$this->_data = call_user_func_array($cb['func'], array($this, $this->_data, $cb['params']));
+				call_user_func_array($cb['func'], array($this, $data, $cb['params']));							
 			}
 		}		
 		
@@ -603,7 +603,11 @@ abstract class Dao {
 	                	// uuid
 						case 'uuid':
 							$value = b::getUuid(); break;
-	                
+							
+						// user
+						case 'user':
+							$value = $value->id; break;
+	                 
 	                    // json we need to decode
 	                    case 'json': 
 	                        $value = json_encode($value); break;
