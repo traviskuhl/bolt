@@ -43,7 +43,7 @@ class tag extends Db {
         $raw = "{$ns}:{$pred}";
         
             // if val
-            if ( $val !== false ) {
+            if ( !empty($val) ) {
                 $raw .= "={$val}";
             }
         
@@ -63,8 +63,10 @@ class tag extends Db {
             $this->_data['id'] = md5($raw);
             
             // if no value we set as the pred
-            if ( !$val ) {
+            if ( !empty($val) ) {
                 $val = $pred;
+            } else { 
+            	$val = false;
             }
             
         }    
