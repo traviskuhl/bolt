@@ -75,3 +75,5 @@ BLT.regModules = function(modules) {
 	}
 }
 
+// shortbut
+B = BLT;

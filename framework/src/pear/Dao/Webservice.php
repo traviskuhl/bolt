@@ -42,7 +42,7 @@ abstract class Webservice extends \Dao {
     /// @param $fn function name
     /// @param $args arguments
     /////////////////////////////////////////////////    
-	public function sendRequest($ep, $params) {
+	public function sendRequest($ep, $params=array()) {
 		return $this->ws->sendRequest($ep, $params);
 	}
 

@@ -28,6 +28,8 @@ class tag extends Db {
 		if ( is_string($parts) )  {
 			$parts = self::parse($parts);
 		}
+		
+		$ns = $pred = $val = false;
 	   
         // get parts of the tag
         if ( count($parts) == 3 ) {

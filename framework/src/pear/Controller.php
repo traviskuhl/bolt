@@ -285,7 +285,7 @@ class Controller {
 
 
 		// parse the template
-		list($template, $modules, $tmpl_settings) = self::parseTemplate($str);
+		list($template, $modules, $tmpl_settings) = self::parseTemplate($str, $p_args);
 
 		// now we loop through each
 		// one of the modules and create it
@@ -342,11 +342,20 @@ class Controller {
 		}
 
 		// parse the template
-		if ( preg_match_all('#\{\$([a-z0-9\.\-\|\_\s\']+)\}#i', $template, $matches, PREG_SET_ORDER) ) {
+		if ( preg_match_all('#\{\$([a-z0-9\.\-\|\_\s\'\(\)]+)\}#i', $template, $matches, PREG_SET_ORDER) ) {
 
 			// loop through each
 			foreach ( $matches as $match ) {
-
+				
+				// func
+				$func = false;
+				
+				// see if there's a function
+				if ( preg_match("#([a-z\_]+)\(([^\)]+)\)#i", $match[1], $m) ) {
+					$func = $m[1];
+					$match[1] = $m[2];				
+				}
+				
 				// check for a defualt
 				$key = array_shift(explode('|', $match[1]));
 				$default = "";
@@ -362,12 +371,11 @@ class Controller {
 
 				// url
 				else if ( strpos($key, 'url.') !== false ) {
-						$value = Config::url(str_replace('url.', '', $key));
-					}
+					$value = Config::url(str_replace('url.', '', $key));
+				}
 
 				// see if there are . in the name
 				else if ( strpos($key, '.') !== false ) {
-
 
 						// break apart
 						$parts = explode('.', $key);
@@ -389,20 +397,41 @@ class Controller {
 						// replace it
 						$value = $k;
 
-					}
+				}
 
 				// if value go ahead and replace
 				if ( $value === false and $default and !$cleanup ) {
 					$value = $default;
 				}
+				
+				// function
+				if ( function_exists($func) ) {
+					$value = $func($value);
+				}
 
 				// replace
-				if ( $value !== false ) {
+				if ( $value !== false AND is_string($value) ) {
 					$template = str_replace($match[0], $value, $template);
 				}
 
 			}
 
+		}
+
+		// parse the template
+		if ( preg_match_all('#\{\@([a-z\_]+)\(([^\)]+)\)\}#i', $template, $matches, PREG_SET_ORDER) ) {
+			foreach ( $matches as $match ) {		
+				if ( function_exists($match[1]) ) {
+					$template = str_replace($match[0], $match[1]($match[2]), $template);			
+				}
+			}
+		}
+
+		// if cleanup remove any leftovers
+		if ( $cleanup AND preg_match_all('#\{\$([a-z0-9\.\-\|\_\s\'\(\)]+)\}#i', $template, $matches, PREG_SET_ORDER) ) {
+			foreach ( $matches as $match ) {		
+				$template = str_replace($match[0], "", $template);			
+			}
 		}
 
 		// re
@@ -454,7 +483,7 @@ class Controller {
 
 	}
 
-	public function parseTemplate($string)
+	public function parseTemplate($string, $p_args=array())
 	{
 
 		// modules
@@ -483,7 +512,14 @@ class Controller {
 						// has at least 1 :
 						if ( strpos($args, ':') !== false ) {
 							foreach ( explode(',', $args) as $a ) {
+							
+								// get key value
 								list($k, $v) = explode(':', $a);
+								
+								// check for {$ in the v, which means we should replace any tokens
+								if ( substr($v,0,2) == '{$' ) { $v = self::replaceTokens($v, $p_args); }
+								
+								// mod
 								$mod['cfg'][trim($k)] = trim($v);
 							}
 						}

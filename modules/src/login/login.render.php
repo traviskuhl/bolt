@@ -78,7 +78,7 @@ class login extends \FrontEnd {
 			
 				// try to get a user to see 
 				// if they've already created an account
-				$user = new \dao\user('get',array($u['email']));		
+				$user = new \dao\user('get',array($u->email));		
 								
 				if (!$user->tags) { $user->tags = new \dao\tags(); }
 				
@@ -86,7 +86,7 @@ class login extends \FrontEnd {
 				$user->profile_fbid = $fbuser; 
 				
 				// pick
-				$user->profile_pic = "https://graph.facebook.com/{$u['id']}/picture?type=square"; 
+				$user->profile_pic = "https://graph.facebook.com/{$u->id}/picture?type=square"; 
 				
 				// fb profile
 				//$user->profile_fb = $u;					
@@ -95,11 +95,11 @@ class login extends \FrontEnd {
 				if ( !$user->id ) {
 					
 					// name
-					$name = explode(' ',$u['name']);
+					$name = explode(' ',$u->name);
 				
 					// make their password
 					$user->password = \dao\user::encrypt( time() . uniqid() ); 
-					$user->email = $u['email'];
+					$user->email = $u->email;
 					$user->firstname = array_shift($name);
 					$user->lastname = implode(' ',$name);
 					$user->username = strtolower($user->firstname.'-'.$user->lastname.'-'.time());
@@ -122,7 +122,7 @@ class login extends \FrontEnd {
 				}
 				
 				// log them in
-				$this->session->login($user->email,$user->password,true);				
+				$this->session->login($user->email, $user->password,true);				
 				
 				// no fb tag for this user
 				if ( !$user->tags->get('fb',$fbuser) ) {

@@ -32,6 +32,10 @@ var f = function(Y) {
 		store : { },
 		cl : {},
 		
+		// shortcuts
+		$ : Y.Node.one,
+		$$ : Y.Node.all,		
+		
 		// fbpersm
 		fbPerms : "read_stream,publish_stream,offline_access,user_about_me,email,user_location,friends_location,user_events,friends_events",
 		
@@ -224,6 +228,11 @@ var f = function(Y) {
 		
 		    var x = (txy[0] + tw / 2) - (bw / 2);
 		    var y = (txy[1] - (bh + 5));
+		    
+		    // left
+		    if ( tar.hasClass('bubble-left') ) {
+		    	x = tar.getX();
+		    }
 		
 		    // set the bubbl's xy 
 		    bubble.setXY([x, y]);

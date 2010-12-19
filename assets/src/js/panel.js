@@ -141,6 +141,9 @@ YUI.add("bolt-class-panel",function(Y) {
 			// fire
 			this.fire('panel:open');
 		
+			// center
+			this.obj.centered();		
+		
 			// open
 			this.obj.show();
 			
@@ -152,7 +155,9 @@ YUI.add("bolt-class-panel",function(Y) {
 			this.fire('panel:close',args);	
 			
 			// if modal
-			if ( this.args.modal ) {		
+			if ( this.args.modal && $('#panel-modal') ) {		
+			
+				if ( !$('#panel-modal').hasClass('open') ) { return; }
 			
 				// fade them out
 				var a = new Y.Anim({
@@ -169,7 +174,7 @@ YUI.add("bolt-class-panel",function(Y) {
 					$("#panel-modal").setStyles({'opacity':0,'display':'none'});								
 				});
 				
-				!$('#panel-modal').removeClass('open');
+				$('#panel-modal').removeClass('open');
 				
 				a.run();
 			

@@ -30,8 +30,6 @@
 	///////////////////////////////////	
 	function __autoload($class) { 
 		
-		// replace
-		
 		// we only want the last part of the class
 		$class = str_replace('\\', "/", $class);
 	
@@ -95,15 +93,6 @@
 	    define("SELF",			 HOST.$_SERVER['REQUEST_URI']);    
 	    
 	}
-
-	// helpdes
-	define("HOUR",(60*60));
-	define("DAY",(60*60*24));
-	define("DATE_LONG_FRM", "l, F jS, Y \n h:i:s A");
-	define("DATE_SHORT_FRM", "F jS, Y \n h:i:s A");	
-	define("DATE_ONLY", "l, F jS, Y");	
-	define("TIME_FRM", "h:i:s A");	
-	
 	
 	// bolt modules
 	define("BOLT_MODULES", "/home/bolt/share/pear/bolt/modules");
@@ -116,12 +105,25 @@
 	
 	// we need their project config
 	Config::load( bConfig . bProject . ".ini");
-	
-		// add dao to autoload
-		if ( is_array(Config::get('autoload/file')) ) {
-			$GLOBALS['_auto_loader'] = array_merge(Config::get('autoload/file'), $GLOBALS['_auto_loader']);
-		}	
-	
+		
+		// any other config files
+		if ( ($loadConfig = getenv("bLoadConfig")) !== false ) {
+			
+			// loop and load each
+			foreach ( explode(',', $loadConfig) as $file ) {
+			
+				// loadi
+				Config::load( bConfig . trim($file) . ".ini");	
+			
+			}
+		
+		}
+
+	// add dao to autoload
+	if ( is_array(Config::get('autoload/file')) ) {
+		$GLOBALS['_auto_loader'] = array_merge(Config::get('autoload/file'), $GLOBALS['_auto_loader']);
+	}	
+
 	
 	////////////////////////////////
 	///  @breif config
@@ -362,9 +364,13 @@
 			$config = self::$config;
 			
 				// check for a sub
-				if ( strpos($var,'/') !== false ) {
+				if ( strpos($var,'/') !== false AND is_array($config) ) {
 					list($ary,$var) = explode('/',$var);
-					$config = $config[$ary];
+					
+					
+					if ( isset($config[$ary]) ) {
+						$config = $config[$ary];
+					}
 				}			
 
 			// what evn
@@ -396,7 +402,7 @@
 		////////////////////////////////
 		/// @breif get a url
 		////////////////////////////////		
-		public static function url($key,$data=false,$params=false,$uri=URI) {
+		public static function url($key, $data=false, $params=false, $uri=URI) {
 			
 			// key = 'slef'
 			if ( $key == 'self' ) {
@@ -465,6 +471,9 @@
 				}
 				$url .= (strpos($url,'?')==false?'?':'&').implode('&',$p);
 			}
+			else {
+				$url = trim($url,'/');
+			}
 			
 			// give back
 			if (stripos($url,"http://") === 0) { 
@@ -514,6 +523,15 @@
 
 	// bolt
 	class b {
+
+		const SecondsInHour = 120;
+		const SecondsInDay = 86400;
+		const SecondsInWeek = 1209600;
+		const SecondsInYear = 31536000;
+		const DateLongFrm = "l, F jS, Y \n h:i:s A";
+		const DateShortFrm = "F jS, Y \n h:i:s A";
+		const DateTimeOnlyFrm = "l, F jS, Y";
+		const TimeOnlyFrm = "h:i:s A";	
 	
 		private static $instance = false;
 		

@@ -1,5 +1,8 @@
 <?php
 
+// bolt
+namespace bolt;
+
 class Api {
 
     // accept

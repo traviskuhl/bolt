@@ -11,6 +11,8 @@ abstract class Mongo extends \Dao {
 	private $_host = false;
 	private $_port = false;
 	private $_db = false;
+	private $_user = false;
+	private $_pass = false;
 
 	// normaize
 	public function set($data) {
@@ -27,11 +29,10 @@ abstract class Mongo extends \Dao {
 
 	// normaize
 	public function normalize() {
-	
+
 		// parent normalize
 		$data = parent::normalize();
-
-	
+		
 		// swithc out id 
 		if ( isset($data['id']) ) {
 			$data['_id'] = $data['id'];
@@ -52,12 +53,19 @@ abstract class Mongo extends \Dao {
 		$this->_host = \Config::get('mongo/host');
 		$this->_port = \Config::get('mongo/port');
 		$this->_db = \Config::get('mongo/db');
+		$this->_user = \Config::get('mongo/user');
+		$this->_pass = \Config::get('mongo/pass');
 
 		// try to connect
 		try { 
 
 			// set dbh
-			$this->dbh = new \Mongo("mongodb://{$this->_host}:{$this->_port}");
+			if ( $this->_user != false AND $this->_pass != false ) {
+				$this->dbh = new \Mongo("mongodb://{$this->_user}:{$this->_pass}@{$this->_host}:{$this->_port}");		
+			}
+			else {
+				$this->dbh = new \Mongo("mongodb://{$this->_host}:{$this->_port}");
+			}
 
 		}
 		catch ( \MongoConnectionException $e ) { die( $e->getMessage() ); }
@@ -186,7 +194,7 @@ abstract class Mongo extends \Dao {
 		$sth = $db->{$collection};			
 
 		// run it
-		$r = $sth->update($query,$data,$opts);
+		$r = $sth->update($query, $data, $opts);
 		
 		// return
 		return $r;

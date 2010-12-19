@@ -200,6 +200,7 @@ class tags extends \Dao implements \Iterator {
 		if ( is_array($tag) ) {
 			$tag = new tag('set', $tag);
 		}
+	
 		
 		// loop
 		foreach ( $this->_items as $tg ) {

@@ -23,8 +23,8 @@ dir - - - $(htdocs)
 dir - - - $(conf)
 
 # pear
-find - - - $(pear)			$(src)/pear
-find - - - $(htdocs)		$(src)/htdocs
+find - - - $(pear)			$(src)/pear  -depth -name "*.php" 
+find - - - $(htdocs)		$(src)/htdocs  -depth -name "*.php" 
 
 # set our conf file
 settings $(conf)	../conf/bolt_framework.conf

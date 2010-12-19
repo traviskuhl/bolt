@@ -73,6 +73,16 @@ class Fb {
 		}
 
 	}
+	
+	public function api() {
+		
+		// try it
+		$resp = call_user_func_array(array($this->fb, "api"), func_get_args());
+		
+		// resp
+		return new FbResponse($resp);
+	
+	}
 
 
 	/////////////////////////////////////
@@ -133,7 +143,49 @@ class Fb {
 
 	}
 
+}
+
+
+// fbrsp
+class FbResponse extends \Dao implements \Iterator {
+
+	//error 
+	private $session = true;
+	private $error = false;
+
+	// construct
+	public function __construct($resp) {
+	
+		// what up with the response
+		if ( isset($resp['error']) ) {
+		
+			// there's an error
+			$this->error = $resp['error']['message'];
+
+			// is it an oauth erro
+			if ( $resp['error']['type'] == 'OAuthException' OR $resp['error']['type'] == 'invalid_token' ) {
+				$this->noSession = false;
+			}
+			
+			// done here
+			return;
+			
+		}
+		
+		if ( isset($resp['data']) ) {
+			$this->_items = $resp['data'];		
+		}
+		else {
+			$this->_data = $resp;	
+		}
+	
+	}
+	
+	public function hasSession() {
+		return $this->session;
+	}
 
 }
+
 
 ?>

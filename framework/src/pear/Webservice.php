@@ -44,10 +44,13 @@ class Webservice {
 	public function __construct( $config = array() ) {
 		
 		// loop through config values and set ones that are allowed 
-		foreach ($config as $k=>$v) {
-						
-			$this->$k = $v;
-			
+		foreach ($config as $k=>$v) {						
+			$this->$k = $v;			
+		}
+					
+		// no port
+		if ( !$this->port ) {
+			$this->port = 80;
 		}
 					
 	}
@@ -123,7 +126,9 @@ class Webservice {
         }
         
         // make the request
-        $result = curl_exec($ch);    
+        $result = curl_exec($ch);   
+        
+//        var_dump($result); 
                     
 		// bad curl call
         if ( curl_getinfo($ch,CURLINFO_HTTP_CODE) > 300) {
@@ -150,11 +155,15 @@ class Webservice {
         if ( !$result ) { 
 			return false;
         }        
+
                   
 		// if json
 		if ( $this->output == 'json' ) {
 			$result = json_decode($result,true);
 		}
+		if ( $this->output == 'json-o' ) {
+			$result = json_decode($result);
+		}		
 		else if ( $this->output == 'xml' ) {
 			$result = simplexml_load_string($result);
 		}

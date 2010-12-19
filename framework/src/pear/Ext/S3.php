@@ -358,7 +358,8 @@ class S3 {
 		if ($rest->response->error === false && $rest->response->code !== 200)
 			$rest->response->error = array('code' => $rest->response->code, 'message' => 'Unexpected HTTP status');
 		if ($rest->response->error !== false) {
-			trigger_error(sprintf("S3::putObject(): [%s] %s", $rest->response->error['code'], $rest->response->error['message']), E_USER_WARNING);
+			throw new Exception($rest->response->error['message'], $rest->response->error['code']);		
+//			trigger_error(sprintf("S3::putObject(): [%s] %s", $rest->response->error['code'], $rest->response->error['message']), E_USER_WARNING);
 			return false;
 		}
 		return true;

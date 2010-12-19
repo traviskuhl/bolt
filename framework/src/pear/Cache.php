@@ -67,13 +67,13 @@ class Cache {
 	}	
 	
 	// set
-	public function set($key,$value,$exp=0,$ns='default') {
+	public function set($key, $value, $exp=0, $ns='default', $compress=MEMCACHE_COMPRESSED) {
 	
 		// cid
 		$cid = "{$this->basens}:{$ns}:{$key}";
 	
 		// set it 
-		$r = $this->memcache->set($cid,$value,MEMCACHE_COMPRESSED,(int)$exp);
+		$r = $this->memcache->set($cid, $value, $compress, (int)$exp);
 	
 		// if ns does not exists we need to keep track
 		if ( $ns != 'default' ) {
@@ -135,7 +135,21 @@ class Cache {
 	
 	}
 
-
+	// increment
+	public function increment($key, $ns='default', $value=1) {
+		
+		// cid
+		$cid = "{$this->basens}:{$ns}:{$key}";
+		
+		// check if it exists
+		if ( !$this->p_get($key, $ns) ) { 
+			$this->set($key, 0, false, $ns, false);
+		}
+		
+		// do it 
+		return $this->memcache->increment($cid, $value);
+	
+	}
 
 }
 
