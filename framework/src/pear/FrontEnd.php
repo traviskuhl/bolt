@@ -61,8 +61,8 @@ abstract class FrontEnd {
 	public static function doSendEmail($args) {
 	
 		// check for from 
-		if ( !isset($args['from']) ) {
-			$args['from'] = "no-reply@dailyd.com";
+		if ( !isset($args['from']) OR !isset($args['to']) ) {
+			return false;
 		}
 
 		// headers
@@ -78,8 +78,8 @@ abstract class FrontEnd {
 			'host'		=> 'smtp.gmail.com', 
 			'port'		=> '587',
 			'auth'		=> true,
-			'username'	=> 'no-reply@dailyd.com',
-			'password'	=> 'd@ilyD'
+			'username'	=> '',
+			'password'	=> ''
 		);
 
 		// Create the mail object using the Mail::factory method

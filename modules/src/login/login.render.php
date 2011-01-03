@@ -10,7 +10,7 @@ use \Controller as Controller;
 
 class login extends \FrontEnd {
 
-	public function render($cfg) {
+	public function render($cfg) { 
 	
 		// args
 		$args = array(
@@ -142,7 +142,7 @@ class login extends \FrontEnd {
 				else {
 					
 					if ( isset($cfg['after']) ) { 
-						$this->go($cfg['after']);
+						$this->go(urldecode($cfg['after']));
 					} else { 
 						$this->go('/');
 					}
