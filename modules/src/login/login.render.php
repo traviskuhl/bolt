@@ -86,7 +86,7 @@ class login extends \FrontEnd {
 				$user->profile_fbid = $fbuser; 
 				
 				// pick
-				$user->profile_pic = "https://graph.facebook.com/{$u->id}/picture?type=square"; 
+		//		$user->profile_pic = "https://graph.facebook.com/{$u->id}/picture?type=square"; 
 				
 				// fb profile
 				//$user->profile_fb = $u;					

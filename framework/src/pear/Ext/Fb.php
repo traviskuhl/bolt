@@ -173,7 +173,7 @@ class FbResponse extends \Dao implements \Iterator {
 		}
 		
 		if ( isset($resp['data']) ) {
-			$this->_items = $resp['data'];		
+			$this->_items = $resp['data'];
 		}
 		else {
 			$this->_data = $resp;	

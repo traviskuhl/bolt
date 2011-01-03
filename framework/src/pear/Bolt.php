@@ -17,7 +17,7 @@
 		define("b404",			"/home/bolt/share/htdocs/404.php");
 	}
 	if ( !defined("bDevMode") ) {
-		define("bDevMode", true ); //( getenv("bolt_framework__dev_mode") == 'true' ? true : false ));
+		define("bDevMode", ( getenv("bolt_framework__dev_mode") == 'true' ? true : false ));
 	}
 	if ( !defined("bProject") ) {
 		define("bProject", getenv("bProject"));    
@@ -62,7 +62,7 @@
 	}	
 	
 	// dev mode?
-//	if ( defined('bDevMode') AND bDevMode === true ) {
+	if ( defined('bDevMode') AND bDevMode === true ) {
 	
 		// error reporting
 	    error_reporting(E_ALL^E_DEPRECATED);
@@ -70,7 +70,7 @@
 	    // display errors
 	    ini_set("display_errors",1);		
 	    
-//	}
+	}
 	
     // get the file name
     $path = explode("/",$_SERVER['SCRIPT_FILENAME']);
@@ -524,6 +524,7 @@
 	// bolt
 	class b {
 
+		// constants
 		const SecondsInHour = 120;
 		const SecondsInDay = 86400;
 		const SecondsInWeek = 1209600;
@@ -533,7 +534,11 @@
 		const DateTimeOnlyFrm = "l, F jS, Y";
 		const TimeOnlyFrm = "h:i:s A";	
 	
+		// private vars
 		private static $instance = false;
+		public $attached = array();
+		
+		public $db, $session, $user, $logged = false;
 		
 		private function __construct() {
 			
@@ -545,23 +550,37 @@
 		
 		}
 		
-		public function singleton() {
+		public static function attach($name, $func) {
 		
-			// if none create one	
-			if ( !self::$instance ) {
-				$instance = new b();
-			}
-
-			// give it
-			return $instance;
-		
+			// get the instance
+			$i = self::singleton();
+			
+			// attach our callback
+			$i->attached[$name] = $func;
+			
 		}
 		
+		public static function singleton() {
+		
+			// if none, create one
+			if ( !self::$instance ) {
+				$class = __CLASS__;
+				self::$instance = new $class();
+			}
+		
+			// give back
+			return self::$instance;
+			
+			}
+		
 		// call
-		public static function __callStatic($name, $args) {
+		public static function c() {	
+		
+			$args = func_get_args();
+			$name = array_shift( $args );
 	
 			// single
-			$s = self::singleton();
+			$s = b::singleton();
 													
 			// is there
 			if ( property_exists($s, $name) ) {
@@ -574,6 +593,9 @@
 					return call_user_func_array(array($s->{$name}, $method), $args);
 				}
 				
+			}
+			else if ( array_key_exists($name, $s->attached) ) {
+				return call_user_func_array($s->attached[$name], $args);
 			}
 		
 			// nope
@@ -603,8 +625,16 @@
 			return self::config('get',$key);
 		}
 
-		public function __($key, $val) {
+		public function __($key, $val, $reg=false) {
+		
+			// register with controller?
+			if ( $reg === true ) {
+				Controller::registerGlobal($key, $val);
+			}
+		
+			// set in config
 			return self::config('set', $key, $val);
+			
 		}
 	
 		public static function makeSlug($str) {

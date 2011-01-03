@@ -1,6 +1,6 @@
 <?php
 
-abstract class Dao extends DaoHelpers {
+abstract class Dao extends DaoHelpers implements \Iterator {
 
 	// struct
 	private $_struct = array();
@@ -560,8 +560,10 @@ abstract class Dao extends DaoHelpers {
         // go through and get array
         if ( count($this->_items) > 0 ) {
             foreach ( $this->_items as $item ) {
-                $i = $item->asArray();
-                $resp[] = $i;
+            	if ( is_object($item) AND method_exists($item, "asArray") ) {
+                	$item = $item->asArray();
+                }
+                $resp[] = $item;
             }
     	}
     	else {
