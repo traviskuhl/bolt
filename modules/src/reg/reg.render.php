@@ -95,7 +95,7 @@ class reg extends \FrontEnd {
 			if ( !$this->validateFormToken('reg',p_raw('reg_token') ) ) {
 				$error .= "<div>Something went wrong. Please try re-submitting.</div>";
 			}
-			
+						
 			// no erro
 			if ( $error === false ) {
 			
@@ -115,7 +115,8 @@ class reg extends \FrontEnd {
 						'email' => $f['email'],
 						'firstname' => array_shift($name),
 						'lastname' => implode(' ',$name),					
-						'password' => \dao\user::encrypt($f['pword'])
+						'password' => \dao\user::encrypt($f['pword']),
+						'username' => (isset($f['username'])?$f['username']:uniqid('user-'))
 					));
 				
 					// everything else goes into profile
@@ -135,11 +136,13 @@ class reg extends \FrontEnd {
 						foreach ( $cfg['tags'] as $fid => $group ) {					
 							$user->tags->add( $group,$f[$fid] );
 						}
+					} else { 
+						$user->tags = new \dao\tags();
 					}
 										
 					// save me 
 					$resp = $user->save();
-				
+									
 					// what 
 					if ( $resp ) {
 												

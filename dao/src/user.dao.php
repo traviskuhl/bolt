@@ -100,15 +100,7 @@ class user extends Db {
 		$p = array();
 				
 		// insert or update
-		if ( $this->id ) {
-						
-			/* gather our changelog
-			$data['changelog'][utctime()] = array(
-				'text' => '',
-				'changes' => $this->changes,
-				'name' => \Session::getUser()->name,
-				'user' => \Session::getUser()->id
-			); */
+		if ( $this->id ) { 
 			
 			// normailze
 			$data = $this->normalize();							
@@ -123,8 +115,7 @@ class user extends Db {
 					lastname = ?,
 					email = ?,
 					tags = ?,
-					profile = ?,
-					changelog = ?
+					profile = ?
 				WHERE
 					id = ?
 			";
@@ -137,7 +128,6 @@ class user extends Db {
 				$data['email'],
 				$data['tags'],
 				$data['profile'],
-				$data['changelog'],
 				$this->id
 			);			
 		
@@ -148,8 +138,8 @@ class user extends Db {
 		else {
 			
 			// normailze
-			$data = $this->normalize(); 		
-				
+			$data = $this->normalize();
+			
 			$sql = "
 				INSERT INTO
 					users 
@@ -160,8 +150,7 @@ class user extends Db {
 					lastname = ?,
 					email = ?,
 					tags = ?,
-					profile = ?,
-					changelog = ?
+					profile = ?
 			";
 			
 			$p = array(
@@ -172,12 +161,13 @@ class user extends Db {
 				$data['email'],
 				$data['tags'],
 				$data['profile'],			
-				$data['changelog'],				
 			);		
-	
+						
 			// do it
-			$this->_data['id'] = $this->query($sql,$p);
+			$this->_data['id'] = $id = $this->query($sql,$p);
 			
+			return $id;
+						
 		}
 		
 	

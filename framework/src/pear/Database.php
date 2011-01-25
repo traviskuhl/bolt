@@ -78,7 +78,7 @@ class Database {
 		// run sql
 		$sth = $this->dbh->prepare($sql);
 		
-		// eexecite
+		// execute
 		$res = $sth->execute($params);
 
 		// die
