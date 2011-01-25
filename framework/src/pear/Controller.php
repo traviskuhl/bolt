@@ -2,14 +2,31 @@
 
 class Controller {
 
+	// static
 	static $modules = array();
 	static $embeds = array( 'css' => array(), 'js' => array() );
 	static $id = 1;
 	static $globals = array();
+	
+	// callback
+	static $_callbacks = array( );
 
-	static function registerGlobal($key, $val)
-	{
+	static function registerGlobal($key, $val) {
 		self::$globals[$key] = $val;
+	}
+	
+	static function registerCallback($for, $func) {
+		if ( !array_key_exists($for, self::$_callbacks) ) { self::$_callbacks[$for] = array(); }
+		self::$_callbacks[$for][] = $func;
+	}
+
+	static function executeCallbacks($for, $args=false) {
+		if ( array_key_exists($for, self::$_callbacks) ) {
+			foreach ( self::$_callbacks[$for] as $func ) {
+				$args = call_user_func($func, $args);
+			}
+		}
+		return $args;
 	}
 
 	static function includeModule($name, $type='modules')
@@ -189,16 +206,29 @@ class Controller {
 			$o->args = array();
 		}
 
+		// args
 		$args = $o->args;
+		
+			// check for html callbacks
 
-		// body
-		$args['_body'] = $o->html;
+		
+		// if args tells us not to 
+		// render the global
+		if ( isset($args['_bNoGlobalTemlate']) AND $args['_bNoGlobalTemlate'] == true ) {
+			$global = $o;
+		}
+		else {
 
-		// add settings
-		$args['_args'] = $o->args;
-
-		// render the template
-		$global = self::renderTemplate( Config::get('site/globalTemplate'), $args, $base );
+			// body
+			$args['_body'] = $o->html;
+	
+			// add settings
+			$args['_args'] = $o->args;
+	
+			// render the template
+			$global = self::renderTemplate( Config::get('site/globalTemplate'), $args, $base );
+			
+		}
 
 		// added embed lists
 		$args['cssEmbeds'] = Controller::getEmbedList('css', true);
@@ -234,9 +264,14 @@ class Controller {
 		);
 	}
 
-	public static function renderModule($file, $p_args=array(), $base=false)
-	{
-		return self::renderTemplate($file, $p_args, $base);
+	public static function renderModule($file, $p_args=array(), $base=false) {
+		
+		// get object 
+		$o = self::renderTemplate($file, $p_args, $base);
+		
+		// execute callback
+		return self::executeCallbacks("renderModule", $o);
+		
 	}
 
 	public static function renderTemplate($file, $p_args=array(), $base=false)
