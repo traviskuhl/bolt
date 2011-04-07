@@ -1,6 +1,0 @@
-#!/usr/bin/php
-<?php
-apc_clear_cache('user'); 
-apc_clear_cache(); echo "\n";
-`sudo /etc/init.d/httpd restart`;
-?>

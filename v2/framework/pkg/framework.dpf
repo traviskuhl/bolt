@@ -3,7 +3,7 @@
 # internal variables
 src = ../src
 htdocs = /home/bolt/share/htdocs
-pear = /home/bolt/share/pear/bolt/framework
+pear = /home/bolt/share/pear/bolt/v2/framework
 conf = /home/bolt/conf/httpd
 
 # meta data
