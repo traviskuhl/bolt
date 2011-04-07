@@ -1,0 +1,102 @@
+<?php
+
+namespace Dao;
+
+/////////////////////////////////////////////////
+/// @brief tag dao
+/// @extebds DaoDb
+/////////////////////////////////////////////////
+class tag extends Db {
+
+    // list of special tags that 
+    // should be checked against in the 
+    // database
+    private $special = array( 
+    );
+
+	/////////////////////////////////////////////////
+	/// @brief set the tag information
+	///
+	/// @param ns namespace of the tag
+	/// @param pred predicate of the tag
+	/// @param val value of the tag
+	/// @return void
+	/////////////////////////////////////////////////
+	public function set($parts) {
+	
+		// string
+		if ( is_string($parts) )  {
+			$parts = self::parse($parts);
+		}
+		
+		$ns = $pred = $val = false;
+	   
+        // get parts of the tag
+        if ( count($parts) == 3 ) {
+    	    list($ns,$pred,$val) = $parts;        
+        }
+        else {
+	        list($ns,$pred) = $parts;        
+        }
+		
+        // raw
+        $raw = "{$ns}:{$pred}";
+        
+            // if val
+            if ( !empty($val) ) {
+                $raw .= "={$val}";
+            }
+        
+        // check if the namespace is special
+        if ( isset($this->special[$ns]) ) {
+        
+            // get the data 
+            $o = new $this->special[$ns]['object']('get',array($pred));
+            
+            // set value
+            $val = $o->{$this->special[$ns]['value']};
+        	       
+        }
+        else {
+            
+            // set our own data
+            $this->_data['id'] = md5($raw);
+            
+            // if no value we set as the pred
+            if ( !empty($val) ) {
+                $val = $pred;
+            } else { 
+            	$val = false;
+            }
+            
+        }    
+        
+        // raw
+        $this->_data['raw'] = $raw;
+        $this->_data['namespace'] = $ns;
+        $this->_data['predicate'] = $pred;
+        $this->_data['value'] = $val;
+        
+    }
+
+	public static function parse($str) {
+		
+		// start out
+		$ns = $pred = $val = false;
+		
+		// find ns 
+		list($ns,$pred) = explode(':',$str);
+			
+			// check for val
+			if ( mb_strpos($pred,'=') !== false ) {
+				list($pred,$val) = explode("=",$pred);
+			}
+	
+		// give back
+		return array($ns,$pred,$val);
+	
+	}
+
+}
+
+?>
