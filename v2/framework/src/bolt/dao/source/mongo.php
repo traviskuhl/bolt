@@ -15,25 +15,28 @@ abstract class mongo extends \bolt\dao\stack {
         
         // morph
         if (is_array(func_get_arg(0))) {
-            call_user_func_array(array($this, 'row'), $args);
+            return call_user_func_array(array($this, 'query'), $args);        
         }
         else {
-            call_user_func_array(array($this, 'query'), $args);        
+            return call_user_func_array(array($this, 'row'), $args);
         }        
     }
     
     public function row($field, $val=array()) {
     
         // query that shit up
-        return $this->query(array($field => $val))->item('first');
-    
+        $resp = $this->query(array($field => $val));
+        
+        // what up
+        return ($resp->count() ? $resp->item('first') : new \bolt\dao\item() );
+
     }
     
     public function query($query, $args=array()) {
     
         // run our query
-        $sth = b::mongo()->query($this->table, $query, $args);
-    
+        $sth = \b::mongo()->query($this->table, $query, $args);
+            
         // loop it up
         foreach ($sth as $item) {
             $this->push(new \bolt\dao\item($this->getStruct(), $item), $item['_id']);

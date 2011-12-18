@@ -5,7 +5,7 @@ namespace bolt\common\dao;
 class test extends \bolt\dao\source\mongo {
 
     // table
-    protected $table = "test";
+    protected $table = "accounts";
 
     // get struct
     public function getStruct() {

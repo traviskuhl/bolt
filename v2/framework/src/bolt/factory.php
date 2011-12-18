@@ -11,7 +11,7 @@ abstract class factory {
     public static function factory($args) {
     
         // paretn
-        $parent = get_parent_class();
+        $parent = get_called_class();
         
         // rebuild our class
         return new $parent($args);

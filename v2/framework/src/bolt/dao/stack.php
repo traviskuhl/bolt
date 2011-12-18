@@ -5,14 +5,20 @@ namespace bolt\dao;
 class stack extends \SplStack {
 
     private $map = array();
+    
+    // loaded
+    public function loaded() { return $this->count(); }
 
     public function push($item, $key=false) {
-        
-        // i
-        $i = $this->count();
-        
+            
         // push to stak
         parent::push($item);
+        
+        // i
+        $i = $this->key();
+        
+        // no key
+        if ($key === false) { $key = $i; }
     
         // if key add it to the map
         $this->map[$key] = $i;
@@ -23,11 +29,11 @@ class stack extends \SplStack {
     public function item($idx=0) {
 
         // what up
-        switch($item) {
+        switch($idx) {
         
             // first item
             case 'first':
-                $item = array_shift(array_slice($this->map,0,1)); break;
+                $idx = array_shift(array_slice($this->map,0,1)); break;
                 
             // last item
             case 'last':
@@ -38,13 +44,15 @@ class stack extends \SplStack {
                 if (array_key_exists($idx, $map)) {
                     $idx = $map[$idx];
                 }
-                else {
-                    $idx = $idx;
-                }
         };
-    
-        // give it 
-        return $this->getOffset($idx);
+       
+        // nope
+        if ($this->offsetExists($idx)) {
+            return $this->offsetGet($idx);
+        }
+        else {
+            return false;
+        }
     
     }
 

@@ -15,7 +15,10 @@ class dao extends factory {
     ////////////////////////////////////////////////////////////
     /// @brief factory
     ////////////////////////////////////////////////////////////    
-    public static function factory($args) {
+    public static function factory() {
+        
+        // args
+        $args = func_get_args();
         
         // the first part of args should be 
         // the class name

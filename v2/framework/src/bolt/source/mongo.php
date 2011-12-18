@@ -3,16 +3,19 @@
 // namespace me
 namespace bolt\source;
 
+// b
+use \b as b;
+
 // plugin both our classes
-\b::plug('mongo', '\bolt\source\mongo');
-\b::plug('mongoi', '\bolt\source\mongoi');
+b::plug('mongo', '\bolt\source\mongo');
+b::plug('mongoi', '\bolt\source\mongoi');
 
 // mongo
 class mongo extends \bolt\singleton {
 
     private $instance = false;
 
-    public function __construct($args) {
+    public function __construct($args=array()) {        
         $this->instance = b::mongoi(b::config()->mongo);
     }
     
@@ -24,10 +27,7 @@ class mongo extends \bolt\singleton {
 }
 
 
-class mongoi extends \MongoDb {
-    
-    // what type
-    public static $TYPE = 'factory';    
+class mongoi extends \bolt\factory {
 
 	// dbh
 	private $dbh = false;
@@ -36,7 +36,7 @@ class mongoi extends \MongoDb {
 	private $config = array();
 	private $grid = false;
 
-	public function __construct($config) {		
+	public function __construct($config) {			
 		$this->config = $config;		
 	}
 
@@ -153,7 +153,7 @@ class mongoi extends \MongoDb {
 		}
 
 		// return a response
-		return new MongoResponse($resp,$sth);
+		return $resp;
 
 	}
 

@@ -18,15 +18,26 @@ class b {
 
     // what defined our core
     private static $core = array(
+    
+        // general 
         'config'    => "./bolt/config.php",
         'dao'       => "./bolt/dao.php",
-        'mongo'     => "./bolt/source/mongo.php"
+        'route'     => "./bolt/route.php",
+        
+        // source
+        'mongo'     => "./bolt/source/mongo.php",        
+        
     );
     
     ////////////////////////////////////////////////////////////
     /// @brief initialize bolt
     ////////////////////////////////////////////////////////////    
     public static function init($args=array()) {
+    
+        // if no core
+        if (!array_key_exists('core', $args)) {
+            $args['core'] = array_keys(self::$core);
+        }
     
         // we need to include all of our core
         // plugins
@@ -35,8 +46,8 @@ class b {
             // see if it's relative
             if (substr($file,0,2) == './') { $file = bRoot."/{$file}"; }
             
-            // if we have an autoload we should loop through it 
-            // if ()
+            // make sure they want us to load it
+            if (!in_array($name, $args['core'])) { continue; }
             
             // include it, only one
             include_once($file);
@@ -85,7 +96,15 @@ class b {
         
         // do we not have a plugin for this
         if (!array_key_exists($name, self::$plugin)) {
-            return false;
+
+            // if this is in our helper function
+            if (method_exists('\bolt\helpers', $name)) {
+                return call_user_func_array(array('\bolt\helpers', $name), $args);
+            }
+            else {
+                return false;
+            }
+
         }
     
         // get it 
@@ -93,7 +112,7 @@ class b {
         
         // ask the class what it is
         if ($plug::$TYPE == 'factory') {
-            return call_user_func(array($plug, "factory"), $args);
+            return call_user_func_array(array($plug, "factory"), $args);
         }
         
         // singleton 
@@ -103,19 +122,16 @@ class b {
             if (!array_key_exists($name, self::$instance)) {
                 self::$instance[$name] = new $plug();
             }
-        
-            // shift off the arg as our method
-            $method = array_shift($args);
             
             // instance
             $i = self::$instance[$name];
             
             // is it a string
-            if (is_string($method)){ 
-                return call_user_func_array(array($i, $method), $args);
-            }
-            else if (method_exists($i, "__default")) {            
-                return call_user_func_array(array($i, "__default"), (is_array($method) ? array_merge(array($method), $args) : $args));
+            if (isset($args[0]) AND is_string($args[0]) AND method_exists($i, $args[0]) ){ 
+                return call_user_func_array(array($i, array_shift($args)), $args);
+            }            
+            else if (isset($args[0]) AND method_exists($i, "__default")) {            
+                return call_user_func_array(array($i, "__default"), $args);
             }
             else {
                 return $i;
@@ -148,4 +164,134 @@ class b {
         self::$plugin[$name] = $class;
     }
 
+	// constants
+	const SecondsInHour = 120;
+	const SecondsInDay = 86400;
+	const SecondsInWeek = 1209600;
+	const SecondsInYear = 31536000;
+	const DateLongFrm = "l, F jS, Y \n h:i:s A";
+	const DateShortFrm = "F jS, Y \n h:i:s A";
+	const DateTimeOnlyFrm = "l, F jS, Y";
+	const TimeOnlyFrm = "h:i:s A";	
+	const DefaultFilter = FILTER_SANITIZE_STRING;
+
 }
+
+	
+/**
+ * global paramater function
+ * @method	p
+ * @param	{string}	key name
+ * @param	{string} 	default value if key != exist [Default: false]
+ * @param	{array}		array to look in [Default: $_REQUEST]
+ * @param   {string}    string to filter on the return
+ */
+function  p($key, $default=false, $array=false, $filter=FILTER_SANITIZE_STRING) {
+
+	// check if key is an array
+	if ( is_array($key) ) {
+	
+		// alawys 
+		$key = $key['key'];
+		
+		// check for other stuff
+		$default = p('default',false,$key);
+		$array = p('array',false,$key);
+		$filter = p('filter',false,$key);
+		
+	}
+	
+	// no array
+	if ( $array === false ) {
+		$array = $_REQUEST;
+	}
+	
+	// if there's a .
+	if ( strpos($key, '.') !== false ) {
+		
+		// split on the .
+		list($a, $k) = explode('.', $key);
+				
+		// reset array as p(a);
+		$array = p($a, array(), false, $filter);
+		
+		// reset key
+		$key = $k;
+		
+	}
+	
+	// not an array
+	if ( !is_array($array) OR $key === false ){ return false; }
+
+	
+	// check 
+	if ( !array_key_exists($key,$array) OR $array[$key] === "" OR $array[$key] === false OR $array[$key] === 'false' ) {
+		return $default;
+	}	
+
+	
+	// if final is an array,
+	// weand filter we need to filter each el		
+	if ( is_array($array[$key]) ) {
+		
+		// filter
+		array_walk($array[$key],function($item,$key,$a){
+			$item = p($key,$a[1],$a[0]);
+		},array($filter,$array[$key]));
+
+	}
+	else {
+	
+		// array
+		$array[$key] = filter_var($array[$key], $filter);
+		
+		// still bad
+		if (!$array[$key]) {
+			return $default;
+		}
+		
+	}
+	
+	// reutnr
+	return $array[$key];
+
+}
+
+	// p raw
+	function p_raw($key,$default=false,$array=false) {
+		return p($key,$default,$array,FILTER_UNSAFE_RAW);
+	}
+
+/**
+ * global path function 
+ * @method	pp
+ * @param	{array}		position (index) in path array
+ * @param	{string}	default 
+ * @param	{string}	filter
+ * @return	{string}	value or false
+ */
+function pp($pos,$default=false,$filter=false) {
+		
+	// path
+	$path = b::_('_bPath');
+	
+	if ( !$path ) { return $default; }
+	
+	// path 
+	$path = explode('/',trim($path,'/'));
+	
+	// yes?
+	if ( count($path)-1 < $pos OR ( count($path)-1 >= $pos AND $path[$pos] == "" ) ) {
+		return $default;
+	}
+
+	// filter
+	if ( $filter ) {
+		$path[$pos] = preg_replace("/[^".$filter."]+/","",$path[$pos]);
+	}
+	
+	// give back
+	return $path[$pos];
+
+}		
+

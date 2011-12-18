@@ -11,6 +11,7 @@ class item extends \InfiniteIterator {
     private $_struct = array();
     private $_data = array();
     private $_expand = array();
+    private $_loaded = false;
     
     // some protected stuff
 	protected $_useAddedTimestamp = false;
@@ -24,6 +25,8 @@ class item extends \InfiniteIterator {
 	/// @return array with object construct
     /////////////////////////////////////////////////	
 	protected function getStruct() { return array(); }
+	
+	public function loaded() { return $this->_loaded; }
 
 	/////////////////////////////////////////////////
 	/// @brief construct a DAO
@@ -50,9 +53,10 @@ class item extends \InfiniteIterator {
 		}
 
         // set some sdata
-        $this->set($data);			
-			
-				
+        if (count($data) > 0) {
+            $this->set($data);			
+        }
+		
 	}
 	
 	
@@ -491,6 +495,9 @@ class item extends \InfiniteIterator {
 		// needs to be an array
 		if ( !is_array($data) ) { return; }
 		
+		// loaded
+		$this->_loaded = true;
+		
 		// data 
 		$this->_data = $data;						
 			
@@ -500,13 +507,6 @@ class item extends \InfiniteIterator {
 		// give back data
 		foreach ($data as $key => $val ) {
 			$this->_data[$key] = $val;
-		}		
-		
-		// fire any attached callbacks
-		foreach ( self::$_callbacks['set'] as $cb ) {			
-			if ( $cb['dao'] == array_pop(explode('\\',get_class($this))) ) {
-				call_user_func_array($cb['func'], array($this, $data, $cb['params']));							
-			}
 		}		
 		
 	}

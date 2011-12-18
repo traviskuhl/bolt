@@ -13,25 +13,9 @@ class config extends singleton {
     private $data = array();
 
     // default 
-    public function __default($args=array()) {        
+    public function __default() {        
         // forward it to call
-        return $this->merge($args);
-    }
-
-    // override our call method
-    public function __call($name, $args) {
-        if ($name == 'set') {
-            return $this->set(array_shift($args), array_shift($args));
-        }
-        else if ($name == 'get') {
-            return $this->get(array_shift($args));
-        }
-        else if ($name == 'merge') {
-            return call_user_func_array(array($this, 'merge'), $args);
-        }
-        else {    
-            return $this;
-        }
+        return call_user_func_array(array($this, 'merge'), func_get_args());
     }
     
     // __get 
