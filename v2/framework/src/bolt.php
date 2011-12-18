@@ -23,6 +23,7 @@ class b {
         'config'    => "./bolt/config.php",
         'dao'       => "./bolt/dao.php",
         'route'     => "./bolt/route.php",
+        'cookie'    => "./bolt/cookie.php",
         
         // source
         'mongo'     => "./bolt/source/mongo.php",        
@@ -109,6 +110,11 @@ class b {
     
         // get it 
         $plug = self::$plugin[$name];
+        
+        // is plug callable
+        if (is_callable($plug)) {
+            return call_user_func_array($plug, $args);
+        }
         
         // ask the class what it is
         if ($plug::$TYPE == 'factory') {

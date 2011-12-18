@@ -11,136 +11,81 @@ use \b as b;
 
 // helpers
 class helpers {
-	
-	public static function mergeArray($a1, $a2) {
-		foreach ( $a2 as $k => $v ) {
-			if ( array_key_exists($k, $a1) AND is_array($v) ) {
-				$a1[$k] = self::mergeArray($a1[$k], $a2[$k]);
-			}
-			else {
-				$a1[$k] = $v;
-			}
-		}
-		return $a1;
-	}		
-
-public static function randString($len=30) {
-    // chars
-    $chars = array(
-            'a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z',
-            'A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','V','T','V','U','V','W','X','Y','Z',
-            '1','2','3','4','5','6','7','8','9','0'
-    );
-   
-    // suffle
-    shuffle($chars);
-   
-    // string
-    $str = '';
-   
-    // do it
-    for ( $i = 0; $i < $len; $i++ ) {
-            $str .= $chars[array_rand($chars)];
+    
+    ////////////////////////////////////////////////
+    /// @brief add url params to a url
+    ///
+    /// @param $url base url
+    /// @param $params array of params to add
+    /// 
+    /// @return string url with additional params
+    ////////////////////////////////////////////////
+    static function addUrlParams($url, $params) {
+    
+    	// parse the url
+    	$u = parse_url($url);
+    
+    	// loop and add to params
+    	if ( isset($u['query']) ) {
+    		foreach ( explode('&',$u['query']) as $i ) {
+    			if ( $i ) {
+    				list($k,$v) = explode('=',$i);
+    				if ( !array_key_exists($k,$params) ) {
+    					$params[$k] = $v;
+    				}
+    			}
+    		}
+    	}
+    	
+    	// reconstruct
+    	$url = $u['scheme']."://".$u['host'].(isset($u['port'])?":{$u['port']}":"").$u['path'];
+    
+    	$p = array();
+    	foreach ( $params as $k => $v ) {
+    		$p[] = "{$k}=".urlencode($v);
+    	}
+    	$url .= (strpos($url,'?')==false?'?':'&').implode('&',$p);		
+    	
+    	if ( isset($u['fragment']) ) {
+    		$url .= $u['fragment'];
+    	}
+    	
+    	return $url;
+    
     }
-   
-    return $str;   
+	
 
-}		
+    ////////////////////////////////////////////////
+    /// @brief generate a random string
+    ///
+    /// @param $len lenth of string
+    /// 
+    /// @return random string
+    ////////////////////////////////////////////////
+    public static function randString($len=30) {
+        // chars
+        $chars = array(
+                'a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z',
+                'A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','V','T','V','U','V','W','X','Y','Z',
+                '1','2','3','4','5','6','7','8','9','0'
+        );
+       
+        // suffle
+        shuffle($chars);
+       
+        // string
+        $str = '';
+       
+        // do it
+        for ( $i = 0; $i < $len; $i++ ) {
+                $str .= $chars[array_rand($chars)];
+        }
+       
+        return $str;   
+    
+    }		
 
 
-	public static function setCookie($name, $value, $expires=false) {
-	
-		// domain
-		$domain = self::_('site/cookieDomain');
-	
-		// get name from config
-		if ( substr($name, 0, 1) == '$' ) {
-			$name = self::_(substr($name, 1));
-		}
-	
-		// is value a string
-		if ( is_array($value) ) {
-		
-			// see if this cookie already exists
-			if ( p($name, false, $_COOKIE) ) {
-				
-				// merge the values from the current cookie
-				$value = self::mergeArray( self::getCookie($name), $value );
-				
-			}
-			
-			// encode it
-			$e = base64_encode(json_encode($value));
-		
-			// return the padded value
-			$value = ":".self::md5($e).$e;
-			
-		}
-		
-		// expires
-		if ( $expires AND $expires < self::utctime() ) {
-			$expires = self::utctime() + $expires;
-		}
-	
-		// set it 
-		setcookie($name, $value, $expires, '/', $domain);
-	
-	}
-	
-	public static function deleteCookie($name) {
-
-		// domain
-		$domain = self::_('site/cookieDomain');
-
-		// get name from config
-		if ( substr($name, 0, 1) == '$' ) {
-			$name = self::_(substr($name, 1));
-		}
-
-		// set it 
-		setcookie($name, false, time()+1, '/', $domain);
-	
-	}
-	
-	public static function getCookie($name) {
-
-	
-		// get name from config
-		if ( substr($name, 0, 1) == '$' ) {
-			$name = self::_(substr($name, 1));
-		}
-	
-		// try to get it 
-		$cookie = urldecode(p($name, false, $_COOKIE));
-	
-			// if we don't have it, stop
-			if ( !$cookie ) { return false; }
-			
-		// see if the first val is a :
-		if ( $cookie{0} == ':' ) {
-							
-			// make sure we're goof
-			$cookie = self::getDecodedCookie($cookie);
-			
-		}
-	
-		// return it 
-		return $cookie;
-	
-	}		
-	
-	public static function getDecodedCookie($cookie) {
-
-		// split it 
-		$sig = substr($cookie, 1, 32);
-		
-		// now the value
-		$e = substr($cookie, 33);
-		
-		// make sure we're goof
-		return ( self::md5($e) == $sig ? json_decode(base64_decode($e), true) : false );
-		
-	}
 	
 	public function md5($str) {
 		return md5('A#DK@()jdm2d89uddp2[;d3.2p'.$str.'$Kd90aa23d2i9k30dpdkjuf');
@@ -163,7 +108,7 @@ public static function randString($len=30) {
 		exit(header("Location:$url"));
 	}
 
-	public static function makeSlug($str) {
+	public static function slug($str) {
 		
 		// remove any ' in the str
 		$str = str_replace("'",'', html_entity_decode($str, ENT_QUOTES, 'utf-8') );
@@ -338,15 +283,6 @@ public static function randString($len=30) {
 	
 		
 		exit(include($page));
-	}
-
-	public static function factory($n,$ns='dao') {
-		$class = '\\'.$ns.'\\'.$n;
-		return new $class;
-	}
-	
-	public static function formatDirName($dir) {
-		return rtrim($dir,'/')."/";
 	}
 	
 	public static function convertBase($str,$to=36,$from=10) {

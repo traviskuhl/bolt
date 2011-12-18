@@ -32,7 +32,7 @@ $test = b::dao('bolt\common\dao\test')->get(array());
 var_dump("loaded -- ".$test->loaded());
 
 // route
-b::route("test/poop/([a-z]):test/([0-9]):id", '\testRoute');
+b::route("test/poop/([a-z]):test/([0-9]):id", '\testRoute', "test");
 
 class testRoute extends \bolt\view  {
     function __construct() {
@@ -46,5 +46,7 @@ class testRoute extends \bolt\view  {
 
 
 b::route()->match("test/poop/a/0");
+
+var_dump( b::url('test', array('test'=>'aba ', 'id' => 1)) );
 
 ?>
