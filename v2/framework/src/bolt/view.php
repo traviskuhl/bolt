@@ -15,7 +15,7 @@ class view {
     private $_headers = array();
     private $_status = 200;
     
-    // set content
+    // magic set
     public function __call($name, $args) {
         switch($name)  {
             

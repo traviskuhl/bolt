@@ -1,0 +1,3 @@
+{b::config()->defaultView}
+
+{$hello}

@@ -1,6 +1,6 @@
 <?php
 
-namespace bolt;
+namespace bolt\plugin;
 
 class singleton {
 

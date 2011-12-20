@@ -38,6 +38,7 @@ class b {
         'route'     => "./bolt/route.php",
         'render'    => "./bolt/render.php",
         'cookie'    => "./bolt/cookie.php",
+        'session'   => "./bolt/session.php",
         
         // source
         'mongo'     => "./bolt/source/mongo.php",        
@@ -199,8 +200,20 @@ class b {
     ////////////////////////////////////////////////////////////
     /// @brief plugin to bolt
     ////////////////////////////////////////////////////////////
-    public static function plug($name, $class) {
-        self::$plugin[$name] = $class;
+    public static function plug($name, $class=false) {
+        
+        // is it an array
+        if (is_array($name)) {
+            foreach ($name as $n => $c) {
+                self::$plugin[$n] = $c;
+            }
+        }
+        
+        // just one
+        else {    
+            self::$plugin[$name] = $class;
+        }
+        
     }
 
 	// constants

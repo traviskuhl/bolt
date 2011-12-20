@@ -7,10 +7,10 @@ namespace bolt;
 \b::plug('config', "\bolt\config");
 
 // our config is singleton
-class config extends singleton {
+class config extends plugin\singleton {
 
     // data
-    private $data = array();
+    private $_data = array();
 
     // default 
     public function _default() {        
@@ -30,13 +30,37 @@ class config extends singleton {
     
 
     // get
-    public function get($name) {
-        return (array_key_exists($name, $this->data) ? $this->data[$name] : false);
+    public function get($name, $default=false) {
+    
+        // see if we have a . in the name
+        if (stripos($name, '.') !== false) {
+            
+            // get the parts
+            $parts = explode('.', $name);
+            $a = $this->_data;
+        
+            // loop through and see if we have this 
+            foreach ($parts as $p) {
+                if (array_key_exists($p, $a)) {
+                    $a = $a[$p];
+                }
+                else {
+                    return $default;
+                }
+            }
+        
+            // return it
+            return $a;
+        
+        }
+        else {    
+            return (array_key_exists($name, $this->_data) ? $this->_data[$name] : $default);
+        }
     }
 
     // set
     public function set($name, $value=false) {
-        return $this->data[$name] = $value;
+        return ($this->_data[$name] = $value);
     }
     
     // merge

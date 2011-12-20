@@ -6,7 +6,7 @@ use \b as b;
 // plug
 b::plug('cookie', '\bolt\cookie');
 
-class cookie extends singleton {
+class cookie extends plugin\singleton {
 
     ////////////////////////////////////////////////
     /// @brief add url params to a url

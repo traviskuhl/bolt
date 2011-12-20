@@ -11,7 +11,7 @@ b::plug('mongo', '\bolt\source\mongo');
 b::plug('mongoi', '\bolt\source\mongoi');
 
 // mongo
-class mongo extends \bolt\singleton {
+class mongo extends \bolt\plugin\singleton {
 
     private $instance = false;
 
@@ -27,7 +27,7 @@ class mongo extends \bolt\singleton {
 }
 
 
-class mongoi extends \bolt\factory {
+class mongoi extends \bolt\plugin\factory {
 
 	// dbh
 	private $dbh = false;

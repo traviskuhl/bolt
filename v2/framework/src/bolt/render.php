@@ -12,7 +12,7 @@ b::plug("template", function(){
     return call_user_func_array(array(b::render(), 'template'), func_get_args());
 });
 
-class render extends singleton {
+class render extends plugin\singleton {
 
     // global args
     private $_globals = array();

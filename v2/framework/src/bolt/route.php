@@ -16,11 +16,11 @@ b::plug('url', function(){
 
 // run
 b::plug('run', function(){
-    return b::route()->execute();
+    return call_user_func_array(array(b::route(), 'execute'), func_get_args());
 });
 
 // route
-class route extends \bolt\singleton {
+class route extends plugin\singleton {
     
     // routes
     private $routes = array();
