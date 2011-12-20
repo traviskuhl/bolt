@@ -13,7 +13,7 @@ class config extends singleton {
     private $data = array();
 
     // default 
-    public function __default() {        
+    public function _default() {        
         // forward it to call
         return call_user_func_array(array($this, 'merge'), func_get_args());
     }
@@ -41,7 +41,7 @@ class config extends singleton {
     
     // merge
     public function merge() {    
-        foreach (func_get_args() as $array) {
+        foreach (func_get_args() as $array) { 
             foreach ($array as $key => $value) {
                 $this->set($key, $value);
             }

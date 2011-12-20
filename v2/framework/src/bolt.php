@@ -4,7 +4,20 @@
 spl_autoload_register(array('b', 'autoloader'));
 
 // root
-define("bRoot", dirname(__FILE__));
+if (!defined("bRoot")) {
+    define("bRoot", dirname(__FILE__));
+}
+
+// devmode
+if ( !defined("bDevMode") ) {
+	define("bDevMode", ( getenv("bolt_framework__dev_mode") == 'true' ? true : false ));
+}
+
+	// dev mode?
+	if ( defined('bDevMode') AND bDevMode === true ) {
+	    error_reporting(E_ALL^E_DEPRECATED);
+	    ini_set("display_errors",1);		
+	}
 
 
 ////////////////////////////////////////////////////////////
@@ -23,6 +36,7 @@ class b {
         'config'    => "./bolt/config.php",
         'dao'       => "./bolt/dao.php",
         'route'     => "./bolt/route.php",
+        'render'    => "./bolt/render.php",
         'cookie'    => "./bolt/cookie.php",
         
         // source
@@ -55,6 +69,25 @@ class b {
             
         }
     
+        // config
+        if (isset($args['config'])) {
+            b::config($args['config']);
+        }
+        
+        // load
+        if (isset($args['load'])) {
+            foreach($args['load'] as $patern) {
+                
+                // files
+                $files = glob($patern);
+                
+                // loop through each file
+                foreach ($files as $file) {
+                    include($file);
+                }
+                
+            }
+        }
     
     }
 
@@ -98,7 +131,7 @@ class b {
         // do we not have a plugin for this
         if (!array_key_exists($name, self::$plugin)) {
 
-            // if this is in our helper function
+            // if this is in our helper class
             if (method_exists('\bolt\helpers', $name)) {
                 return call_user_func_array(array('\bolt\helpers', $name), $args);
             }
@@ -136,8 +169,8 @@ class b {
             if (isset($args[0]) AND is_string($args[0]) AND method_exists($i, $args[0]) ){ 
                 return call_user_func_array(array($i, array_shift($args)), $args);
             }            
-            else if (isset($args[0]) AND method_exists($i, "__default")) {            
-                return call_user_func_array(array($i, "__default"), $args);
+            else if (isset($args[0]) AND method_exists($i, "_default")) {            
+                return call_user_func_array(array($i, "_default"), $args);
             }
             else {
                 return $i;
@@ -279,7 +312,7 @@ function  p($key, $default=false, $array=false, $filter=FILTER_SANITIZE_STRING) 
 function pp($pos,$default=false,$filter=false) {
 		
 	// path
-	$path = b::_('_bPath');
+	$path = bPath;
 	
 	if ( !$path ) { return $default; }
 	
@@ -299,5 +332,62 @@ function pp($pos,$default=false,$filter=false) {
 	// give back
 	return $path[$pos];
 
-}		
+}
 
+// get the file name
+$path = explode("/",$_SERVER['SCRIPT_FILENAME']);
+
+// need to get base tree
+$uri = explode('/',$_SERVER['SCRIPT_NAME']);  
+
+// define 
+if ( isset($_SERVER['HTTP_HOST']) ) {
+
+    // forward
+    if (isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
+    	$_SERVER['HTTP_HOST'] = $_SERVER['HTTP_X_FORWARDED_HOST'];
+    }
+    
+    // forward
+    if (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+    	$_SERVER['REMOTE_ADDR'] = $_SERVER['HTTP_X_FORWARDED_FOR'];
+    }
+
+    if (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) == 'https') {
+        $_SERVER['SERVER_PORT'] = 443;
+    }
+    
+    define("HTTP_HOST",		 $_SERVER['HTTP_HOST']);
+    define("HOST",      	 ($_SERVER['SERVER_PORT']==443?"https://":"http://").$_SERVER['HTTP_HOST']);
+    define("HOST_NSSL",  	 "http://".$_SERVER['HTTP_HOST']);
+    define("HOST_SSL",     	 "https://".$_SERVER['HTTP_HOST']);
+    define("URI",      		 HOST.implode("/",array_slice($uri,0,-1))."/");
+    define("URI_NSSL", 		 HOST_NSSL.implode("/",array_slice($uri,0,-1))."/");
+    define("URI_SSL",  		 HOST_SSL.implode("/",array_slice($uri,0,-1))."/");
+    define("COOKIE_DOMAIN",	 false);
+    define("IP",			 $_SERVER['REMOTE_ADDR']);
+    define("SELF",			 HOST.$_SERVER['REQUEST_URI']);
+    define("PORT",			 $_SERVER['SERVER_PORT']);
+    
+    // our path
+    define("bPath",         (getenv("REDIRECT_bPath")?getenv("REDIRECT_bPath"):getenv("bPath")));
+    
+}
+else {
+
+    define("HTTP_HOST",		 false);
+    define("HOST",      	 false);
+    define("HOST_NSSL",  	 false);
+    define("HOST_SSL",     	 false);
+    define("URI_NSSL", 		 false);
+    define("URI_SSL",  		 false);
+    define("COOKIE_DOMAIN",	 false);
+    define("IP",			 false);
+    define("SELF",			 false);
+    define("PORT",			 false);
+
+    if (!defined("URI")) {
+        define("URI", false);	
+    }
+
+}
