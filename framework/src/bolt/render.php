@@ -7,7 +7,7 @@ use \b as b;
 // render
 b::plug(array(
     'render' => '\bolt\render',
-    'template' => '\bolt\render::template'
+    'template' => 'render::template'
 ));
 
 class render extends plugin {

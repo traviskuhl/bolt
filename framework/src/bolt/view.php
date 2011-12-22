@@ -28,6 +28,8 @@ class view {
                 return $this->_headers;
             case 'getStatus':
                 return $this->_status;
+            case 'getParams':
+                return $this->_params;
         
             // set
             case 'setContent':
@@ -44,6 +46,8 @@ class view {
                 return ($this->_headers[$args[0]] = $args[1]);
             case 'addData':
                 return ($this->_data[$args[0]] = $args[1]);
+            case 'addParams':
+                return ($this->_params[$args[0]] = $args[1]);
         
         };                
     }

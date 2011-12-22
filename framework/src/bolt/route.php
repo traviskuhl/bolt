@@ -9,8 +9,8 @@ use \b as b;
 // plug route 
 b::plug(array(
     'route' => '\bolt\route',
-    'url' => '\bolt\route::url',
-    'run' => '\bolt\route::execute'
+    'url' => 'route::url',
+    'run' => 'route::execute'
 ));
 
 // route
@@ -23,6 +23,11 @@ class route extends plugin\singleton {
     // default
     public function _default() {
         return call_user_func_array(array($this, 'register'), func_get_args());
+    }
+    
+    // get routes
+    public function getRoutes() {
+        return $this->routes;
     }
 
     // register
@@ -41,10 +46,10 @@ class route extends plugin\singleton {
             $params = array();
             
             // does this have name
-            if (strpos($path, '@') !== false) {
+            if (strpos($path, '<') !== false) {
             
                 // name
-                list($_name, $path) = explode("@", $path);
+                list($_name, $path) = explode("<", $path);
                 
                 // add it to the url
                 $this->urls[$_name] = $path;
@@ -58,7 +63,7 @@ class route extends plugin\singleton {
             if ($class !== false) {
             
                 // matches
-                if (preg_match_all("/\:([a-zA-Z]+)/", $path, $match, PREG_SET_ORDER)) {
+                if (preg_match_all("/\>([a-zA-Z]+)/", $path, $match, PREG_SET_ORDER)) {
                     foreach ($match as $m) {
                         
                         // take it out of the path
@@ -76,12 +81,12 @@ class route extends plugin\singleton {
             }
             
         }
-    
+
     }
 
     // match
     public function match($path=false) {
-        
+    
         // sort routes by weight
         uasort($this->routes, function($a,$b){
             if ($a[0] == $b[0]) {

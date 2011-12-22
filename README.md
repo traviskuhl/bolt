@@ -31,7 +31,7 @@ php framework
     ));
 
     // add a display route
-    b::route("test/([a-z]+):name/([a-z]+):place", '\testRoute', "test");
+    b::route("test/([a-z]+)>name/([a-z]+)>place", '\testRoute', "test");
     
     // this is our route
     class testRoute extends \bolt\view  {

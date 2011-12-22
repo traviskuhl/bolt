@@ -75,19 +75,25 @@ abstract class plugin {
             return false;
 
         }
-    
+        
         // get it 
-        $plug = $this->_plugin[$name];
+        $plug = $this->_plugin[$name];        
         
         // figure out if there's a function to direct to
         if (strpos($plug, '::')!== false) {
-            list($plug, $method) = explode('::', $plug);
-        }
+        
+            // get the orig plugin name
+            list($name, $method) = explode('::', $plug);
+            
+            // reset plug
+            $plug = $this->_plugin[$name];
+            
+        }            
         
         // is plug callable
         if (is_callable($plug)) {
             return call_user_func_array($plug, $args);
-        }
+        }    
         
         // ask the class what it is
         if ($plug::$TYPE == 'factory') {
@@ -96,14 +102,14 @@ abstract class plugin {
         
         // singleton 
         else if ($plug::$TYPE == 'singleton') {        
-            
+                                    
             // if we don't have an instance
-            if (!array_key_exists($name, $this->_instance)) {
+            if (!array_key_exists($name, $this->_instance)) {  
                 $this->_instance[$name] = new $plug();
-            }
+            }        
             
             // instance
-            $i = $this->_instance[$name];
+            $i = $this->_instance[$name];        
             
             // is it a string
             if ($method) {

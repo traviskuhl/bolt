@@ -31,7 +31,7 @@ b::init(array(
 b::config();
 
 // route
-b::route("test/poop/([a-z]):test/([0-9]):id", '\testRoute', "test");
+b::route("test/poop/([a-z])>test/([0-9])>id", '\testRoute', "test");
 
 class testRoute extends \bolt\view  {
     function template($tmpl) {
@@ -46,15 +46,12 @@ class testRoute extends \bolt\view  {
         $this->render(array('name' => 'world'))->string('hello {$name}');
     }
     function ajax() {
-        $this->setData(array(
-            'hello' => 'world'
-        ));
+        $this->setData($this->getParams());
     }
 }
 
 
 define("bPath","test/poop/a/0");
-
 
 b::run(array(
     'accept' => 'text/javascript;text/ajax'

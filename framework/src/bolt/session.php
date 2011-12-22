@@ -7,8 +7,8 @@ use \b as b;
 // plugin our session
 b::plug(array(
     'session' => '\bolt\session',
-    'login' => function() { return call_user_func(array(b::session(), 'login'), func_get_args()); },
-    'logout' => function() { return call_user_func(array(b::session(), 'logout'), func_get_args()); },
+    'login' => 'session::login',
+    'logout' => 'session::logout',
 ));
 
 
