@@ -8,7 +8,7 @@ abstract class factory {
     public static $TYPE = "factory";
 
     // factory
-    public static function factory($args) {
+    public static function factory($args=array()) {
     
         // paretn
         $parent = get_called_class();

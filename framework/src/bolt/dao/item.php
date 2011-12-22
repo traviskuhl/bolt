@@ -475,7 +475,7 @@ class item extends \InfiniteIterator {
     }
 
 	/////////////////////////////////////////////////
-	/// @breif default get action
+	/// @brief default get action
 	///
 	/// @return full data array
 	/////////////////////////////////////////////////

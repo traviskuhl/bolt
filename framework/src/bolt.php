@@ -21,12 +21,15 @@ if ( !defined("bDevMode") ) {
 
 
 ////////////////////////////////////////////////////////////
-/// @brief bolt
+/// @brief static bolt wrapper instance
+///
+/// @class b
 ////////////////////////////////////////////////////////////
 final class b {
 
     // our plugin instance
     private static $instance = false;
+    private static $loaded = array();
     
     // what defined our core
     private static $core = array(
@@ -51,7 +54,12 @@ final class b {
         
     );    
 
-    // passthrough to our plugin instance
+    ////////////////////////////////////////////////////////////
+    /// @brief magic static to execute plugins. passthrough to
+    ///         plugin::call method
+    ///
+    /// @see plugin::call
+    ////////////////////////////////////////////////////////////
     public static function __callStatic($name, $args) {
         if (!self::$instance) {
             self::$instance = new bolt();
@@ -59,7 +67,12 @@ final class b {
         return call_user_func(array(self::$instance, 'call'), $name, $args);
     }
     
-    // passthrough to our bolt plugin wrapper
+    ////////////////////////////////////////////////////////////
+    /// @brief static method to register a plugin. passthrough
+    ///                 to plugin::plug method
+    ///
+    /// @see plugin::plug
+    ////////////////////////////////////////////////////////////
     public static function plug() {
         if (!self::$instance) {
             self::$instance = new bolt();
@@ -68,9 +81,16 @@ final class b {
     }
 
     ////////////////////////////////////////////////////////////
-    /// @brief initialize bolt
-    ////////////////////////////////////////////////////////////    
-    public function init($args=array()) {
+    /// @brief initalize the bolt framework
+    ///
+    /// @param $args initalization arguments
+    ///               - core: array of core plugins to load
+    ///               - config: array of config params to set
+    ///               - load: array of plugin folders to load. glob
+    ///                         is run on each item
+    /// @return void
+    ////////////////////////////////////////////////////////////
+    public static function init($args=array()) {
     
         // if no core
         if (!array_key_exists('core', $args)) {
@@ -99,23 +119,46 @@ final class b {
         
         // load
         if (isset($args['load'])) {
-            foreach($args['load'] as $patern) {
-                
-                // files
-                $files = glob($patern);
+            foreach($args['load'] as $pattern) {
+            
+                // is it a file
+                if (stripos($pattern, '.php') !== false)  {
+                    $files = array($pattern);
+                }
+                else {
+                    $files = glob($pattern);            
+                }
                 
                 // loop through each file
                 foreach ($files as $file) {
+                
+                    // load it 
                     include($file);
+                    
+                    // loaded
+                    self::$loaded[] = $file;
+                    
                 }
                 
             }
         }
     
     }
+    
+    ////////////////////////////////////////////////////////////
+    /// @brief static return a list of loaded files
+    ///
+    /// @return array of loaded files
+    ////////////////////////////////////////////////////////////
+    public static function getLoaded() {
+        return self::$loaded;
+    }
 
     ////////////////////////////////////////////////////////////
-    /// @brief autoloader
+    /// @brief autoload bolt components
+    ///
+    /// @param $class class name to load (namespace allowed)
+    /// @return void
     ////////////////////////////////////////////////////////////
     public static function autoloader($class) { 
     	
@@ -145,15 +188,35 @@ final class b {
     }	
 
     ////////////////////////////////////////////////////////////
-    /// @brief forward to config-get
-    ////////////////////////////////////////////////////////////    
+    /// @brief return bolt instance
+    ///
+    /// @return bolt instance
+    ////////////////////////////////////////////////////////////
+    public static function bolt() {    
+        return self::$instance;
+    }    
+
+    ////////////////////////////////////////////////////////////
+    /// @brief get a configuration paramater. passhtrough to
+    ///         config::get
+    ///
+    /// @param $name name of config param
+    /// @return <mixed> config param or false if doesn't exist
+    /// @see config::get
+    ////////////////////////////////////////////////////////////
     public static function _($name) {
         return b::config()->get($name);
     }
 
     ////////////////////////////////////////////////////////////
-    /// @brief forward to config-set
-    ////////////////////////////////////////////////////////////    
+    /// @brief set a configuration paramater. passhtrough to
+    ///         config::set
+    ///
+    /// @param $name name of config param
+    /// @param $value value of config param to set
+    /// @return <mixed> config param that was set
+    /// @see config::set
+    ////////////////////////////////////////////////////////////
     public static function __($name, $value=false) {
         return b::config()->set($name, $value);
     }
@@ -171,9 +234,21 @@ final class b {
 
 }
 
+
+////////////////////////////////////////////////////////////
+/// @brief wrapper for single bolt instance
+///
+/// @class bolt
+/// @extends bolt\plugin
+////////////////////////////////////////////////////////////
 final class bolt extends bolt\plugin {
     
-    // construct
+    ////////////////////////////////////////////////////////////
+    /// @brief construct a new bolt class. must also construct
+    ///         parent class and pass fallback class list
+    ///
+    /// @see plugin::__construct
+    ////////////////////////////////////////////////////////////
     public function __construct() {
         
         // init our plugin class
@@ -186,14 +261,16 @@ final class bolt extends bolt\plugin {
 }
 
 	
-/**
- * global paramater function
- * @method	p
- * @param	{string}	key name
- * @param	{string} 	default value if key != exist [Default: false]
- * @param	{array}		array to look in [Default: $_REQUEST]
- * @param   {string}    string to filter on the return
- */
+////////////////////////////////////////////////////////////
+/// @brief global paramater check
+///
+/// @method	p
+/// @param	$key	key name
+/// @param	$default 	default value if key != exist [Default: false]
+/// @param	$array		array to look in [Default: $_REQUEST]
+/// @param  $filter    string to filter on the return
+/// @return mixed paramater value
+////////////////////////////////////////////////////////////
 function  p($key, $default=false, $array=false, $filter=FILTER_SANITIZE_STRING) {
 
 	// check if key is an array
@@ -265,19 +342,29 @@ function  p($key, $default=false, $array=false, $filter=FILTER_SANITIZE_STRING) 
 
 }
 
-	// p raw
-	function p_raw($key,$default=false,$array=false) {
-		return p($key,$default,$array,FILTER_UNSAFE_RAW);
-	}
+////////////////////////////////////////////////////////////
+/// @brief global raw paramater check
+///
+/// @method	p_raw
+/// @param	$key	key name
+/// @param	$default 	default value if key != exist [Default: false]
+/// @param	$array		array to look in [Default: $_REQUEST]
+/// @return mixed paratamer value
+/// @see p 
+////////////////////////////////////////////////////////////
+function p_raw($key,$default=false,$array=false) {
+	return p($key,$default,$array,FILTER_UNSAFE_RAW);
+}
 
-/**
- * global path function 
- * @method	pp
- * @param	{array}		position (index) in path array
- * @param	{string}	default 
- * @param	{string}	filter
- * @return	{string}	value or false
- */
+////////////////////////////////////////////////////////////
+/// @brief global path paramater check
+/// @method	p
+/// @param	$pos	    index position of key
+/// @param	$default 	default value if key != exist [Default: false]
+/// @param	$array		array to look in [Default: $_REQUEST]
+/// @param  $filter    string to filter on the return
+/// @return mixed path paramter
+////////////////////////////////////////////////////////////
 function pp($pos,$default=false,$filter=false) {
 		
 	// path

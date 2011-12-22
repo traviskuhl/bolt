@@ -11,7 +11,7 @@ abstract class plugin {
     
     // let's construct
     public function __construct($fallback=array()) {
-        $this->fallback($fallback);        
+        $this->setFallbacks($fallback);        
     }
     
     // plugin
@@ -20,12 +20,17 @@ abstract class plugin {
     }
     
     // fallback
-    public function fallbacks($classes) {
+    public function setFallbacks($classes) {
         if (is_string($classes)) {
             $classes = array($classes);
         }
-        $this->_fallback = array_merge($this->_fallback, $classes);
+        return $this->_fallback = array_merge($this->_fallback, $classes);
     }   
+    
+    // get fallcacks
+    public function getFallbacks() {
+        return $this->_fallback;
+    }
         
     // call something
     public function __call($name, $args) {
@@ -60,7 +65,6 @@ abstract class plugin {
             
         }
         
-        
         // do we not have a plugin for this
         if (!array_key_exists($name, $this->_plugin)) {
             
@@ -83,7 +87,7 @@ abstract class plugin {
         if (strpos($plug, '::')!== false) {
         
             // get the orig plugin name
-            list($name, $method) = explode('::', $plug);
+            list($name, $method) = explode('::', $plug);                      
             
             // reset plug
             $plug = $this->_plugin[$name];
@@ -109,8 +113,8 @@ abstract class plugin {
             }        
             
             // instance
-            $i = $this->_instance[$name];        
-            
+            $i = $this->_instance[$name];     
+                       
             // is it a string
             if ($method) {
                 return call_user_func_array(array($i, $method), $args);
@@ -118,7 +122,7 @@ abstract class plugin {
             else if (isset($args[0]) AND is_string($args[0]) AND method_exists($i, $args[0]) ){ 
                 return call_user_func_array(array($i, array_shift($args)), $args);
             }            
-            else if (isset($args[0]) AND method_exists($i, "_default")) {            
+            else if (method_exists($i, "_default")) {            
                 return call_user_func_array(array($i, "_default"), $args);
             }
             else {
@@ -146,6 +150,9 @@ abstract class plugin {
         else {    
             $this->_plugin[$name] = $class;
         }
+        
+        // good
+        return true;
         
     }
 

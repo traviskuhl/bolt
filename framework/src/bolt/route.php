@@ -22,7 +22,12 @@ class route extends plugin\singleton {
 
     // default
     public function _default() {
-        return call_user_func_array(array($this, 'register'), func_get_args());
+        if (count(func_get_args()) == 0 ) {
+            return $this;
+        }
+        else {
+            return call_user_func_array(array($this, 'register'), func_get_args());
+        }
     }
     
     // get routes
@@ -81,6 +86,8 @@ class route extends plugin\singleton {
             }
             
         }
+        
+        return true;
 
     }
 
