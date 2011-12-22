@@ -23,12 +23,11 @@ if ( !defined("bDevMode") ) {
 ////////////////////////////////////////////////////////////
 /// @brief bolt
 ////////////////////////////////////////////////////////////
-class b {
+final class b {
 
-    // plugins
-    private static $plugin = array();
-    private static $instance = array();
-
+    // our plugin instance
+    private static $instance = false;
+    
     // what defined our core
     private static $core = array(
     
@@ -39,16 +38,39 @@ class b {
         'render'    => "./bolt/render.php",
         'cookie'    => "./bolt/cookie.php",
         'session'   => "./bolt/session.php",
+        'source'    => "./bolt/source.php",
         
         // source
-        'mongo'     => "./bolt/source/mongo.php",        
+        'source-mongo'     => "./bolt/source/mongo.php",        
         
-    );
+        // renders
+        'render-json'      => "./bolt/render/json.php",
+        'render-xhr'       => "./bolt/render/xhr.php",
+        'render-ajax'      => "./bolt/render/ajax.php",
+        'render-html'      => "./bolt/render/html.php",
+        
+    );    
+
+    // passthrough to our plugin instance
+    public static function __callStatic($name, $args) {
+        if (!self::$instance) {
+            self::$instance = new bolt();
+        }
+        return call_user_func(array(self::$instance, 'call'), $name, $args);
+    }
     
+    // passthrough to our bolt plugin wrapper
+    public static function plug() {
+        if (!self::$instance) {
+            self::$instance = new bolt();
+        }
+        return call_user_func_array(array(self::$instance, 'plug'), func_get_args());
+    }
+
     ////////////////////////////////////////////////////////////
     /// @brief initialize bolt
     ////////////////////////////////////////////////////////////    
-    public static function init($args=array()) {
+    public function init($args=array()) {
     
         // if no core
         if (!array_key_exists('core', $args)) {
@@ -122,67 +144,6 @@ class b {
     
     }	
 
-
-
-    ////////////////////////////////////////////////////////////
-    /// @brief call one of our plugins
-    ////////////////////////////////////////////////////////////
-    public static function __callStatic($name, $args=array()) {
-        
-        // do we not have a plugin for this
-        if (!array_key_exists($name, self::$plugin)) {
-
-            // if this is in our helper class
-            if (method_exists('\bolt\helpers', $name)) {
-                return call_user_func_array(array('\bolt\helpers', $name), $args);
-            }
-            else {
-                return false;
-            }
-
-        }
-    
-        // get it 
-        $plug = self::$plugin[$name];
-        
-        // is plug callable
-        if (is_callable($plug)) {
-            return call_user_func_array($plug, $args);
-        }
-        
-        // ask the class what it is
-        if ($plug::$TYPE == 'factory') {
-            return call_user_func_array(array($plug, "factory"), $args);
-        }
-        
-        // singleton 
-        else if ($plug::$TYPE == 'singleton') {
-            
-            // if we don't have an instance
-            if (!array_key_exists($name, self::$instance)) {
-                self::$instance[$name] = new $plug();
-            }
-            
-            // instance
-            $i = self::$instance[$name];
-            
-            // is it a string
-            if (isset($args[0]) AND is_string($args[0]) AND method_exists($i, $args[0]) ){ 
-                return call_user_func_array(array($i, array_shift($args)), $args);
-            }            
-            else if (isset($args[0]) AND method_exists($i, "_default")) {            
-                return call_user_func_array(array($i, "_default"), $args);
-            }
-            else {
-                return $i;
-            }
-            
-                        
-        }
-        
-    }
-
-
     ////////////////////////////////////////////////////////////
     /// @brief forward to config-get
     ////////////////////////////////////////////////////////////    
@@ -197,25 +158,6 @@ class b {
         return b::config()->set($name, $value);
     }
 
-    ////////////////////////////////////////////////////////////
-    /// @brief plugin to bolt
-    ////////////////////////////////////////////////////////////
-    public static function plug($name, $class=false) {
-        
-        // is it an array
-        if (is_array($name)) {
-            foreach ($name as $n => $c) {
-                self::$plugin[$n] = $c;
-            }
-        }
-        
-        // just one
-        else {    
-            self::$plugin[$name] = $class;
-        }
-        
-    }
-
 	// constants
 	const SecondsInHour = 120;
 	const SecondsInDay = 86400;
@@ -226,6 +168,20 @@ class b {
 	const DateTimeOnlyFrm = "l, F jS, Y";
 	const TimeOnlyFrm = "h:i:s A";	
 	const DefaultFilter = FILTER_SANITIZE_STRING;
+
+}
+
+final class bolt extends bolt\plugin {
+    
+    // construct
+    public function __construct() {
+        
+        // init our plugin class
+        parent::__construct(array(
+            '\bolt\helpers'
+        ));
+                
+    }
 
 }
 

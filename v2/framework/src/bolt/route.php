@@ -7,17 +7,11 @@ namespace bolt;
 use \b as b;
 
 // plug route 
-b::plug('route', '\bolt\route');
-
-// plugin url
-b::plug('url', function(){
-    return call_user_func_array(array(b::route(), 'url'), func_get_args());
-});
-
-// run
-b::plug('run', function(){
-    return call_user_func_array(array(b::route(), 'execute'), func_get_args());
-});
+b::plug(array(
+    'route' => '\bolt\route',
+    'url' => '\bolt\route::url',
+    'run' => '\bolt\route::execute'
+));
 
 // route
 class route extends plugin\singleton {
@@ -135,7 +129,12 @@ class route extends plugin\singleton {
     }
     
     // run
-    public function execute() {
+    public function execute($args=array()) {
+        
+        // some default params
+        $path = p('path', bPath, $args);
+        $method = p('method', p("HTTP_METHOD", "GET", $_SERVER), $args); 
+        $accept = p('accept', p('_accept', p('HTTP_ACCEPT', false, $_SERVER)), $args);
             
         // get our class
         $route = $this->match(bPath);
@@ -143,67 +142,19 @@ class route extends plugin\singleton {
         // define
         $class = $route['class'];
         $params = $route['params'];
-    
-        // method
-        $method = p("HTTP_METHOD", "GET", $_SERVER);
         
         // method
         $m = strtolower($method);        
     
         // call our class
-        $o = new $class($params, $method);
+        $view = new $class($params, $method);  
         
-        // ajax and accept
-        $ajax = p('_ajax', p("HTTP_X_AJAX", false, $_SERVER));
-        $accept = p('_accept', p('HTTP_ACCEPT', false, $_SERVER));
-        
-        // does this method exist for this objet
-        if (method_exists($o, $m)) {
-            $o->$m();
-        }
-        
-        // if our accept header says it's ajax
-        else if ($ajax AND method_exists($o, 'ajax')) {
-            $o->ajax();
-        }
-        
-        // there's a dispatch
-        else if (method_exists($o, 'dispatch')) {
-            $o->dispatch();
-        }
-        
-        // a get to fall back on 
-        else if (method_exists($o, 'get')) {
-            $o->get();
-        }      
-
-        // what do they want back
-        header("Content-Type:text/html", false, $o->getStatus());
-    
-        // headers
-        foreach ($o->getHeaders() as $name => $value) {
-            header("$name: $value");
-        }
-    
-        // what do they want back
-        if ($accept == 'text/javascript') {
-        
-            // the header we want
-            header("Content-Type: text/javascript", true, $o->getStatus());
-        
-            // if it's ajax just print the data
-            if ($ajax) {
-                exit(json_encode(array('status'=>$o->getStatus(), 'response' => $o->getData() )));    
-            }
-            else {
-                exit(json_encode(array('status'=>$o->getStatus(), 'html' => $o->getContent(), 'data' => $o->getData() )));            
-            }            
+        // render me 
+        exit(b::render()->render($view, array( 
+            'method' => $method,
+            'accept' => $accept
+        )));
             
-        }
-        else {
-            exit($o->getContent());
-        }
-    
     }
     
     // url

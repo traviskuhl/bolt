@@ -5,14 +5,15 @@ namespace bolt;
 use \b as b;
 
 // render
-b::plug('render', '\bolt\render');
+b::plug(array(
+    'render' => '\bolt\render',
+    'template' => '\bolt\render::template'
+));
 
-// template shortcut
-b::plug("template", function(){
-    return call_user_func_array(array(b::render(), 'template'), func_get_args());
-});
+class render extends plugin {
 
-class render extends plugin\singleton {
+    // factory
+    public static $TYPE = 'singleton';
 
     // global args
     private $_globals = array();
@@ -168,17 +169,13 @@ class render extends plugin\singleton {
     	// functions always start with a b:, so that's what 
     	// we'll key off of
 		if ( preg_match_all("/\{(b::?[^\}]+)\}/i", $str, $matches, PREG_SET_ORDER) ) {
-            foreach ($matches as $match) {             
-                $exec[] = $match;                
-            }            
+            $exec = array_merge($exec, $matches);  
         }
             
     	
     	// now find direct function calls
-		if ( preg_match_all("/\{\%([^\}]+)\%\}/i", $str, $matches, PREG_SET_ORDER) ) {
-            foreach ($matches as $match ) {
-                $exec[] = $match;                          
-            }
+		if ( preg_match_all("/\{\%([^\}]+)\%\}/i", $str, $matches, PREG_SET_ORDER) ) {    
+            $exec = array_merge($exec, $matches);  
         }
         
         // anything to exec
@@ -213,6 +210,77 @@ class render extends plugin\singleton {
     	return $str;
     
     } 
+    
+    public function render($view, $args=array()) {
+        
+        // view
+        $method = p('method', 'get', $args);
+        $accept = p('accept', 'text/html', $args);        
+    
+        // does this method exist for this objet
+        if (method_exists($view, $method)) {
+            $view->$method();
+        }
+        
+        // if our accept header says it's ajax
+        else if ($accept == 'text/javascript;text/ajax' AND method_exists($view, 'ajax')) {
+            $view->ajax();
+        }
+        
+        // there's a dispatch
+        else if (method_exists($view, 'dispatch')) {
+            $view->dispatch();
+        }
+        
+        // a get to fall back on 
+        else if (method_exists($view, 'get')) {
+            $view->get();
+        }
+        
+        // accept
+        $map = array();
+        
+        // loop through all our plugins 
+        // to figure out which render to use 
+        foreach ($this->getPlugins() as $plug => $class) {        
+            foreach ($class::$accept as $weight => $str) {
+                $map[] = array($weight, $str, $plug);
+            }
+        }
+        
+        // sort renders by weight
+        uasort($map, function($a,$b){
+            if ($a[0] == $b[0]) {
+                return 0;
+            }
+            return ($a[0] < $b[0]) ? -1 : 1;        
+        }); 
+        
+        // plug
+        $plug = "html";  
+        
+        // loop it 
+        foreach ($map as $item) {
+            if ($item[1] == $accept) {
+                $plug = $item[2]; break;
+            }
+        }
+        
+        // get our 
+        $p = $this->call($plug);
+
+        // what do they want back
+        header("Content-Type:{$p->contentType}", false, $view->getStatus());
+    
+        // headers
+        foreach (array_merge($view->getHeaders(), $view->getHeaders()) as $name => $value) {
+            header("$name: $value");
+        }
+    
+        // get that crap
+        return $p->render($view);
+        
+    }
 
 }
 

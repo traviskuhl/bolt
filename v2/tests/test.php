@@ -56,7 +56,9 @@ class testRoute extends \bolt\view  {
 define("bPath","test/poop/a/0");
 
 
-b::run();
+b::run(array(
+    'accept' => 'text/javascript;text/xhr'
+));
 
 var_dump( b::url('test', array('test'=>'aba', 'id' => 1)) );
 

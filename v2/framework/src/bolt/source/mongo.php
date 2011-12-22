@@ -6,9 +6,11 @@ namespace bolt\source;
 // b
 use \b as b;
 
-// plugin both our classes
+// plugin our global instance directly to bolt
 b::plug('mongo', '\bolt\source\mongo');
-b::plug('mongoi', '\bolt\source\mongoi');
+
+// plugin to instance source factory
+b::source()->plug('mongo', '\bolt\source\mongoi');
 
 // mongo
 class mongo extends \bolt\plugin\singleton {
@@ -16,7 +18,7 @@ class mongo extends \bolt\plugin\singleton {
     private $instance = false;
 
     public function __construct($args=array()) {        
-        $this->instance = b::mongoi(b::config()->mongo);
+        $this->instance = b::source()->mongoi(b::config()->mongo);
     }
     
     // call it
