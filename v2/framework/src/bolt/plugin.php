@@ -42,17 +42,17 @@ abstract class plugin {
     
         // see if this needs to be routed 
         // to another 
-        if (stripos($name, '\\') !== false) {
+        if (stripos($name, '.') !== false) {
         
             // split into parts
-            $parts = explode('\\', $name);
+            $parts = explode('.', $name);
             
             // first part
             $name = array_shift($parts);
             
             // set the rest of parts as $args
             if (array_key_exists($name, $this->_plugin)) {
-                return call_user_func(array($this->_plugin[$name], 'call'), array_merge(array(implode('\\', $parts)), $args));
+                return call_user_func(array($this->_plugin[$name], 'call'), array_merge(array(implode('.', $parts)), $args));
             }
             else {
                 return false;

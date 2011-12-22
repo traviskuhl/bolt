@@ -57,7 +57,7 @@ define("bPath","test/poop/a/0");
 
 
 b::run(array(
-    'accept' => 'text/javascript;text/xhr'
+    'accept' => 'text/javascript;text/ajax'
 ));
 
 var_dump( b::url('test', array('test'=>'aba', 'id' => 1)) );

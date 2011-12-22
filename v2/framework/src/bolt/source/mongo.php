@@ -17,8 +17,8 @@ class mongo extends \bolt\plugin\singleton {
 
     private $instance = false;
 
-    public function __construct($args=array()) {        
-        $this->instance = b::source()->mongoi(b::config()->mongo);
+    public function __construct($args=array()) {  
+        $this->instance = b::source()->mongo(b::config()->mongo);
     }
     
     // call it

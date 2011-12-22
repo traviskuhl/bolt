@@ -216,15 +216,15 @@ class render extends plugin {
         // view
         $method = p('method', 'get', $args);
         $accept = p('accept', 'text/html', $args);        
-    
-        // does this method exist for this objet
+            
+        // if our accept header says it's ajax
+        if ($accept == 'text/javascript;text/ajax' AND method_exists($view, 'ajax')) {
+            $view->ajax();
+        }        
+
+        // does this method exist for this objet        
         if (method_exists($view, $method)) {
             $view->$method();
-        }
-        
-        // if our accept header says it's ajax
-        else if ($accept == 'text/javascript;text/ajax' AND method_exists($view, 'ajax')) {
-            $view->ajax();
         }
         
         // there's a dispatch
