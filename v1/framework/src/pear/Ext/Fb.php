@@ -156,9 +156,10 @@ class FbResponse extends \Dao implements \Iterator {
 			// there's an error
 			$this->error = $resp['error']['message'];
 
+			
 			// is it an oauth erro
-			if ( $resp['error']['type'] == 'OAuthException' OR $resp['error']['type'] == 'invalid_token' ) {
-				$this->noSession = false;
+			if ( $resp['error']['type'] == 'OAuthException' OR $resp['error']['type'] == 'invalid_token' ) {				
+				$this->session = false;
 			}
 			
 			// done here

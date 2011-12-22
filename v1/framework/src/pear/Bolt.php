@@ -28,38 +28,45 @@
 	///
 	/// @param $class class name
 	///////////////////////////////////	
-	function __autoload($class) { 
+	class BoltLoader {
 		
-		// we only want the last part of the class
-		$class = str_replace('\\', "/", $class);
-	
-		// check for autoload in global
-		if ( !isset($GLOBALS['_auto_loader']) ) {
-			return;
-		}
+		public static function autoloader($class) { 
+			
+			// we only want the last part of the class
+			$class = str_replace('\\', "/", $class);
 		
-		// try to find it
-		foreach ( $GLOBALS['_auto_loader'] as $path ) {
-				
-			// if we should convert _ to /
-			if ( isset($path[2]) AND $path[2] == true ) {
-				$class = str_replace("_","/",$class);
-			}
-		
-			// file name
-			$file = b::formatDirName($path[1]).$class.$path[0];		
-		
-			// does it exist
-			if ( file_exists($file) ) {
-				require_once($file); return;
-			} 
-			else if ( file_exists( strtolower($file) ) ) {
-				require_once(strtolower($file)); return;
+			// check for autoload in global
+			if ( !isset($GLOBALS['_auto_loader']) ) {
+				return;
 			}
 			
-		}
+			// try to find it
+			foreach ( $GLOBALS['_auto_loader'] as $path ) {
+					
+				// if we should convert _ to /
+				if ( isset($path[2]) AND $path[2] == true ) {
+					$class = str_replace("_","/",$class);
+				}
+			
+				// file name
+				$file = b::formatDirName($path[1]).$class.$path[0];		
+			
+				// does it exist
+				if ( file_exists($file) ) {
+					require_once($file); return;
+				} 
+				else if ( file_exists( strtolower($file) ) ) {
+					require_once(strtolower($file)); return;
+				}
+				
+			}
+		
+		}	
+		
+	}
 	
-	}	
+	// autoload
+	spl_autoload_register(array('BoltLoader', 'autoloader'));
 	
 	// dev mode?
 	if ( defined('bDevMode') AND bDevMode === true ) {
@@ -80,6 +87,20 @@
 
     // define 
     if ( isset($_SERVER['HTTP_HOST']) ) {
+
+	    // forward
+	    if (isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
+	    	$_SERVER['HTTP_HOST'] = $_SERVER['HTTP_X_FORWARDED_HOST'];
+	    }
+	    
+	    // forward
+	    if (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+	    	$_SERVER['REMOTE_ADDR'] = $_SERVER['HTTP_X_FORWARDED_FOR'];
+	    }
+
+	    if (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) == 'https') {
+            $_SERVER['SERVER_PORT'] = 443;
+	    }
 	    
 	    define("HTTP_HOST",		 $_SERVER['HTTP_HOST']);
 	    define("HOST",      	 ($_SERVER['SERVER_PORT']==443?"https://":"http://").$_SERVER['HTTP_HOST']);
@@ -90,8 +111,27 @@
 	    define("URI_SSL",  		 HOST_SSL.implode("/",array_slice($uri,0,-1))."/");
 	    define("COOKIE_DOMAIN",	 false);
 	    define("IP",			 $_SERVER['REMOTE_ADDR']);
-	    define("SELF",			 HOST.$_SERVER['REQUEST_URI']);    
+	    define("SELF",			 HOST.$_SERVER['REQUEST_URI']);
+	    define("PORT",			$_SERVER['SERVER_PORT']);
 	    
+	}
+	else {
+	
+	    define("HTTP_HOST",		 false);
+	    define("HOST",      	 false);
+	    define("HOST_NSSL",  	 false);
+	    define("HOST_SSL",     	 false);
+	    define("URI_NSSL", 		 false);
+	    define("URI_SSL",  		 false);
+	    define("COOKIE_DOMAIN",	 false);
+	    define("IP",			 false);
+	    define("SELF",			 false);
+	    define("PORT",			 false);
+	
+        if (!defined("URI")) {
+            define("URI", false);	
+        }
+	
 	}
 	
 	// bolt modules
@@ -102,27 +142,81 @@
 		
 	// modules we always need that are not named
 	require(bFramework."Database.php");
+	require(bFramework."MongoDatabase.php");
 	
 	// we need their project config
 	Config::load( bConfig . bProject . ".ini");
+	
+		// more config
+		$loadConfig = array();
 		
 		// any other config files
-		if ( ($loadConfig = getenv("bLoadConfig")) !== false ) {
-			
-			// loop and load each
-			foreach ( explode(',', $loadConfig) as $file ) {
-			
-				// loadi
-				Config::load( bConfig . trim($file) . ".ini");	
-			
-			}
-		
+		if ( ($_load = getenv("bLoadConfig")) !== false ) {
+			$loadConfig += explode(",", $_load);
+		}
+		if ( defined('bLoadConfig') ) {
+			$loadConfig += explode(",", bLoadConfig);
+		}				
+		if (count($loadConfig) > 0) {
+			foreach ($loadConfig as $file ) {
+				Config::load( bConfig . trim($file) . ".ini");				
+			}		
 		}
 
 	// add dao to autoload
 	if ( is_array(Config::get('autoload/file')) ) {
 		$GLOBALS['_auto_loader'] = array_merge(Config::get('autoload/file'), $GLOBALS['_auto_loader']);
 	}	
+
+	// bolt js
+	b::__('bolt-global', "/assets/bolt/js/global.js");
+
+
+	// now that we've loaded all config files
+	// we need to check on assets
+	if ( !bDevMode ) {
+		
+		// static to use
+		$static = ((bool)b::_("embeds/use_ssl") ? 'static-ssl' : 'static');
+	
+		// cid
+		$cid ="bolt.assets.manifest";
+		
+		// manifest
+		if ( ($manifest = apc_fetch($cid) ) == false AND file_exists("/home/bolt/var/bolt/warhol.manifest") ) { 
+		
+			// get it 
+			$manifest = json_decode(file_get_contents("/home/bolt/var/bolt/warhol.manifest"),true);
+			
+			// save it 
+			apc_store($cid, $manifest);
+			
+		}
+		
+		// globalize bolt manifest
+		b::__("bolt/manifest", $manifest);
+		
+		// embeds
+		$embeds = b::_('embeds');
+		
+		// loop through each and see if they're in css or js
+		if (is_array($embeds)) {
+			foreach ( $embeds['js'] as $k => $js ) {
+				$name = key($js);
+				switch($name) {
+					case 'bolt': $embeds['js'][$k][$name] = $manifest['bolt.js'][$static]; break;
+					case 'bolt-class-panel': $embeds['js'][$k][$name] = $manifest['panel.js'][$static]; break;
+				}
+			}
+		}
+	
+		// reset embeds
+		b::__('embeds', $embeds);
+		
+		// cdn it
+		b::__('bolt-global', $manifest['global.js'][$static]);
+	
+	}
 
 	
 	////////////////////////////////
@@ -162,10 +256,15 @@
     	    	// default page
     	    	if ( Config::get('site/defaultPage') ) {
     	    		$page = Config::get('site/defaultPage');
-    	    	}
+    	    	}    	    	
        
 			// path
         	$path = ( $path == false ? (getenv("REDIRECT_bPath")?getenv("REDIRECT_bPath"):getenv("bPath")) : $path );
+                
+    	    	// no path
+    	    	if (!$path) {
+    	    		return $page;
+    	    	}                
                 
 			// save the uri
 			b::__('_bUri', $path);
@@ -198,7 +297,7 @@
 					'_bPath' => 3,
 					'_bContext' => 'xhr'					
 				);
-			}			
+			}								    
 			                  
 			// go through and parse the path, look for matches (defined above)
 			foreach ($pages as $pg => $args) {
@@ -207,11 +306,16 @@
 				if (preg_match('#'.$args['uri'].'#',$path,$matches)) {
 					
 					// this is our page
-					$page = $pg;			
+					$page = $pg;
+					
+						// check if _bHost
+						if(isset($args['_bHost']) AND !in_array(HTTP_HOST, $args['_bHost'])) {
+							continue;
+						}		
 						
 						// override with page
 						if ( isset($args['_bPage']) ) {
-							$page = $args['_bPage'];	unset($args['_bPage']);
+							$page = ( (is_int($args['_bPage']) AND isset($matches[$args['_bPage']])) ? $matches[$args['_bPage']] : $args['_bPage']); unset($args['_bPage']);
 						}
 						
 						// bcontext
@@ -220,19 +324,21 @@
 						}
 			                      
 					// set other arguments in the GET
-					foreach ($args as $a => $v) {
-			
-						// uri
-						if ( $a == 'uri' ) { continue; }
+					if ( is_array($args) ) {
+						foreach ($args as $a => $v) {
+				
+							// uri
+							if ( $a == 'uri' ) { continue; }
+							
+							// is int
+							if (is_int($v) AND isset($matches[$v])) {                                                  
+								$_REQUEST[$a] = $matches[$v];                                          
+							}
+							else if ( !is_numeric($v) ) {
+								$_REQUEST[$a] = $v;                                            
+							}
 						
-						// is int
-						if (is_int($v) AND isset($matches[$v])) {                                                  
-							$_REQUEST[$a] = $matches[$v];                                          
 						}
-						else if ( !is_numeric($v) ) {
-							$_REQUEST[$a] = $v;                                            
-						}
-					
 					}
 			
 					//no need to continue the matching
@@ -252,7 +358,7 @@
             }
             
             // path
-			if ( isset($_REQUEST['_bPath']) ) { 
+			if ( isset($_REQUEST['_bPath']) AND $_REQUEST['_bPath'] ) { 
 			
 				// set path
 				b::__('_bPath', trim(p('_bPath'),'/'));
@@ -261,10 +367,13 @@
 				unset($_REQUEST['_bPath']);
 				
 			}
-			else {
+			else if ( !isset($_REQUEST['_bPath']) ) {
 				// set path
 				b::__('_bPath', trim(b::_('_bUri'),'/'));						
 			}
+			
+			// set page
+			b::__("_bPage", $page);		
                                 
     	    // give back
 	        return $page;		
@@ -293,9 +402,24 @@
 		
 			// not there
 			if ( !file_exists($file) ) { return false; }
-		
-			// load the file with sections
-			$ini = parse_ini_file($file, true, INI_SCANNER_RAW);
+			
+			// cid
+			$cid = "bolt:ini:" . md5($file);
+			
+			// if we're no in devmode we can check the 
+			// cache for the ini file
+			if ( bDevMode OR ($ini = apc_fetch($cid)) == false ) {
+				$ini = parse_ini_file($file, true, INI_SCANNER_RAW);
+				apc_store($cid, serialize($ini));				
+			}
+			
+			// unserialize it
+			if (!is_array($ini)) {
+				$ini = unserialize($ini);
+			}
+			
+			// still not an ini means we stop
+			if ( !is_array($ini) ) { return false;}
 			
 			// format
 			$format = function($v, $ini, $sec) {						
@@ -326,9 +450,13 @@
 				// json
 				if ( substr($v,0,1) == '{' AND $sec != 'urls' ) {
 					$v = json_decode($v, true);
+					
+					// nope
+					if (bDevMode AND !$v) {
+						exit("could not decode json INI settings for {$sec}");
+					}
+					
 				}
-				
-
 				
 				if (is_string($v)) {
 					$v = trim($v,"\"'\t");
@@ -338,6 +466,7 @@
 				return $v;
 							
 			};
+					
 						
 			// loop through each section and set
 			foreach ( $ini as $sec => $set ) {
@@ -375,8 +504,11 @@
 								
 			}
 			
+			
 		}
 
+
+		public static function getData() { return self::$config; }
 		
 		////////////////////////////////
 		/// @breif get a predefined config
@@ -440,6 +572,11 @@
 			}
 			
 		}
+		
+		// replace
+		public static function replace($key, $val) {
+			self::$config[$key] = $val;
+		}
 	
 		////////////////////////////////
 		/// @breif unset a config val
@@ -456,8 +593,6 @@
 		/// @breif get a url
 		////////////////////////////////		
 		public static function url($key, $data=false, $params=false, $uri=URI) {
-			
-
 			
 			// key = 'slef'
 			if ( $key == 'self' ) {
@@ -607,6 +742,16 @@
 		
 		}
 		
+		public static function cache() {
+		    return Cache::singleton();
+		}
+		
+		public static function controller() {
+			$args = func_get_args();
+			$m = array_shift($args);
+			return call_user_func_array("\Controller::{$m}", $args);
+		}
+		
 		public static function attach($name, $func) {
 		
 			// get the instance
@@ -714,6 +859,30 @@
 			return $a1;
 		}		
 	
+    public static function randString($len=30) {
+        // chars
+        $chars = array(
+                'a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z',
+                'A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P','Q','R','S','V','T','V','U','V','W','X','Y','Z',
+                '1','2','3','4','5','6','7','8','9','0'
+        );
+       
+        // suffle
+        shuffle($chars);
+       
+        // string
+        $str = '';
+       
+        // do it
+        for ( $i = 0; $i < $len; $i++ ) {
+                $str .= $chars[array_rand($chars)];
+        }
+       
+        return $str;   
+
+	}		
+	
+	
 		public static function setCookie($name, $value, $expires=false) {
 		
 			// domain
@@ -784,15 +953,9 @@
 				
 			// see if the first val is a :
 			if ( $cookie{0} == ':' ) {
-				
-				// split it 
-				$sig = substr($cookie, 1, 32);
-				
-				// now the value
-				$e = substr($cookie, 33);
-				
+								
 				// make sure we're goof
-				$cookie = ( self::md5($e) == $sig ? json_decode(base64_decode($e), true) : false );
+				$cookie = self::getDecodedCookie($cookie);
 				
 			}
 		
@@ -800,6 +963,19 @@
 			return $cookie;
 		
 		}		
+		
+		public static function getDecodedCookie($cookie) {
+
+			// split it 
+			$sig = substr($cookie, 1, 32);
+			
+			// now the value
+			$e = substr($cookie, 33);
+			
+			// make sure we're goof
+			return ( self::md5($e) == $sig ? json_decode(base64_decode($e), true) : false );
+			
+		}
 		
 		public function md5($str) {
 			return md5('A#DK@()jdm2d89uddp2[;d3.2p'.$str.'$Kd90aa23d2i9k30dpdkjuf');
@@ -813,8 +989,12 @@
 				$url = call_user_func_array("b::url",$a);
 			}
 			else if ( isset($a[1]) ) {
+				if ( stripos($url,'http') === false )  {
+					$url = URI.trim($url,'/');
+				}						
 				$url = Config::addUrlParams($url, $a[1]);
 			}
+
 			exit(header("Location:$url"));
 		}
 	
@@ -830,14 +1010,19 @@
 			);
 		
 			// now the bug stuff
-			return trim(preg_replace($search, '-', $str),'-');
+			return strtolower(trim(preg_replace($search, '-', $str),'-'));
 		
 		}
+		
+		public static function uuid($parts=5, $prefix=false) { return self::getUuid($parts, $prefix); }
 			
-		public static function getUuid($parts=4, $prefix=false) {
+		public static function getUuid($parts=5, $prefix=false) {
 		
 			// uuid
-			$uuid = array_slice(explode('-',trim(`uuid`)),0,$parts);
+			$id = `uuid`;
+		
+			// uuid
+			$uuid = array_slice(explode('-',trim($id)),0,$parts);
 				
 				// prefix
 				if ( $prefix ) { $uuid = array_merge(array($prefix), $uuid); }
@@ -869,8 +1054,24 @@
 		}
 
 		public static function possesive($str) {
-			if ( $str == 'you' ) { return 'your'; }
+			if ( strtolower($str) == 'you' ) { return $str{0}.'our'; }
 			return $str . (substr($str,-1)=='s'?"'":"'s");
+		}
+		
+		public static function niceDate($ts) {
+			$diff = b::utctime() - $ts;
+			if ($diff < b::SecondsInYear) {
+				return "Today";
+			}
+			else if ($diff < (b::SecondsInYear*2)) {
+				return "Yesterday";
+			}
+			else if ($diff < (b::SecondsInYear*7)) {
+				return date("l", $ts);
+			}
+			else {
+				return date("l, F d, Y");
+			}
 		}
 		
 		public static function ago($tm,$rcs = 0) {
@@ -885,14 +1086,16 @@
 		    for($v = sizeof($lngh)-1; ($v >= 0)&&(($no = $dif/$lngh[$v])<=1); $v--); if($v < 0) $v = 0; $_tm = $cur_tm-($dif%$lngh[$v]);
 		   
 		    $no = floor($no); if($no <> 1) $pds[$v] .='s'; $x=sprintf("%d %s ",$no,$pds[$v]);
-		    return $x . ' ago';
+		    return trim($x) . ' ago';
 		}
 		
-		public static function left($theTime)
-			{
+		public static function left($theTime, $level="days+hours+min+sec") {
 				$now = strtotime("now");
 				$timeLeft = $theTime - $now;
-				$theText = '';			
+				$theText = '';		
+				
+				// splut
+				$levels = explode("+",$level);	
 				 
 				if($timeLeft > 0)
 				{
@@ -902,31 +1105,27 @@
 				$secs = $timeLeft%60;
 				
 				// check for days
-				if($days) {
-						$theText .= $days . " day";
-						
-						if ($days > 1) { $theText .= 's'; }
-							
+				if(in_array('days',$levels) AND $days > 0) {
+					$theText .= $days . " day";						
+					if ($days > 1) { $theText .= 's'; }							
 				} 
 				
-				if ( $hours > 0 ) {
 				
-						$theText .= ' '.$hours . " hour";
-					
-						if ($hours > 1) { $theText .= 's'; }
-				
+				if ( in_array('hours',$levels) AND $hours > 0 ) {				
+					$theText .= ' '.$hours . " hour";				
+					if ($hours > 1) { $theText .= 's'; }				
 				}
-						
-						
-						$theText .= ' '.$mins . " min";
-						
-						if ($mins > 1) { $theText .= 's'; }		
-	
 				
-						$theText .= ' '.$secs . " sec";
-						
-						if ($secs > 1) { $theText .= 's'; }
-	
+				if (in_array('min',$levels)) {							
+					$theText .= ' '.$mins . " min";				
+					if ($mins > 1) { $theText .= 's'; }		
+				}
+				
+				if(in_array('sec',$levels)) {
+					$theText .= ' '.$secs . " sec";					
+					if ($secs > 1) { $theText .= 's'; }
+				}
+				
 						
 			}
 			
@@ -987,7 +1186,7 @@
 		}
 		
 		public static function convertBase($str,$to=36,$from=10) {
-			return (string)base_convert(hexdec( str_replace('-','',$str) ),$from, $to);
+			return (string)base_convert(hexdec($str),$from, $to);
 		}
 		
 	}
@@ -1055,7 +1254,15 @@
 
 		}
 		else {
+		
+			// array
 			$array[$key] = filter_var($array[$key], $filter);
+			
+			// still bad
+			if (!$array[$key]) {
+				return $default;
+			}
+			
 		}
 		
 		// reutnr

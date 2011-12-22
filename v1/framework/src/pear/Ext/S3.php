@@ -408,7 +408,8 @@ class S3 {
 	* @return mixed
 	*/
 	public static function getObject($bucket, $uri, $saveTo = false) {
-		$rest = new S3Request('GET', $bucket, $uri);
+		$rest = new S3Request('GET', $bucket, trim($uri,'/'));
+		
 		if ($saveTo !== false) {
 			if (is_resource($saveTo))
 				$rest->fp =& $saveTo;
@@ -447,8 +448,8 @@ class S3 {
 		if ($rest->error === false && ($rest->code !== 200 && $rest->code !== 404))
 			$rest->error = array('code' => $rest->code, 'message' => 'Unexpected HTTP status');
 		if ($rest->error !== false) {
-			trigger_error(sprintf("S3::getObjectInfo({$bucket}, {$uri}): [%s] %s",
-			$rest->error['code'], $rest->error['message']), E_USER_WARNING);
+//			trigger_error(sprintf("S3::getObjectInfo({$bucket}, {$uri}): [%s] %s",
+//			$rest->error['code'], $rest->error['message']), E_USER_WARNING);
 			return false;
 		}
 		return $rest->code == 200 ? $returnInfo ? $rest->headers : true : false;
@@ -1182,7 +1183,7 @@ final class S3Request {
 		curl_setopt($curl, CURLOPT_USERAGENT, 'S3/php');
 
 		if (S3::$useSSL) {
-			curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 1);
+			curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
 			curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 1);
 		}
 

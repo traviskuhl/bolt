@@ -64,7 +64,7 @@ class Webservice {
 	}
 	
 	protected function getBaseUrl() {
-		return  $this->protocol . '://' . $this->host . ":" . $this->port . "/";		
+		return  $this->protocol . '://' . $this->host . ($this->port != '80' ? ":" . $this->port : "") . "/";		
 	}
 		
 	/*! @function sendRequest
@@ -78,7 +78,12 @@ class Webservice {
 	public function sendRequest($uri,$params=array(),$method='GET',$headers=array()) {
                               
         // url 
-        $url = $this->getBaseUrl() . ltrim($uri,'/');  
+        if (substr($uri,0,4)=='http') {
+        	$url = $uri;
+        }
+        else {
+	        $url = $this->getBaseUrl() . ltrim($uri,'/');  
+	    }
 		
 		// headers
 		$headers = array_merge($this->headers, $headers);        
@@ -97,10 +102,9 @@ class Webservice {
 
         // append
         if (!empty($p)) { 
-        	$url .= (strpos($uri,'?')===false?'?':':').implode('&',$p);
+        	$url .= (strpos($uri,'?')===false?'?':'&').implode('&',$p);
         }        
         
-//        var_dump($url); die;
         
         // new curl request
         $ch = curl_init();
@@ -110,10 +114,15 @@ class Webservice {
         curl_setopt($ch, CURLOPT_HEADER, 0);    
         curl_setopt($ch, CURLOPT_RETURNTRANSFER,1);
         curl_setopt($ch, CURLOPT_CONNECTTIMEOUT,5);        
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
-		
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);        
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);    				
+				
+				
         // add headers
-        curl_setopt($ch,CURLOPT_HTTPHEADER,$headers);
+        curl_setopt($ch,CURLOPT_HTTPHEADER, array_map(function($k, $v){
+        	return "$k:$v";
+        },array_keys($headers), $headers));
     
         // add params
         if ( $method == 'POST' OR $method == 'PUT' ) {
@@ -128,7 +137,7 @@ class Webservice {
         // make the request
         $result = curl_exec($ch);   
         
-//        var_dump($result); 
+//        var_dump($result,curl_getinfo($ch)); die;
                     
 		// bad curl call
         if ( curl_getinfo($ch,CURLINFO_HTTP_CODE) > 300) {

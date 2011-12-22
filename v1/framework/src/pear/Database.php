@@ -1,30 +1,42 @@
 <?php
 
-
-////////////////////////////////////
-/// @breif database wrapper
-////////////////////////////////////
 class Database {
 
-	// dbh
 	private static $instance = false;
-	private $dbh = false;
-
-	// __construct is private so that 
-	// you must use signlton
-	private function __construct() {}
+	
+	private function __construct(){}
 	
 	public static function singleton() {
 	
 		// already created
 		if ( !self::$instance ) {
-			$class = __CLASS__;
-			self::$instance = new $class();
+	        $db = Config::get('db');			
+			self::$instance = new DatabaseInstance($db);
 		}
 		
 		// give it 
 		return self::$instance;
 	
+	}
+
+
+}
+
+
+////////////////////////////////////
+/// @breif database wrapper
+////////////////////////////////////
+class DatabaseInstance {
+
+	// dbh
+	private $dbh = false;
+	
+	private $config = array();
+
+	public function __construct($config) {
+	
+		$this->config = $config;
+		
 	}
 
 	public function connectToDb() {
@@ -33,9 +45,8 @@ class Database {
             return;
         }
         
-        // get a db config
-        $db = Config::get('db');
-        
+        $db = $this->config;
+               
         // connect
         try {
             $this->dbh = new PDO("mysql:host={$db['host']};dbname={$db['name']}",$db['user'],$db['pass']);
@@ -156,7 +167,8 @@ class Database {
 	 * @return	{string}	clean string 
 	 */
 	public function clean($str) {
-		return $this->dbh->quote($str );
+		$this->connectToDb();
+		return $this->dbh->quote($str);
 	}		
 
 }

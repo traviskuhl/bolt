@@ -1,4 +1,7 @@
 <?php
+
+    // start
+    define("START", microtime(true));
         
 	// framework
 	define("bFramework",	"/home/bolt/share/pear/bolt/framework/");

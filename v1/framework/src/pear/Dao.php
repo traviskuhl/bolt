@@ -71,13 +71,14 @@ abstract class Dao extends DaoHelpers implements \Iterator {
 			}
 			
 		}
+		
 
 		// added and modified
-		if ( $this->_useAddedTimestamp === true ) {
+		if ( count($this->_struct) > 0 AND $this->_useAddedTimestamp === true ) {
 			$this->_struct['added'] = array( 'type' => 'added' );
 		}
 
-		if ( $this->_useModifiedTimestamp === true ) {
+		if ( count($this->_struct) > 0 AND $this->_useModifiedTimestamp === true ) {
 			$this->_struct['modified'] = array( 'type' => 'modified' );							
 		}
 		
@@ -176,12 +177,15 @@ abstract class Dao extends DaoHelpers implements \Iterator {
 					'_decode_' => function($v) { return html_entity_decode($v, ENT_QUOTES, "utf-8"); },
 					'_ucfirst_' => function($v) { return ucfirst($v); },
 					'_toupper_' => function($v) { return strtoupper($v); },
-					'_tolower_' => function($v) { return strtolower($v); },			
+					'_tolower_' => function($v) { return strtolower($v); },
+					'_number_foramat_' => function($v) { return number_format($v); },
+					'_possesive_' => function($v) { return \b::possesive($v); }
 				);				
 				
 				foreach ( $modify as $str => $func ) {	
 					if ( strpos($name, $str) !== false ) {
-						return call_user_func($func, $data[str_replace($str, "", $name)]);
+						$n = str_replace($str, "", $name);					
+						return call_user_func($func, p_raw($n, false, $data));
 					}
 				}
  
@@ -215,7 +219,22 @@ abstract class Dao extends DaoHelpers implements \Iterator {
         else if ( isset($this->{"_{$name}"}) ) {
         	return $this->{"_{$name}"};
         }
-       
+		else if ( isset($this->_struct[$name]['cast']) ) {
+		
+			// false
+			$r = false;
+			
+			if ( $this->_struct[$name]['cast'] == 'array' ) {
+				$r = array();
+			}
+			else {
+				settype($r, $this->_struct[$name]['cast']);
+			}
+			
+			return $r;
+			
+		}
+		
         
         // nope
         return false;
@@ -276,8 +295,40 @@ abstract class Dao extends DaoHelpers implements \Iterator {
         }
         
 		// add it 
-		if ( isset($this->_trackChanges) AND $this->_trackChanges == true AND $val != $cur AND $name != 'changelog' ) {
-			$this->_changes[$name] = array( 'new' => $val, 'old' => $cur );
+		if ( isset($this->_trackChanges) AND $this->_trackChanges == true AND $name != 'changelog' ) {
+		
+            // make sure we have an array
+            if (!is_array($this->_changes)) { $this->_changes = array(); }
+            
+            // see if cur is an object
+            // if yes try to normalize it
+            if (is_object($cur)) {     
+                $this->__mapNormalize($cur, $name, $this->_struct);
+            }
+            
+            // still an object try to get an id
+            if (is_object($cur)) {
+            
+                // to an array
+                $cur = $cur->asArray();
+                
+                // if id use that 
+                if (array_key_exists('id', $cur)) {
+                    $cur = $cur['id'];
+                }
+                
+            }   
+            
+            // change
+            if (is_array($val) AND is_array($cur) ) {
+            	if (count(array_diff($val, $cur)) > 0) { 
+	            	$this->_changes[$name] = array( 'new' => $val, 'old' => $cur );
+	            }
+            }
+            else if ($val != $cur) {            
+       			$this->_changes[$name] = array( 'new' => $val, 'old' => $cur );
+       	    }
+   			
 		}
 
 	}		
@@ -327,6 +378,27 @@ abstract class Dao extends DaoHelpers implements \Iterator {
 		return $this->_data;
 	}
 	
+	public function getDisplay($key) {	
+	   if (array_key_exists($key, $this->_struct) AND array_key_exists('display', $this->_struct[$key])) {	   
+	       return $this->_struct[$key]['display'];
+	   }
+	   return $key;
+	}
+	
+	public function getMapped($key, $val) {	
+	   if (array_key_exists($key, $this->_struct) AND array_key_exists('map', $this->_struct[$key]) ) {	   
+            if (is_array($val) AND count($val) == 0 ) {
+                return "";
+            }
+			else if ( (is_array($this->_struct[$key]['map']) AND is_callable($this->_struct[$key]['map']) ) OR is_callable($this->_struct[$key]['map'])) {
+				return call_user_func($this->_struct[$key]['map'], $val, $this);			
+			}
+			else if (array_key_exists($val, $this->_struct[$key]['map'])) {
+				return $this->_struct[$key]['map'][$val];
+			}
+	   }
+	   return $val;	
+	}
 	
 	/////////////////////////////////////////////////
 	/// @brief default set action
@@ -379,6 +451,22 @@ abstract class Dao extends DaoHelpers implements \Iterator {
 
 		// the validate function
 		private function __mapSetFunc($info, $value, $key) {      
+			
+			// is it set
+			if (isset($info['cast'])) {
+
+				// arrays shoudln't be false
+	        	if ($info['cast'] == 'array' AND $value === false) {
+	        		$value = array();
+	        	}
+	        	else if ($info['cast'] == 'int') {
+	            	$value = (int)$value;
+	        	}
+	        	else {	            
+	            	settype($value, $info['cast']);                    
+	            }		
+	            
+			}
           
             // based on data type do the transform
             if ( isset($info['type']) ) {
@@ -393,7 +481,8 @@ abstract class Dao extends DaoHelpers implements \Iterator {
                         if ( is_null($value) ) {
                         	$value = false;
                         }
-                        break;
+                        break;                                          
+                        
                     // tags need to be turned into
                     // a tags array
                     case 'tags':                       
@@ -430,6 +519,17 @@ abstract class Dao extends DaoHelpers implements \Iterator {
 	                        	
 	                        // add to expand
 	                        $this->_expand[$key] = array($cl, $args);
+                    	
+                    	break;
+                    	
+                    // expand
+                    case 'expand':
+                    
+                    	// args
+                    	$args = p('args', array(), $info);                    
+                    	
+                    	// expand
+                    	$this->_expand[$key] = array($info['func'],array($this, $args));
                     	
                     	// stop
                     	break;
@@ -511,10 +611,17 @@ abstract class Dao extends DaoHelpers implements \Iterator {
 	public function normalize() {
 	
 		// data
-		$data = $this->_data;				
+		$data = $this->_data;	
+		
+		// walk through struct and make sure each key exist
+		foreach ($this->_struct as $key => $info) {
+		  if (!array_key_exists($key, $data)) {
+		      $data[$key] = false;
+		  }
+		}
 			
 		// normalize
-		array_walk($data, array($this, '__mapNormalize'), $this->_struct);			
+		array_walk($data, array($this, '__mapNormalize'), $this->_struct);						
 			
 		// give back data
 		return $data;		
@@ -534,7 +641,7 @@ abstract class Dao extends DaoHelpers implements \Iterator {
 	                switch ($info['type']) {
 	                
 	                	// uuid
-						case 'uuid':
+						case 'uuid':						
 							if ( !$value ) { $value = b::getUuid(); } break;
 							
 						// user
@@ -554,7 +661,7 @@ abstract class Dao extends DaoHelpers implements \Iterator {
 	                    case 'dao':
 	                    	if ( is_object($value) ) {
 	                    		$id = p('id','id',$info);                            	
-								$value = $value->{$id}; 
+								$value = $value->{$id}; 								
 							}
 							break;
 							
@@ -583,8 +690,16 @@ abstract class Dao extends DaoHelpers implements \Iterator {
 							$value = b::utctime(); break;
 							
 						// changelog
-						case 'changelog':
-							$value = $p->_changes; break;
+						case 'changelog':						
+                            if (!is_array($value)) { $value = array(); }
+                            $ch = $p->getChanges();
+                            if (count($ch) == 0 ) { break; }
+							$value[] = array(
+                                'ts' => b::utctime(),
+                                'changes' => $ch,
+                                'by' => (b::_("_account") ? b::_("_account")->id : false)
+                            ); 
+                        break;
 	                    
 	                };
 	                
@@ -597,7 +712,18 @@ abstract class Dao extends DaoHelpers implements \Iterator {
 	            
 	            // cast
 	            if ( isset($info['cast']) ) {
-	            	settype($value, $info['cast']);
+	            	            
+	            	// cast is array and value is default
+	            	if ($info['cast'] == 'array' AND $value === false) {
+	            		$value = array();
+	            	}
+	            	else if (is_object($value)) {
+                        $value = $value->asArray();
+	            	}
+	            	else {	            
+		            	settype($value, $info['cast']);
+		            }		            
+		            
 	            }
 	            
 	            return $value;
@@ -616,8 +742,14 @@ abstract class Dao extends DaoHelpers implements \Iterator {
 				}
 					
 			}		
+			
+			return $item;
 		
 		}
+		
+    public function getChanges() { 
+        return $this->_changes;
+    }
 
 	/////////////////////////////////////////////////
 	/// @brief turn an array into an object
@@ -643,7 +775,6 @@ abstract class Dao extends DaoHelpers implements \Iterator {
 
 	}		
 	
-	
 	/////////////////////////////////////////////////
 	/// @brief print object as an array
 	///
@@ -656,7 +787,7 @@ abstract class Dao extends DaoHelpers implements \Iterator {
 		$resp = array();
 		
 		// item type
-		if ( count($this->_struct) > 0 ) {
+		if ( count($this->_struct) > 0 AND !$this->_items ) {
 				
 			// loop through the struct
 			foreach ( $this->_struct as $key => $info ) {
@@ -666,7 +797,7 @@ abstract class Dao extends DaoHelpers implements \Iterator {
 				
 				// see if it's a dao type
 				// if it is we need to expand
-				if ( isset($info['type']) AND in_array($info['type'],array('dao','user','tags')) ) {
+				if ( isset($info['type']) AND in_array($info['type'],array('dao','user','tags')) AND is_object($val) ) {
 					$resp[$key] = $val->asArray();
 				}
 				else if ( is_object($val) AND method_exists($val, "asArray") ) {
@@ -698,7 +829,7 @@ abstract class Dao extends DaoHelpers implements \Iterator {
 		
 			// loop through each item and add to object
 			foreach ( $this->_items as $key => $item ) {
-				$resp[$key] = $item->asArray();
+				$resp[$key] = (is_object($item) ? $item->asArray() : $item);
 			}
 		
 		}
@@ -709,6 +840,11 @@ abstract class Dao extends DaoHelpers implements \Iterator {
 		
 	}
 	
+	// to array
+	public function toArray($name) {
+		$resp = ( $this->$name ? $this->{$name}->asArray() : array() );
+		return (is_array($resp) ? $resp : array());
+	}		
 	
 	/////////////////////////////////////////////////
 	/// @brief get data array
@@ -916,7 +1052,7 @@ abstract class DaoHelpers {
                         // get some stuff
                         $ary = $this->{$args[0]};
                         $val = $args[1];
-                                $key = (isset($args[2])?$args[2]:false);
+                        $key = (isset($args[2])?$args[2]:false);
                         
                         // if ary === false we assume it's just empty
                         if ( $ary === false ) {
@@ -1025,13 +1161,32 @@ abstract class DaoHelpers {
 					return $this->_items;
 				
 					break;
+					
+				// sort
+				case 'sort':
+					
+					$func = $args[0];
+					
+					$ary = $this->_items;
+					
+					usort($ary, $func);
+								
+					$this->_items = $ary;
+					
+					return $this;
                         
 				// in or inarray
 				case 'in':
 				case 'inarray':
 				case 'in_array':
+					$ar = $this->_items;
+					$val = $args[0];
+					if (count($args) > 1) {
+						$ar = $this->toArray($args[0]);
+						$val = $args[1];
+					}
 					
-					return in_array($args[0], $this->_items);
+					return in_array($val, $ar);
                         
 				// slice
 				case 'slice': 
@@ -1042,14 +1197,58 @@ abstract class DaoHelpers {
 						return array_slice($this->{$args[0]}, $args[1], $args[2]);
 					}
 					else if ( is_array($this->_items) ) {
-						
+					
+						$_args = array($this->_items);
+											
 						// slice	
-						$this->_items = array_slice($this->_items, $args[0], $args[1]);
+						$this->_items = call_user_func_array('array_slice', array_merge($_args, $args));
 					
 						// return this
 						return $this;
 					
 					}
+				
+					break;
+					
+				case 'implode':
+				
+					if (count($args) == 1) {
+						$ary = $this->_items;
+    	                $str = $args[0];					
+					}
+					else {
+	                    $ary = $this->{$args[0]};                    
+    	                $str = $args[1];
+    	            }
+                                       
+					// object
+                    if (is_object($ary) AND method_exists($ary, 'asArray')) { $ary = $ary->asArray(); }
+					
+                        // is it an array
+                        if ( !is_array($ary) ) { return false; }                    
+                        
+					return implode($str, $ary);					
+					
+					break;
+
+				case 'explode':
+                    $str = $this->{$args[0]};                    
+                    $sep = $args[1];
+                                       					
+                        // is it an array
+                        if ( !is_string($str) ) { return false; }                    
+                        
+					return explode($sep, $str);					
+					
+					break;
+					
+				// reverse
+				case 'reverse':
+					
+					// utens
+					$this->_items = array_reverse($this->_items, true);
+					
+					return $this;
 				
 					break;
                         
@@ -1058,6 +1257,9 @@ abstract class DaoHelpers {
                         
                         $ary = $this->{$args[0]};
                         $key = (isset($args[1])?$args[1]:false);
+                        
+                        // object
+                        if (is_object($ary) AND method_exists($ary, 'asArray')) { $ary = $ary->asArray(); }
                         
                         // is it an array
                         if ( !is_array($ary) ) { return $ary; }
@@ -1096,8 +1298,8 @@ abstract class DaoHelpers {
 	/// @param idx index number to check for value
 	/// @return value at given index
 	/////////////////////////////////////////////////		
-	public function item($idx=0) {
-		if ( count($this->_items) == 0 ) { 
+	public function item($idx=0) {	
+		if ($idx === false OR !is_array($this->_items) OR (is_array($this->_items) AND count($this->_items) == 0) ) { 
 			return false; 
 		}
 		else if ( $idx == 'first' ) {
@@ -1239,13 +1441,19 @@ class DaoMock extends DaoHelpers implements Iterator {
 		$it = $this->_items;
 				
 		foreach ( $it as $k => $v ) {
-			if ( is_object($v) ) {
+			if ( is_object($v) AND method_exists($v, 'toArray') ) {
 				$v = $v->asArray();
 			}
 			$a[$k] = $v;
 		}
 		return $a;
 	}
+	
+	// to array
+	public function toArray($name) {
+		return ( $this->$name ? $this->{$name}->asArray() : array() );
+	}	
+	
 	public function exists($key) {
 		$it = $this->_items;		
 		if ( isset($it[$key]) ) {

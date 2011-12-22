@@ -71,6 +71,14 @@ class Events extends DatabaseMask {
 	/// @breif fire 
 	////////////////////////////////	
 	public function fire($event,$args) {
+
+		// all
+		if (array_key_exists('*', $this->events)) {
+			foreach ( $this->events['*'] as $e ) {
+				call_user_func($e['func'], $event, $args, $e['params']);
+			}		
+		}
+	
 		
 		// no guid create one
 		if ( !isset($args['guid']) ) {

@@ -40,7 +40,6 @@ class Controller {
 		//echo "/home/bolt/share/pear/bolt/$type/$name/$name.render.php"; die;
 		//echo "$root/$name/$name.render.php"; die;
 
-		
 
 		// does it exist
 		if ( file_exists("$root/$name/$name.render.php") ) {
@@ -51,6 +50,7 @@ class Controller {
 				$bolt = true;
 			}
 
+//		var_dump($path, "$root/$name/$name.render.php"); die;
 
 		// if path
 		if ( $path ) {
@@ -99,8 +99,7 @@ class Controller {
 		
 	}
 
-	static function xhr()
-	{
+	static function xhr() {
 
 		// module
 		$module = p('_bModule');
@@ -115,10 +114,13 @@ class Controller {
 			b::show_404();
 		}
 
-		$r = $mod->render( array() );
+		$r = $mod->render( self::$globals );
+
+		// parse tokens
+		$html = self::replaceTokens($r->html, $r->args, true);
 
 		// parse tmpl
-		list($html, $js) = self::parseHtmlForScriptTags($r->html);
+		list($html, $js) = self::parseHtmlForScriptTags($html);
 
 		// output
 		header("Content-Type:text/javascript");
@@ -268,6 +270,22 @@ class Controller {
 		// args
 		$args = $o->args;
 		
+			// bodyclass
+			if ( isset($args['bodyClass']) AND !is_array($args['bodyClass']) ) {
+				$args['bodyClass'] = explode(' ', $args['bodyClass']);
+			}
+			else if (!isset($args['bodyClass'])) {
+				$args['bodyClass'] = array();
+			}
+			
+			// logged
+			if ( b::_("_logged") ) {
+				$args['bodyClass'][] = 'logged';
+			}
+		
+			// bodyclass
+			$args['bodyClass'] = implode(" ",$args['bodyClass']);
+		
 		// if args tells us not to 
 		// render the global
 		if ( isset($args['_bNoGlobalTemlate']) AND $args['_bNoGlobalTemlate'] == true ) {
@@ -282,6 +300,9 @@ class Controller {
 			$global = self::renderTemplate( Config::get('site/globalTemplate'), $args, $base );
 			
 		}
+		
+		// render html
+		self::executeCallbacks('renderHtml');
 
 		// added embed lists
 		$args['cssEmbeds'] = Controller::getEmbedList('css', true);
@@ -300,8 +321,11 @@ class Controller {
 			apc_store('server_hostname', $hn);
 		}
 
+		// render time
+		$rt = round(microtime(true) - START, 4) . ' seconds';
+
 		// add to global
-		$global .= "\n<!-- {$hn} - ".date('r')." -->";
+		$global .= "\n<!-- {$hn} - ".date('r')." - {$rt} -->";
 
 		// now replace the body
 		exit( $global );
@@ -314,7 +338,7 @@ class Controller {
 		$func = "self::renderTemplate";
 	
 		// what content to do
-		switch(b::_('_bContext') == 'json' ) {
+		switch(b::_('_bContext')) {
 			
 			// json
 			case 'json':
@@ -338,15 +362,32 @@ class Controller {
 		// what is self
 		$self = __CLASS__;	
 		
-		// file won't be a file,
-		// it will be an array we need to loop 
-		// through for interesting parts
-		array_walk_recursive($data, function(&$item, $key, $a){
-			if ( is_string($item) AND substr($item,0,2) == '{%' AND substr($item,-2) == '%}' ) {
+		$f = function(&$item, $key, $a){		
+			if ( is_string($item) AND substr($item,0,2) == '{%' AND substr($item,-2) == '%}' ) {			
 				// render a string an reset it
 				$item = call_user_func("{$a[0]}::renderString", $item, $a[1])->html;
 			}
-		}, array($self, $p_args));
+			if ( is_array($item) ) {
+				foreach ( $item as $k => $v) {
+					if ( is_string($v) ) {
+						$a[2]($item[$k], $k, $a);
+					}
+					else if ( is_array($v)) {
+						array_walk($item[$k], $a[2], $a);
+					}
+				}
+			}
+		};
+		
+		// file won't be a file,
+		// it will be an array we need to loop 
+		// through for interesting parts
+		if ( is_array($data) ) {
+			array_walk($data, $f, array($self, $p_args, $f));
+		}
+		else {
+			$f($data, $f, array($self, $p_args, $f));
+		}
 	
 		// return it
 		$o = new StdClass();
@@ -371,7 +412,7 @@ class Controller {
 		
 	}
 
-	public static function renderTemplate($file, $p_args=array(), $base=false)
+	public static function renderTemplate($x__file, $p_args=array(), $base=false)
 	{
 
 		// try to figure out the
@@ -383,8 +424,8 @@ class Controller {
 		$base = "/" . trim($base, '/') . "/";
 
 		// check for page
-		if ( strpos($file, '.php') === false ) {
-			$file .= ".template.php";
+		if ( strpos($x__file, '.php') === false ) {
+			$x__file .= ".template.php";
 		}
 
 		// get any globals
@@ -399,7 +440,7 @@ class Controller {
 		}
 
 		// include the page
-		include $base.$file;
+		include $base.$x__file;
 
 		// stop
 		$page = ob_get_contents();
@@ -433,9 +474,12 @@ class Controller {
 			// html
 			$o = $mod->render($m['cfg']);
 
-			if ( $o ) {
+			if ( $o ) {		
 
-				if ( is_array($o->html) ) {
+				if (is_array($o)) {
+					$template = $o;
+				}				
+				else if ( is_array($o->html) ) {
 					$template = $o->html;
 				}
 				else {
@@ -472,6 +516,22 @@ class Controller {
 		return $o;
 
 	}
+	
+	public function buildModule($module, $args=array()) {
+
+		// set it
+		$mod = self::initModule(array('class'=>$module), array('parent'=>self::$globals));
+
+		// no mod continue
+		if ( !$mod ) { continue; }
+
+		// set our args
+		$mod->_args = $args;
+
+		// html
+		return $mod->render($args);	
+	
+	}
 
 	public function replaceTokens($template, $d_args, $cleanup=false)
 	{
@@ -485,7 +545,7 @@ class Controller {
 		}
 
 		// parse the template
-		if ( preg_match_all('#\{\$([a-z0-9\.\-\|\_\s\'\(\)]+)\}#i', $template, $matches, PREG_SET_ORDER) ) {
+		if ( preg_match_all('#\{\$([a-z0-9\.\-\|\_\s\'\(\)\/]+)\}#i', $template, $matches, PREG_SET_ORDER) ) {
 
 			// loop through each
 			foreach ( $matches as $match ) {
@@ -528,7 +588,7 @@ class Controller {
 
 						// loop through
 						foreach ( $parts as $p ) {										
-							if ( $k and array_key_exists($p, $k) ) {
+							if ( $k AND is_array($k) AND array_key_exists($p, $k) ) {
 								$k = $k[$p];
 							}
 							else if ( $k AND is_object($k) AND $k->{$p} !== false ) {	
@@ -583,6 +643,10 @@ class Controller {
 	}
 
 	public function initModule($mod, $args, $type='modules') {
+
+		if (is_string($mod)) {
+			$mod = array('class'=>$mod);
+		}
 
 		// include
 		list($_m, $bolt) = self::includeModule($mod['class'], $type);
@@ -717,8 +781,13 @@ class Controller {
 
 	}
 
-	public static function addEmbed($type, $name, $project, $file) {
-		self::$embeds[$type][] = array($name => "{$project}/{$type}/{$file}" );
+	public static function addEmbed($type, $name, $project=false, $file) {
+		if ( $project !== false ) {
+			self::$embeds[$type][] = array($name => "{$project}/{$type}/{$file}" );
+		}
+		else {
+			self::$embeds[$type][] = array($name => $file);
+		}
 	}
 	
 	public static function getEmbedList($type) {
@@ -739,12 +808,12 @@ class Controller {
 			
 			if ( $type == 'css' ) {
 				if (bDevMode) { $file .= '?.r='.time(); }
-				$list[] = "<link rel='stylesheet' href='/assets/{$file}' type='text/css'>";
+				$list[] = "<link rel='stylesheet' href='".(bDevMode ? "/assets/" : '' ).$file."' type='text/css'>";
 			}
 			else if ( $type == 'js') {			
 				$n = key($file);
 				if (bDevMode) { $file[$n] .= '?.r='.time(); }				
-				$list[$n] = array('file' => "/assets/".$file[$n]);
+				$list[$n] = array('file' => (bDevMode ? URI."/assets/" : '' ) . $file[$n]);
 			}
 		}
 	

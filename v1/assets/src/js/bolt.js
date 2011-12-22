@@ -334,8 +334,14 @@ YUI.add('bolt',function(Y){
 			if ( rel == 'xhr' ) {
 						
 				if ( tar.hasAttribute('data-xhr') ) {
-					url = this.getXhrUrl( tar.getAttribute('data-xhr').replace(/\+href/, href.replace(new RegExp("http://"+location.hostname+"/"),'')) );									
-				}						
+					url = this.getXhrUrl( tar.getAttribute('data-xhr').replace(/\+href/, href.replace(new RegExp("http://"+location.hostname+"/"),'')), args);
+				}
+				else if ( tar.hasAttribute('data-ajax') ) {
+					url = this.getAjaxUrl( tar.getAttribute('data-ajax').replace(/\+href/, href.replace(new RegExp("http://"+location.hostname+"/"),'')), args );									
+				}
+				else if ( tar.hasAttribute('data-url') ) {
+					url = this.getUrl( tar.getAttribute('data-url').replace(/\+href/, href.replace(new RegExp("http://"+location.hostname+"/"),'')), args);									
+				}
 						
 				// content
 				var content = $(tar.getAttribute('data-target'));
@@ -438,8 +444,6 @@ YUI.add('bolt',function(Y){
 				if ( tar.hasAttribute('data-xhr')  ) {
 					url = this.getAjaxUrl( tar.getAttribute('data-xhr').replace(/\+href/, href.replace(new RegExp("http://"+location.hostname+"/"),'')) );					
 				}		
-				
-				alert('x');
 						
 				// o
 				var o = {

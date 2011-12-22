@@ -14,15 +14,13 @@ class Cache {
 		$this->basens = Config::get('cache/prefix').":";
 	
 		// $mem
-		$this->memcache = new Memcache;
+		$this->memcache = new Memcached();
 		
 		// host
 		$hosts = explode(',',Config::get('cache/host')); 
 	
-		// add our servers
-		foreach ( $hosts as $host ) { 
-			$this->memcache->addServer($host,'11211');
-		}
+		// add servers
+		$this->memcache->addServers(array_map(function($el){ return array($el, 11211, 1); }, $hosts));
 	
 	}
 
@@ -73,7 +71,7 @@ class Cache {
 		$cid = "{$this->basens}:{$ns}:{$key}";
 	
 		// set it 
-		$r = $this->memcache->set($cid, $value, $compress, (int)$exp);
+		$r = $this->memcache->set($cid, $value, (int)$exp);
 	
 		// if ns does not exists we need to keep track
 		if ( $ns != 'default' ) {
