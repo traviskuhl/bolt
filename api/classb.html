@@ -43,9 +43,15 @@
 <tr><td class="memItemLeft" nowrap align="right" valign="top">static&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classb.html#9c565c4c1be603fd064fd1446a048495">init</a> ($args=array())</td></tr>
 
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">initalize the bolt framework  <a href="#9c565c4c1be603fd064fd1446a048495"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">static&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classb.html#e356d1af72d14087980c5da99009b0b0">getLoaded</a> ()</td></tr>
+
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">static return a list of loaded files  <a href="#e356d1af72d14087980c5da99009b0b0"></a><br></td></tr>
 <tr><td class="memItemLeft" nowrap align="right" valign="top">static&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classb.html#5d5d9fa893f5a5a8db61062e78248450">autoloader</a> ($class)</td></tr>
 
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">autoload bolt components  <a href="#5d5d9fa893f5a5a8db61062e78248450"></a><br></td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">static&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classb.html#36a67ae0eba57e85cc888df53819a410">bolt</a> ()</td></tr>
+
+<tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">return bolt instance  <a href="#36a67ae0eba57e85cc888df53819a410"></a><br></td></tr>
 <tr><td class="memItemLeft" nowrap align="right" valign="top">static&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classb.html#edc8321e171e81517be38949d30199a5">_</a> ($name)</td></tr>
 
 <tr><td class="mdescLeft">&nbsp;</td><td class="mdescRight">get a configuration paramater.  <a href="#edc8321e171e81517be38949d30199a5"></a><br></td></tr>
@@ -107,9 +113,9 @@ passhtrough to <a class="el" href="classconfig.html#8c34073e5e433931085430ecdf46
 <dl compact><dt><b>See also:</b></dt><dd><a class="el" href="classconfig.html#8c34073e5e433931085430ecdf461065">config::get</a> </dd></dl>
 
 <p>
-Definition at line <a class="el" href="bolt_8php-source.html#l00177">177</a> of file <a class="el" href="bolt_8php-source.html">bolt.php</a>.
+Definition at line <a class="el" href="bolt_8php-source.html#l00207">207</a> of file <a class="el" href="bolt_8php-source.html">bolt.php</a>.
 <p>
-Referenced by <a class="el" href="route_8php-source.html#l00088">route::match()</a>.
+Referenced by <a class="el" href="route_8php-source.html#l00095">route::match()</a>, and <a class="el" href="bolt_test_8php-source.html#l00009">boltTest::testInit()</a>.
 </div>
 </div><p>
 <a class="anchor" name="148a3585c31077b42410c4c9c589984f"></a><!-- doxytag: member="b::__" ref="148a3585c31077b42410c4c9c589984f" args="($name, $value=false)" -->
@@ -151,7 +157,9 @@ passhtrough to <a class="el" href="classconfig.html#d32309c344b3a676a868fa68e677
 <dl compact><dt><b>See also:</b></dt><dd><a class="el" href="classconfig.html#d32309c344b3a676a868fa68e677b73c">config::set</a> </dd></dl>
 
 <p>
-Definition at line <a class="el" href="bolt_8php-source.html#l00190">190</a> of file <a class="el" href="bolt_8php-source.html">bolt.php</a>.
+Definition at line <a class="el" href="bolt_8php-source.html#l00220">220</a> of file <a class="el" href="bolt_8php-source.html">bolt.php</a>.
+<p>
+Referenced by <a class="el" href="bolt_test_8php-source.html#l00009">boltTest::testInit()</a>.
 </div>
 </div><p>
 <a class="anchor" name="098c39c0411f0361a91276406f126d3e"></a><!-- doxytag: member="b::__callStatic" ref="098c39c0411f0361a91276406f126d3e" args="($name, $args)" -->
@@ -186,7 +194,9 @@ passthrough to <a class="el" href="classplugin.html#a4b051134c33b5f01ababe8c73b5
 <dl compact><dt><b>See also:</b></dt><dd><a class="el" href="classplugin.html#a4b051134c33b5f01ababe8c73b5c88b">plugin::call</a> </dd></dl>
 
 <p>
-Definition at line <a class="el" href="bolt_8php-source.html#l00062">62</a> of file <a class="el" href="bolt_8php-source.html">bolt.php</a>.
+Definition at line <a class="el" href="bolt_8php-source.html#l00063">63</a> of file <a class="el" href="bolt_8php-source.html">bolt.php</a>.
+<p>
+References <a class="el" href="bolt_8php-source.html#l00195">bolt()</a>.
 </div>
 </div><p>
 <a class="anchor" name="5d5d9fa893f5a5a8db61062e78248450"></a><!-- doxytag: member="b::autoloader" ref="5d5d9fa893f5a5a8db61062e78248450" args="($class)" -->
@@ -216,7 +226,59 @@ autoload bolt components
 <dl compact><dt><b>Returns:</b></dt><dd>void </dd></dl>
 
 <p>
-Definition at line <a class="el" href="bolt_8php-source.html#l00142">142</a> of file <a class="el" href="bolt_8php-source.html">bolt.php</a>.
+Definition at line <a class="el" href="bolt_8php-source.html#l00163">163</a> of file <a class="el" href="bolt_8php-source.html">bolt.php</a>.
+</div>
+</div><p>
+<a class="anchor" name="36a67ae0eba57e85cc888df53819a410"></a><!-- doxytag: member="b::bolt" ref="36a67ae0eba57e85cc888df53819a410" args="()" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">static <a class="el" href="classbolt.html">bolt</a>           </td>
+          <td>(</td>
+          <td class="paramname">          </td>
+          <td>&nbsp;)&nbsp;</td>
+          <td width="100%"><code> [static]</code></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>
+return bolt instance 
+<p>
+<dl compact><dt><b>Returns:</b></dt><dd>bolt instance </dd></dl>
+
+<p>
+Definition at line <a class="el" href="bolt_8php-source.html#l00195">195</a> of file <a class="el" href="bolt_8php-source.html">bolt.php</a>.
+<p>
+Referenced by <a class="el" href="bolt_8php-source.html#l00063">__callStatic()</a>, <a class="el" href="bolt_8php-source.html#l00076">plug()</a>, and <a class="el" href="bolt_test_8php-source.html#l00009">boltTest::testInit()</a>.
+</div>
+</div><p>
+<a class="anchor" name="e356d1af72d14087980c5da99009b0b0"></a><!-- doxytag: member="b::getLoaded" ref="e356d1af72d14087980c5da99009b0b0" args="()" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">static getLoaded           </td>
+          <td>(</td>
+          <td class="paramname">          </td>
+          <td>&nbsp;)&nbsp;</td>
+          <td width="100%"><code> [static]</code></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>
+static return a list of loaded files 
+<p>
+<dl compact><dt><b>Returns:</b></dt><dd>array of loaded files </dd></dl>
+
+<p>
+Definition at line <a class="el" href="bolt_8php-source.html#l00153">153</a> of file <a class="el" href="bolt_8php-source.html">bolt.php</a>.
+<p>
+Referenced by <a class="el" href="bolt_test_8php-source.html#l00009">boltTest::testInit()</a>.
 </div>
 </div><p>
 <a class="anchor" name="9c565c4c1be603fd064fd1446a048495"></a><!-- doxytag: member="b::init" ref="9c565c4c1be603fd064fd1446a048495" args="($args=array())" -->
@@ -248,7 +310,9 @@ initalize the bolt framework
 <dl compact><dt><b>Returns:</b></dt><dd>void </dd></dl>
 
 <p>
-Definition at line <a class="el" href="bolt_8php-source.html#l00092">92</a> of file <a class="el" href="bolt_8php-source.html">bolt.php</a>.
+Definition at line <a class="el" href="bolt_8php-source.html#l00093">93</a> of file <a class="el" href="bolt_8php-source.html">bolt.php</a>.
+<p>
+Referenced by <a class="el" href="route_test_8php-source.html#l00009">routeTest::setUp()</a>, <a class="el" href="plugin_test_8php-source.html#l00009">pluginTest::setUp()</a>, and <a class="el" href="bolt_test_8php-source.html#l00009">boltTest::testInit()</a>.
 </div>
 </div><p>
 <a class="anchor" name="7fc7c88b087730b863310f2351d41758"></a><!-- doxytag: member="b::plug" ref="7fc7c88b087730b863310f2351d41758" args="()" -->
@@ -273,7 +337,9 @@ passthrough to <a class="el" href="classplugin.html#75fbd78513e71b2615b63e5d3660
 <dl compact><dt><b>See also:</b></dt><dd><a class="el" href="classplugin.html#75fbd78513e71b2615b63e5d3660a922">plugin::plug</a> </dd></dl>
 
 <p>
-Definition at line <a class="el" href="bolt_8php-source.html#l00075">75</a> of file <a class="el" href="bolt_8php-source.html">bolt.php</a>.
+Definition at line <a class="el" href="bolt_8php-source.html#l00076">76</a> of file <a class="el" href="bolt_8php-source.html">bolt.php</a>.
+<p>
+References <a class="el" href="bolt_8php-source.html#l00195">bolt()</a>.
 </div>
 </div><p>
 <hr><h2>Member Data Documentation</h2>
@@ -291,7 +357,7 @@ Definition at line <a class="el" href="bolt_8php-source.html#l00075">75</a> of f
 <p>
 
 <p>
-Definition at line <a class="el" href="bolt_8php-source.html#l00199">199</a> of file <a class="el" href="bolt_8php-source.html">bolt.php</a>.
+Definition at line <a class="el" href="bolt_8php-source.html#l00229">229</a> of file <a class="el" href="bolt_8php-source.html">bolt.php</a>.
 </div>
 </div><p>
 <a class="anchor" name="22f2cead13969857d2c437ea8d016275"></a><!-- doxytag: member="b::DateShortFrm" ref="22f2cead13969857d2c437ea8d016275" args="" -->
@@ -308,7 +374,7 @@ Definition at line <a class="el" href="bolt_8php-source.html#l00199">199</a> of 
 <p>
 
 <p>
-Definition at line <a class="el" href="bolt_8php-source.html#l00200">200</a> of file <a class="el" href="bolt_8php-source.html">bolt.php</a>.
+Definition at line <a class="el" href="bolt_8php-source.html#l00230">230</a> of file <a class="el" href="bolt_8php-source.html">bolt.php</a>.
 </div>
 </div><p>
 <a class="anchor" name="68c308bfd53da16d50af943e6665556b"></a><!-- doxytag: member="b::DateTimeOnlyFrm" ref="68c308bfd53da16d50af943e6665556b" args="" -->
@@ -325,7 +391,7 @@ Definition at line <a class="el" href="bolt_8php-source.html#l00200">200</a> of 
 <p>
 
 <p>
-Definition at line <a class="el" href="bolt_8php-source.html#l00201">201</a> of file <a class="el" href="bolt_8php-source.html">bolt.php</a>.
+Definition at line <a class="el" href="bolt_8php-source.html#l00231">231</a> of file <a class="el" href="bolt_8php-source.html">bolt.php</a>.
 </div>
 </div><p>
 <a class="anchor" name="52effaf9dd18fa613341593378008a98"></a><!-- doxytag: member="b::DefaultFilter" ref="52effaf9dd18fa613341593378008a98" args="" -->
@@ -342,7 +408,7 @@ Definition at line <a class="el" href="bolt_8php-source.html#l00201">201</a> of 
 <p>
 
 <p>
-Definition at line <a class="el" href="bolt_8php-source.html#l00203">203</a> of file <a class="el" href="bolt_8php-source.html">bolt.php</a>.
+Definition at line <a class="el" href="bolt_8php-source.html#l00233">233</a> of file <a class="el" href="bolt_8php-source.html">bolt.php</a>.
 </div>
 </div><p>
 <a class="anchor" name="0efa87aabd992670635e001942c7beae"></a><!-- doxytag: member="b::SecondsInDay" ref="0efa87aabd992670635e001942c7beae" args="" -->
@@ -359,7 +425,7 @@ Definition at line <a class="el" href="bolt_8php-source.html#l00203">203</a> of 
 <p>
 
 <p>
-Definition at line <a class="el" href="bolt_8php-source.html#l00196">196</a> of file <a class="el" href="bolt_8php-source.html">bolt.php</a>.
+Definition at line <a class="el" href="bolt_8php-source.html#l00226">226</a> of file <a class="el" href="bolt_8php-source.html">bolt.php</a>.
 </div>
 </div><p>
 <a class="anchor" name="f1b7aaaf78894cf47e5a469e4ab5d5b7"></a><!-- doxytag: member="b::SecondsInHour" ref="f1b7aaaf78894cf47e5a469e4ab5d5b7" args="" -->
@@ -376,7 +442,7 @@ Definition at line <a class="el" href="bolt_8php-source.html#l00196">196</a> of 
 <p>
 
 <p>
-Definition at line <a class="el" href="bolt_8php-source.html#l00195">195</a> of file <a class="el" href="bolt_8php-source.html">bolt.php</a>.
+Definition at line <a class="el" href="bolt_8php-source.html#l00225">225</a> of file <a class="el" href="bolt_8php-source.html">bolt.php</a>.
 </div>
 </div><p>
 <a class="anchor" name="38f54ed621442b835faa6d8006fb167f"></a><!-- doxytag: member="b::SecondsInWeek" ref="38f54ed621442b835faa6d8006fb167f" args="" -->
@@ -393,7 +459,7 @@ Definition at line <a class="el" href="bolt_8php-source.html#l00195">195</a> of 
 <p>
 
 <p>
-Definition at line <a class="el" href="bolt_8php-source.html#l00197">197</a> of file <a class="el" href="bolt_8php-source.html">bolt.php</a>.
+Definition at line <a class="el" href="bolt_8php-source.html#l00227">227</a> of file <a class="el" href="bolt_8php-source.html">bolt.php</a>.
 </div>
 </div><p>
 <a class="anchor" name="b09b8b275afa9ad8b193e24c1489f8ec"></a><!-- doxytag: member="b::SecondsInYear" ref="b09b8b275afa9ad8b193e24c1489f8ec" args="" -->
@@ -410,7 +476,7 @@ Definition at line <a class="el" href="bolt_8php-source.html#l00197">197</a> of 
 <p>
 
 <p>
-Definition at line <a class="el" href="bolt_8php-source.html#l00198">198</a> of file <a class="el" href="bolt_8php-source.html">bolt.php</a>.
+Definition at line <a class="el" href="bolt_8php-source.html#l00228">228</a> of file <a class="el" href="bolt_8php-source.html">bolt.php</a>.
 <p>
 Referenced by <a class="el" href="helpers_8php-source.html#l00170">helpers::niceDate()</a>.
 </div>
@@ -429,12 +495,12 @@ Referenced by <a class="el" href="helpers_8php-source.html#l00170">helpers::nice
 <p>
 
 <p>
-Definition at line <a class="el" href="bolt_8php-source.html#l00202">202</a> of file <a class="el" href="bolt_8php-source.html">bolt.php</a>.
+Definition at line <a class="el" href="bolt_8php-source.html#l00232">232</a> of file <a class="el" href="bolt_8php-source.html">bolt.php</a>.
 </div>
 </div><p>
 <hr>The documentation for this class was generated from the following file:<ul>
 <li>/home/kuhlt/bolt/v2/framework/src/<a class="el" href="bolt_8php-source.html">bolt.php</a></ul>
-<hr size="1"><address style="align: right;"><small>Generated on Thu Dec 22 21:06:03 2011 for Bolt by&nbsp;
+<hr size="1"><address style="align: right;"><small>Generated on Thu Dec 22 23:27:27 2011 for Bolt by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img src="doxygen.png" alt="doxygen" align="middle" border="0"></a> 1.4.7 </small></address>
 </body>

@@ -41,7 +41,9 @@
 
 <tr><td class="memItemLeft" nowrap align="right" valign="top">&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classplugin.html#3a6565e51f295a21bbcc386bac9dad46">getPlugins</a> ()</td></tr>
 
-<tr><td class="memItemLeft" nowrap align="right" valign="top">&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classplugin.html#3b2482cf199f74b419b223411f5da5e0">fallbacks</a> ($classes)</td></tr>
+<tr><td class="memItemLeft" nowrap align="right" valign="top">&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classplugin.html#1bbbd82fa6fae482e6d1ce2ccc7d7047">setFallbacks</a> ($classes)</td></tr>
+
+<tr><td class="memItemLeft" nowrap align="right" valign="top">&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classplugin.html#99afeb2eec6ebeb3dad9d8c817472db7">getFallbacks</a> ()</td></tr>
 
 <tr><td class="memItemLeft" nowrap align="right" valign="top">&nbsp;</td><td class="memItemRight" valign="bottom"><a class="el" href="classplugin.html#f231e86ad32039b9573ae228db5a29fa">__call</a> ($name, $args)</td></tr>
 
@@ -78,6 +80,8 @@ Definition at line <a class="el" href="plugin_8php-source.html#l00005">5</a> of 
 
 <p>
 Definition at line <a class="el" href="plugin_8php-source.html#l00013">13</a> of file <a class="el" href="plugin_8php-source.html">plugin.php</a>.
+<p>
+References <a class="el" href="plugin_8php-source.html#l00023">setFallbacks()</a>.
 </div>
 </div><p>
 <hr><h2>Member Function Documentation</h2>
@@ -109,9 +113,9 @@ Definition at line <a class="el" href="plugin_8php-source.html#l00013">13</a> of
 <p>
 
 <p>
-Definition at line <a class="el" href="plugin_8php-source.html#l00031">31</a> of file <a class="el" href="plugin_8php-source.html">plugin.php</a>.
+Definition at line <a class="el" href="plugin_8php-source.html#l00036">36</a> of file <a class="el" href="plugin_8php-source.html">plugin.php</a>.
 <p>
-References <a class="el" href="plugin_8php-source.html#l00038">call()</a>.
+References <a class="el" href="plugin_8php-source.html#l00043">call()</a>.
 </div>
 </div><p>
 <a class="anchor" name="a4b051134c33b5f01ababe8c73b5c88b"></a><!-- doxytag: member="plugin::call" ref="a4b051134c33b5f01ababe8c73b5c88b" args="($name, $args=array())" -->
@@ -144,20 +148,19 @@ call one of our plugins
 <p>
 
 <p>
-Definition at line <a class="el" href="plugin_8php-source.html#l00038">38</a> of file <a class="el" href="plugin_8php-source.html">plugin.php</a>.
+Definition at line <a class="el" href="plugin_8php-source.html#l00043">43</a> of file <a class="el" href="plugin_8php-source.html">plugin.php</a>.
 <p>
-Referenced by <a class="el" href="plugin_8php-source.html#l00031">__call()</a>, and <a class="el" href="render_8php-source.html#l00214">render::render()</a>.
+Referenced by <a class="el" href="plugin_8php-source.html#l00036">__call()</a>, and <a class="el" href="render_8php-source.html#l00214">render::render()</a>.
 </div>
 </div><p>
-<a class="anchor" name="3b2482cf199f74b419b223411f5da5e0"></a><!-- doxytag: member="plugin::fallbacks" ref="3b2482cf199f74b419b223411f5da5e0" args="($classes)" -->
+<a class="anchor" name="99afeb2eec6ebeb3dad9d8c817472db7"></a><!-- doxytag: member="plugin::getFallbacks" ref="99afeb2eec6ebeb3dad9d8c817472db7" args="()" -->
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">fallbacks           </td>
+          <td class="memname">getFallbacks           </td>
           <td>(</td>
-          <td class="paramtype">$&nbsp;</td>
-          <td class="paramname"> <em>classes</em>          </td>
+          <td class="paramname">          </td>
           <td>&nbsp;)&nbsp;</td>
           <td width="100%"></td>
         </tr>
@@ -168,7 +171,7 @@ Referenced by <a class="el" href="plugin_8php-source.html#l00031">__call()</a>, 
 <p>
 
 <p>
-Definition at line <a class="el" href="plugin_8php-source.html#l00023">23</a> of file <a class="el" href="plugin_8php-source.html">plugin.php</a>.
+Definition at line <a class="el" href="plugin_8php-source.html#l00031">31</a> of file <a class="el" href="plugin_8php-source.html">plugin.php</a>.
 </div>
 </div><p>
 <a class="anchor" name="3a6565e51f295a21bbcc386bac9dad46"></a><!-- doxytag: member="plugin::getPlugins" ref="3a6565e51f295a21bbcc386bac9dad46" args="()" -->
@@ -224,12 +227,36 @@ plugin to bolt
 <p>
 
 <p>
-Definition at line <a class="el" href="plugin_8php-source.html#l00136">136</a> of file <a class="el" href="plugin_8php-source.html">plugin.php</a>.
+Definition at line <a class="el" href="plugin_8php-source.html#l00140">140</a> of file <a class="el" href="plugin_8php-source.html">plugin.php</a>.
+</div>
+</div><p>
+<a class="anchor" name="1bbbd82fa6fae482e6d1ce2ccc7d7047"></a><!-- doxytag: member="plugin::setFallbacks" ref="1bbbd82fa6fae482e6d1ce2ccc7d7047" args="($classes)" -->
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">setFallbacks           </td>
+          <td>(</td>
+          <td class="paramtype">$&nbsp;</td>
+          <td class="paramname"> <em>classes</em>          </td>
+          <td>&nbsp;)&nbsp;</td>
+          <td width="100%"></td>
+        </tr>
+      </table>
+</div>
+<div class="memdoc">
+
+<p>
+
+<p>
+Definition at line <a class="el" href="plugin_8php-source.html#l00023">23</a> of file <a class="el" href="plugin_8php-source.html">plugin.php</a>.
+<p>
+Referenced by <a class="el" href="plugin_8php-source.html#l00013">__construct()</a>.
 </div>
 </div><p>
 <hr>The documentation for this class was generated from the following file:<ul>
 <li>/home/kuhlt/bolt/v2/framework/src/bolt/<a class="el" href="plugin_8php-source.html">plugin.php</a></ul>
-<hr size="1"><address style="align: right;"><small>Generated on Thu Dec 22 21:06:03 2011 for Bolt by&nbsp;
+<hr size="1"><address style="align: right;"><small>Generated on Thu Dec 22 23:27:27 2011 for Bolt by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img src="doxygen.png" alt="doxygen" align="middle" border="0"></a> 1.4.7 </small></address>
 </body>

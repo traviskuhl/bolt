@@ -28,7 +28,7 @@
   </ul></div>
 <h1>/home/kuhlt/bolt/v2/framework/src/bolt/dao/item.php</h1><a href="item_8php.html">Go to the documentation of this file.</a><div class="fragment"><pre class="fragment"><a name="l00001"></a>00001 &lt;?php
 <a name="l00002"></a>00002 
-<a name="l00003"></a><a class="code" href="item_8php.html#52ebd6afdd28b49dd05a30271c8f74a2">00003</a> <span class="keyword">namespace </span><a class="code" href="classbolt.html">bolt</a>\<a class="code" href="common_2dao_2src_2test_8php.html#444448fa7ddd316cbb7621cccd5ec005">dao</a>;
+<a name="l00003"></a><a class="code" href="item_8php.html#52ebd6afdd28b49dd05a30271c8f74a2">00003</a> <span class="keyword">namespace </span><a class="code" href="classbolt.html">bolt</a>\<a class="code" href="test_8php.html#444448fa7ddd316cbb7621cccd5ec005">dao</a>;
 <a name="l00004"></a>00004 <span class="comment"></span>
 <a name="l00005"></a>00005 <span class="comment">/////////////////////////////////////</span>
 <a name="l00006"></a>00006 <span class="comment">/// @brief dao item</span>
@@ -584,7 +584,7 @@
 <a name="l00556"></a>00556                       $this-&gt;_expand[$key] = array(<span class="stringliteral">"\\dao\user"</span>, array($value)); <span class="keywordflow">break</span>;
 <a name="l00557"></a>00557                         
 <a name="l00558"></a>00558                     <span class="comment">// dao</span>
-<a name="l00559"></a>00559                     <span class="keywordflow">case</span> '<a class="code" href="common_2dao_2src_2test_8php.html#444448fa7ddd316cbb7621cccd5ec005">dao</a>':
+<a name="l00559"></a>00559                     <span class="keywordflow">case</span> '<a class="code" href="test_8php.html#444448fa7ddd316cbb7621cccd5ec005">dao</a>':
 <a name="l00560"></a>00560                     
 <a name="l00561"></a>00561                       <span class="comment">// class</span>
 <a name="l00562"></a>00562                       $cl = <span class="stringliteral">"\\dao\\{$info['class']}"</span>;
@@ -731,7 +731,7 @@
 <a name="l00703"></a>00703                           $value = (string)$value; <span class="keywordflow">break</span>; 
 <a name="l00704"></a>00704                           
 <a name="l00705"></a>00705                       <span class="comment">// dao</span>
-<a name="l00706"></a>00706                       <span class="keywordflow">case</span> '<a class="code" href="common_2dao_2src_2test_8php.html#444448fa7ddd316cbb7621cccd5ec005">dao</a>':
+<a name="l00706"></a>00706                       <span class="keywordflow">case</span> '<a class="code" href="test_8php.html#444448fa7ddd316cbb7621cccd5ec005">dao</a>':
 <a name="l00707"></a>00707                         <span class="keywordflow">if</span> ( is_object($value) ) {
 <a name="l00708"></a>00708                           $id = <a class="code" href="bolt_8php.html#5beecb63305f90eecf3a7a40f15a9428">p</a>('<span class="keywordtype">id</span><span class="charliteral">','</span><span class="keywordtype">id</span>',$info);                             
 <a name="l00709"></a>00709                 $value = $value-&gt;{$id}; 
@@ -846,7 +846,7 @@
 <a name="l00818"></a>00818         
 <a name="l00819"></a>00819         <span class="comment">// see if it's a dao type</span>
 <a name="l00820"></a>00820         <span class="comment">// if it is we need to expand</span>
-<a name="l00821"></a>00821         <span class="keywordflow">if</span> ( isset($info['type']) AND in_array($info['type'],array('<a class="code" href="common_2dao_2src_2test_8php.html#444448fa7ddd316cbb7621cccd5ec005">dao</a><span class="charliteral">','</span>user<span class="charliteral">','</span>tags')) ) {
+<a name="l00821"></a>00821         <span class="keywordflow">if</span> ( isset($info['type']) AND in_array($info['type'],array('<a class="code" href="test_8php.html#444448fa7ddd316cbb7621cccd5ec005">dao</a><span class="charliteral">','</span>user<span class="charliteral">','</span>tags')) ) {
 <a name="l00822"></a>00822           $resp[$key] = $val-&gt;asArray();
 <a name="l00823"></a>00823         }
 <a name="l00824"></a>00824         <span class="keywordflow">else</span> <span class="keywordflow">if</span> ( is_object($val) AND method_exists($val, <span class="stringliteral">"asArray"</span>) ) {
@@ -908,7 +908,7 @@
 <a name="l00880"></a>00880   }     
 <a name="l00881"></a>00881 
 <a name="l00882"></a>00882 }
-</pre></div><hr size="1"><address style="align: right;"><small>Generated on Thu Dec 22 21:06:03 2011 for Bolt by&nbsp;
+</pre></div><hr size="1"><address style="align: right;"><small>Generated on Thu Dec 22 23:27:27 2011 for Bolt by&nbsp;
 <a href="http://www.doxygen.org/index.html">
 <img src="doxygen.png" alt="doxygen" align="middle" border="0"></a> 1.4.7 </small></address>
 </body>
