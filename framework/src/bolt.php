@@ -44,7 +44,8 @@ final class b {
         'source'    => "./bolt/source.php",
         
         // source
-        'source-mongo'     => "./bolt/source/mongo.php",        
+        'source-mongo'      => "./bolt/source/mongo.php",        
+        'source-webservice' => "./bolt/source/webservice.php",
         
         // renders
         'render-json'      => "./bolt/render/json.php",
@@ -122,7 +123,7 @@ final class b {
             foreach($args['load'] as $pattern) {
             
                 // is it a file
-                if (stripos($pattern, '.php') !== false)  {
+                if (stripos($pattern, '.php') !== false AND stripos($pattern, '*') === false)  {
                     $files = array($pattern);
                 }
                 else {
@@ -131,6 +132,9 @@ final class b {
                 
                 // loop through each file
                 foreach ($files as $file) {
+                
+                    // template
+                    if (stripos($file, '.template.php') !== false) { continue; }
                 
                     // load it 
                     include($file);
@@ -176,6 +180,7 @@ final class b {
         // if autoload
         if (is_array($autoload)) {
             foreach ($autoload as $root) {
+                $root = rtrim($root, '/').'/';            
                 if (is_callable($root)) {
                     return call_user_func($root, $class);
                 }

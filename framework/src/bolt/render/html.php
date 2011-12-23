@@ -20,7 +20,15 @@ class html extends \bolt\plugin\singleton {
     public function render($view) {
         
         // give it up
-        return $view->getContent();
+        $html = $view->getContent();
+        
+        // figure out of there's any wrap
+        if ($view->getWrap()) {
+            $html = str_replace("{child}", $html, $view->getWrap());
+        }
+            
+        // html
+        return $html;
             
     }
 

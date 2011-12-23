@@ -23,7 +23,7 @@ class helpers {
     static function addUrlParams($url, $params) {
     
     	// parse the url
-    	$u = parse_url($url);
+    	$u = parse_url($url);    	
     
     	// loop and add to params
     	if ( isset($u['query']) ) {

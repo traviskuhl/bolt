@@ -19,7 +19,7 @@ class render extends plugin {
     private $_globals = array();
 
     // default
-    public function _default($args) {
+    public function _default($args=array()) {
     
         // render a template
         if (isset($args['template'])) {
@@ -83,7 +83,7 @@ class render extends plugin {
         }
     }
 
-    public function template($tmpl, $args=array()) {
+    public function template($tmpl, $args=array()) {    
     
         // vars
         $vars = (isset($args['vars']) ? $args['vars'] : array());
@@ -236,6 +236,11 @@ class render extends plugin {
         else if (method_exists($view, 'get')) {
             $view->get();
         }
+        
+        // wrap
+        if (isset($args['wrap']) AND $args['wrap']) {        
+            $view->setWrap($this->template($args['wrap'], $args));
+        }        
         
         // accept
         $map = array();

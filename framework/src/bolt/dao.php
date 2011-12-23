@@ -22,7 +22,7 @@ class dao extends plugin\factory {
         
         // the first part of args should be 
         // the class name
-        $class = array_shift($args);
+        $class = array_shift($args);            
         
         // try to load this class
         if (class_exists($class, true)) {

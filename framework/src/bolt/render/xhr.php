@@ -18,12 +18,15 @@ class xhr extends \bolt\plugin\singleton {
     
     //
     public function render($view) {
+    
+        // we need to ask the html renderer
+        $h = b::render()->call('html');
         
         // give it up
         return json_encode(array(
             'status' => $view->getStatus(),
             'response' => array(
-                'html' => $view->getContent(),
+                'html' => $h->render($view),
                 'data' => $view->getData()
             )
         ));

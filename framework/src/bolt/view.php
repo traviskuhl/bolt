@@ -14,6 +14,7 @@ class view {
     private $_data = false;
     private $_headers = array();
     private $_status = 200;
+    private $_wrap = false;
     
     // magic set
     public function __call($name, $args) {
@@ -30,6 +31,8 @@ class view {
                 return $this->_status;
             case 'getParams':
                 return $this->_params;
+            case 'getWrap':
+                return $this->_wrap;
         
             // set
             case 'setContent':
@@ -40,6 +43,8 @@ class view {
                 return ($this->_headers = $args[0]);
             case 'setStatus':
                 return ($this->_status = $args[0]);
+            case 'setWrap':
+                return ($this->_wrap = $args[0]);
             
             // add 
             case 'addHeader':
@@ -52,8 +57,7 @@ class view {
         };                
     }
     
-    
-    
+
     // protected
     protected function template($tmpl) {
         return $tmpl;

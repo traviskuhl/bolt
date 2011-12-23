@@ -2,8 +2,6 @@
 
 // namespace me
 namespace bolt\source;
-
-// b
 use \b as b;
 
 // plugin our global instance directly to bolt

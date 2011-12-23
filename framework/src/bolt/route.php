@@ -160,11 +160,12 @@ class route extends plugin\singleton {
     
         // call our class
         $view = new $class($params, $method);  
-        
+                
         // render me 
         exit(b::render()->render($view, array( 
             'method' => $method,
-            'accept' => $accept
+            'accept' => $accept,
+            'wrap' => b::config()->wrapTemplate
         )));
             
     }
