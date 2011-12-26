@@ -149,7 +149,9 @@ class mongoi extends \bolt\plugin\factory {
 
 		// get them
 		while ( $sth->hasNext() ) {
-			$resp[] = $sth->getNext();
+			$row = $sth->getNext();
+			$row['id'] = $row['_id'];
+			$resp[] = $row;
 		}
 
 		// return a response

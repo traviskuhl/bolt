@@ -142,7 +142,7 @@ class helpers {
 	public static function utctime() {
 	
 		// datetime
-		$dt = new DateTime('now',new DateTimeZone('UTC'));		
+		$dt = new \DateTime('now',new \DateTimeZone('UTC'));		
 		
 		// return utctime
 		return $dt->getTimestamp();

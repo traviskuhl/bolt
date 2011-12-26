@@ -24,19 +24,19 @@ class render extends plugin {
         // render a template
         if (isset($args['template'])) {
             $tmpl = $args['template']; unset($args['template']);
-            return $this->template($tmpl, $args);
+            return $this->template($tmpl, $args, $args['view']);
         }
         
         // render a string
         else if (isset($args['string'])) {
             $str = $args['string']; unset($args['string']);        
-            return $this->string($str, $args);
+            return $this->string($str, $args, $args['view']);
         }
         
         // render a module
         else if (isset($args['module'])) {
             $mod = $args['module']; unset($args['module']);                
-            return $this->module($mod, $args);
+            return $this->module($mod, $args, $args['view']);
         }
         
         // who the hell knows
@@ -83,7 +83,7 @@ class render extends plugin {
         }
     }
 
-    public function template($tmpl, $args=array()) {    
+    public function template($tmpl, $args=array(), $view=false) {    
     
         // vars
         $vars = (isset($args['vars']) ? $args['vars'] : array());
@@ -99,6 +99,13 @@ class render extends plugin {
 		// get any globals
 		$vars = array_merge( $this->_globals, $vars );
 
+            // make sure everything is an object
+            foreach ($vars as $k => $v) {
+                if (is_array($v)) {
+                    $vars[$k] = new \bolt\dao\item(array(), $v);
+                }
+            }
+        
 		// start ob buffer
 		ob_start();
 
@@ -117,11 +124,11 @@ class render extends plugin {
 		ob_clean();
 
 		// give it back
-		return $this->string($page, $vars);
+		return $this->string($page, $vars, $view);
     
     }
 
-    public function string($str, $vars=array()) {
+    public function string($str, $vars=array(), $view=false) {
     
         // let's find some variables
         if (preg_match_all('/\{(\$[^\}]+)\}/', $str, $matches, PREG_SET_ORDER)) {
@@ -216,6 +223,12 @@ class render extends plugin {
         // view
         $method = p('method', 'get', $args);
         $accept = p('accept', 'text/html', $args);        
+        
+        // figure out if the requested accept
+        // is allowed in the view
+        if (!in_array($accept, $view->getAccept()) AND !in_array('*/*', $view->getAccept())) {
+            $accept = array_shift($view->getAccept());
+        }
             
         // if our accept header says it's ajax
         if ($accept == 'text/javascript;text/ajax' AND method_exists($view, 'ajax')) {
@@ -228,8 +241,8 @@ class render extends plugin {
         }
         
         // there's a dispatch
-        else if (method_exists($view, 'dispatch')) {
-            $view->dispatch();
+        else if (method_exists($view, '_dispatch')) {
+            $view->_dispatch();
         }
         
         // a get to fall back on 
@@ -238,7 +251,7 @@ class render extends plugin {
         }
         
         // wrap
-        if (isset($args['wrap']) AND $args['wrap']) {        
+        if (isset($args['wrap']) AND $args['wrap'] AND $view->getWrap() !== false) {        
             $view->setWrap($this->template($args['wrap'], $args));
         }        
         

@@ -26,9 +26,14 @@ abstract class mongo extends \bolt\dao\stack {
     
         // query that shit up
         $resp = $this->query(array($field => $val));
-        
+                
         // what up
-        return ($resp->count() ? $resp->item('first') : new \bolt\dao\item() );
+        if ($resp->loaded()) {
+            $this->setItem($resp->item('first'));
+        }
+        
+        // this
+        return $this;
 
     }
     
@@ -44,6 +49,37 @@ abstract class mongo extends \bolt\dao\stack {
         
         // give me this
         return $this;
+    
+    }
+    
+    public function save() {
+    
+		// edit?
+		$edit = $this->id;
+
+		// data
+		$data = $this->getItem()->normalize();
+
+		// id
+		$id = $data['id'];
+
+		// unset
+		unset($data['id']);	
+
+		// save it 
+		try {
+			$r = \b::mongo()->update($this->table, array('_id' => $id), array('$set' => $data), array('upsert'=>true, 'safe'=>true));		
+		}
+		catch (MongoCursorException $e) {
+			return false;
+		}
+
+		// save id 
+		$this->id = $id;
+
+		// give back
+		return $id;	
+    
     
     }
 

@@ -36,7 +36,7 @@ class route extends plugin\singleton {
     }
 
     // register
-    public function register($paths, $class=false, $name=false) {
+    public function register($paths, $class=false, $name=false, $args=array()) {
     
         // if paths is a string,
         // make it an array
@@ -81,7 +81,7 @@ class route extends plugin\singleton {
                 }
                     
                 // add the routes
-                $this->routes[$path] = array($weight, $class, $params);
+                $this->routes[$path] = array($weight, $class, $params, $args);
                 
             }
             
@@ -107,6 +107,7 @@ class route extends plugin\singleton {
         
         // params
         $params = array();
+        $args = array();
     
         // let's loop through 
         foreach ($this->routes as $route => $info) {        
@@ -120,7 +121,15 @@ class route extends plugin\singleton {
                 
                 // set the params
                 foreach ($matches as $key => $val) {
+                
+                    // params
                     $params[$info[2][$key]] = $val;
+                    
+                    // is it bPath
+                    if ($info[2][$key] == 'bPath') {
+                        b::config()->bPath = $val;
+                    }
+                    
                 }
                 
                 // set the class
@@ -135,7 +144,8 @@ class route extends plugin\singleton {
         // return what we foudn
         return array(
             'class' => $class,
-            'params' => $params
+            'params' => $params,
+            'args' => $args
         ); 
     
     }
@@ -146,7 +156,7 @@ class route extends plugin\singleton {
         // some default params
         $path = p('path', bPath, $args);
         $method = p('method', p("HTTP_METHOD", "GET", $_SERVER), $args); 
-        $accept = p('accept', p('_accept', p('HTTP_ACCEPT', false, $_SERVER)), $args);
+        $accept = p('accept', p('_accept', p('HTTP_ACCEPT', false, $_SERVER)), $args);            
             
         // get our class
         $route = $this->match(bPath);

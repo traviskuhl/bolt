@@ -81,10 +81,10 @@ abstract class plugin {
         }
         
         // get it 
-        $plug = $this->_plugin[$name];        
-        
+        $plug = $this->_plugin[$name];   
+            
         // figure out if there's a function to direct to
-        if (strpos($plug, '::')!== false) {
+        if (is_string($plug) AND strpos($plug, '::')!== false) {
         
             // get the orig plugin name
             list($name, $method) = explode('::', $plug);                      

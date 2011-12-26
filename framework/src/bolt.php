@@ -19,6 +19,8 @@ if ( !defined("bDevMode") ) {
 	    ini_set("display_errors",1);		
 	}
 
+// set date
+date_default_timezone_set("UTC");
 
 ////////////////////////////////////////////////////////////
 /// @brief static bolt wrapper instance
@@ -42,6 +44,8 @@ final class b {
         'cookie'    => "./bolt/cookie.php",
         'session'   => "./bolt/session.php",
         'source'    => "./bolt/source.php",
+        'external'  => "./bolt/external.php",
+        'account'   => "./bolt/account.php",
         
         // source
         'source-mongo'      => "./bolt/source/mongo.php",        
@@ -54,6 +58,18 @@ final class b {
         'render-html'      => "./bolt/render/html.php",
         
     );    
+    
+    ////////////////////////////////////////////////////////////
+    /// @brief return bolt instance
+    ///
+    /// @return bolt instance
+    ////////////////////////////////////////////////////////////
+    public static function bolt() {  
+        if (!self::$instance) {
+            self::$instance = new bolt();
+        }      
+        return self::$instance;
+    }     
 
     ////////////////////////////////////////////////////////////
     /// @brief magic static to execute plugins. passthrough to
@@ -62,10 +78,7 @@ final class b {
     /// @see plugin::call
     ////////////////////////////////////////////////////////////
     public static function __callStatic($name, $args) {
-        if (!self::$instance) {
-            self::$instance = new bolt();
-        }
-        return call_user_func(array(self::$instance, 'call'), $name, $args);
+        return call_user_func(array(self::bolt(), 'call'), $name, $args);
     }
     
     ////////////////////////////////////////////////////////////
@@ -75,10 +88,7 @@ final class b {
     /// @see plugin::plug
     ////////////////////////////////////////////////////////////
     public static function plug() {
-        if (!self::$instance) {
-            self::$instance = new bolt();
-        }
-        return call_user_func_array(array(self::$instance, 'plug'), func_get_args());
+        return call_user_func_array(array(self::bolt(), 'plug'), func_get_args());
     }
 
     ////////////////////////////////////////////////////////////
@@ -137,7 +147,7 @@ final class b {
                     if (stripos($file, '.template.php') !== false) { continue; }
                 
                     // load it 
-                    include($file);
+                    include_once($file);
                     
                     // loaded
                     self::$loaded[] = $file;
@@ -190,16 +200,7 @@ final class b {
             }        
         }
     
-    }	
-
-    ////////////////////////////////////////////////////////////
-    /// @brief return bolt instance
-    ///
-    /// @return bolt instance
-    ////////////////////////////////////////////////////////////
-    public static function bolt() {    
-        return self::$instance;
-    }    
+    }	   
 
     ////////////////////////////////////////////////////////////
     /// @brief get a configuration paramater. passhtrough to
@@ -373,7 +374,7 @@ function p_raw($key,$default=false,$array=false) {
 function pp($pos,$default=false,$filter=false) {
 		
 	// path
-	$path = bPath;
+	$path = b::config()->bPath;
 	
 	if ( !$path ) { return $default; }
 	

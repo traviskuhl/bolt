@@ -1,11 +1,15 @@
 <?php
 
 namespace bolt\dao;
+use \b as b;
 
 /////////////////////////////////////
 /// @brief dao item
 /////////////////////////////////////
-class item extends \InfiniteIterator {
+class item implements \Iterator {
+    
+    // guid
+    public $_guid;
     
     // private stuff
     private $_struct = array();
@@ -15,7 +19,7 @@ class item extends \InfiniteIterator {
     
     // some protected stuff
 	protected $_useAddedTimestamp = false;
-	protected $_useModifiedTimestamp = true;    
+	protected $_useModifiedTimestamp = false;    
     protected $_adjunct = array();
     
     
@@ -24,17 +28,19 @@ class item extends \InfiniteIterator {
 	/// 
 	/// @return array with object construct
     /////////////////////////////////////////////////	
-	protected function getStruct() { return array(); }
+	protected function getStruct() { $this->_struct; }
 	
 	public function loaded() { return $this->_loaded; }
 
 	/////////////////////////////////////////////////
 	/// @brief construct a DAO
     /////////////////////////////////////////////////	
-	public function __construct($struct=array(), $data=array()) {		
+	public function __construct($struct=array(), $data=array()) {	
+	
+	   $this->_guid = uniqid();	
 		
 		// if there's a struct 
-		$this->_struct = ($struct ? $struct : $this->getStruct()); 	
+		$this->_struct = ($struct ? $struct : array()); 	
 		
 		// added and modified
 		if ( $this->_useAddedTimestamp === true ) {
@@ -44,7 +50,7 @@ class item extends \InfiniteIterator {
 		if ( $this->_useModifiedTimestamp === true ) {
 			$this->_struct['modified'] = array( 'type' => 'modified' );							
 		}
-		
+				
 		// struct
 		foreach ( $this->_struct as $key => $x ) {
 			if ( !array_key_exists($key, $this->_data) ) {
@@ -502,12 +508,19 @@ class item extends \InfiniteIterator {
 		$this->_data = $data;						
 			
 		// normalize
-		array_walk($data, array($this, '__mapSet'), $this->_struct);											
+		array_walk($data, array($this, '__mapSet'), $this->_struct);																
 								
 		// give back data
 		foreach ($data as $key => $val ) {
 			$this->_data[$key] = $val;
 		}		
+		
+		// map our struct
+		foreach ($this->_struct as $k => $v) {
+		  if (!array_key_exists($k, $this->_data)) {
+		      $this->_data[$k] = false;
+		  }
+		}
 		
 	}
 
@@ -663,7 +676,7 @@ class item extends \InfiniteIterator {
 	public function normalize() {
 	
 		// data
-		$data = $this->_data;				
+		$data = $this->_data;							
 			
 		// normalize
 		array_walk($data, array($this, '__mapNormalize'), $this->_struct);			
@@ -687,7 +700,7 @@ class item extends \InfiniteIterator {
 	                
 	                	// uuid
 						case 'uuid':
-							if ( !$value ) { $value = b::getUuid(); } break;
+							if ( !$value ) { $value = b::uuid(); } break;
 							
 						// user
 						case 'user':
@@ -781,12 +794,12 @@ class item extends \InfiniteIterator {
 	
 		if(!is_array($array)) { return $array; }
 			
-		$object = new DaoMock();
 		if (is_array($array)) {
-		  foreach ($array as $name => $value) {
-		        $object->$name = $this->objectify($value);
-		  }
-	      return $object; 
+            $s = new stack();		  
+            foreach ($array as $k => $v) {
+                $s->push(new item(array(), $v), $k); 
+            }
+            return $s;
 		}
 	    else {
 	      return false;
@@ -805,14 +818,15 @@ class item extends \InfiniteIterator {
 	public function asArray($adjunct=false) {
 	
 		// get the scheme
-		$resp = array();
-		
-		// item type
-		if ( count($this->_struct) > 0 ) {
+		$resp = array();		
 				
-			// loop through the struct
-			foreach ( $this->_struct as $key => $info ) {
-				
+        // loop through the data 
+        foreach ($this->_data as $key => $value) {
+            if (array_key_exists($key, $this->_struct)) {
+            
+                // info
+                $info = $this->_struct[$key];
+                
 				// val
 				$val = $this->__get($key);
 				
@@ -826,35 +840,47 @@ class item extends \InfiniteIterator {
 				}
 				else {
 					$resp[$key] = $val;
+				}            
+            
+            }
+            else {
+                $resp[$key] = $value;
+            }        
+        }
+						
+    	// loop through the struct
+    	foreach ( $this->_struct as $key => $info ) {
+            if (!array_key_exists($key, $resp)) {
+                    
+				// val
+				$val = $this->__get($key);
+				
+				// see if it's a dao type
+				// if it is we need to expand
+				if ( isset($info['type']) AND in_array($info['type'],array('dao','user','tags')) ) {
+					$resp[$key] = $val->asArray();
 				}
-			
-			}
-		
-		
-			// adjunct 
-			if ( $adjunct ) {
-				foreach ( $this->_adjunct as $key => $val ) {
-					if ( is_object($val) AND method_exists($val, "asArray") ) {
-						$resp[$key] = $val->asArray();
-					}
-					else {
-						$resp[$key] = $val;
-					}				
+				else if ( is_object($val) AND method_exists($val, "asArray") ) {
+					$resp[$key] = $val->asArray();
 				}
+				else {
+					$resp[$key] = $val;
+				}             
+    	   }
+    	}
+				
+		// adjunct 
+		if ( $adjunct ) {
+			foreach ( $this->_adjunct as $key => $val ) {
+				if ( is_object($val) AND method_exists($val, "asArray") ) {
+					$resp[$key] = $val->asArray();
+				}
+				else {
+					$resp[$key] = $val;
+				}				
 			}
-			
-		}
-		
-		// list type
-		else {
-		
-			// loop through each item and add to object
-			foreach ( $this->_items as $key => $item ) {
-				$resp[$key] = $item->asArray();
-			}
-		
-		}
-		
+		}		
+				
 		// give back the clean array
 		return $resp;
 	
@@ -878,5 +904,59 @@ class item extends \InfiniteIterator {
 	public function getSchema() {
 		return $this->schema;
 	}	    
+
+	/////////////////////////////////////////////////
+	/// @brief reset pointer to first item in set
+	///
+	/// @return void
+	/////////////////////////////////////////////////	
+    public function rewind() {
+        reset($this->_data);
+    }
+
+
+	/////////////////////////////////////////////////
+	/// @brief get the current item pointer 
+	///
+	/// @return value of current pointer item
+	/////////////////////////////////////////////////	
+    public function current() {
+        $var = current($this->_data);
+        return $var;
+    }
+
+
+	/////////////////////////////////////////////////
+	/// @brief key value of current pointer item
+	///
+	/// @return value of pointer item
+	/////////////////////////////////////////////////	
+    public function key() {
+        $var = key($this->_data);
+        return $var;
+    }
+
+
+	/////////////////////////////////////////////////
+	/// @brief go to next item in the set
+	///
+	/// @return value of next item in set
+	/////////////////////////////////////////////////	
+    public function next() {
+        $var = next($this->_data);
+        return $var;
+    }
+
+
+	/////////////////////////////////////////////////
+	/// @brief check if the current value is valid
+	///
+	/// @return bool if current value is valid
+	/////////////////////////////////////////////////	
+    public function valid() {
+        $var = $this->current() !== false;
+        return $var;
+    }
+
 
 }

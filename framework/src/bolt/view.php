@@ -14,7 +14,10 @@ class view {
     private $_data = false;
     private $_headers = array();
     private $_status = 200;
-    private $_wrap = false;
+    private $_wrap = true;
+    
+    // this should be overrideable by the child
+    protected $accept = array('*/*');
     
     // magic set
     public function __call($name, $args) {
@@ -33,6 +36,8 @@ class view {
                 return $this->_params;
             case 'getWrap':
                 return $this->_wrap;
+            case 'getAccept':
+                return $this->accept;
         
             // set
             case 'setContent':
@@ -45,6 +50,8 @@ class view {
                 return ($this->_status = $args[0]);
             case 'setWrap':
                 return ($this->_wrap = $args[0]);
+            case 'setAccept':
+                return ($this->accept = $args[0]);
             
             // add 
             case 'addHeader':
@@ -53,6 +60,8 @@ class view {
                 return ($this->_data[$args[0]] = $args[1]);
             case 'addParams':
                 return ($this->_params[$args[0]] = $args[1]);
+            case 'addAccept':
+                return ($this->accept[] = $args[0]);
         
         };                
     }
@@ -70,13 +79,17 @@ class view {
     }
 
     // param
-    public function param($name, $value=false) {
+    public function param($name, $value=false, $default=false) {
         if ($value) {
             return $this->_params[$name] = $value;
         }
-        else {
-            return $this->_param[$name];
+        else if (array_key_exists($name, $this->_params)) {
+            return $this->_params[$name];
         }
+        
+        // fallback
+        return p($name, $default);
+        
     }
 
     // get
@@ -103,7 +116,8 @@ class view {
         // return our rendered
         $this->setContent(b::render(array(
             'template' => $this->template($tmpl),
-            'vars' => $vars
+            'vars' => $vars,
+            'view' => $this
         )));
     
         // me

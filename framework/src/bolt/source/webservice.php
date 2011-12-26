@@ -184,6 +184,11 @@ class webserviceResponse {
         
         switch($name) {
             
+            // erro
+            case 'error':
+            case 'getError':
+                return $this->_error;
+            
             // code
             case 'code':
             case 'getCode':

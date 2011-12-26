@@ -20,13 +20,8 @@ abstract class webservice extends \bolt\dao\stack {
     }
     
     // get and set pass
-    public function __get($name) {
-        return $this->_ws->__get($name);
-    }
-    
-    // set 
-    public function __set($name, $value) {
-        return $this->_ws->__set($name, $value);
+    public function ws() {
+        return $this->_ws;
     }
 
 }
