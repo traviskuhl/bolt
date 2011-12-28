@@ -5,7 +5,7 @@ namespace bolt\dao;
 class stack extends \SplStack {
 
     private $_map = array();
-    private $_item = false;
+    private $_item = false; 
     
     // loaded
     public function loaded() { 
@@ -49,7 +49,12 @@ class stack extends \SplStack {
     
     public function initItem() {
         if ($this->_item) {return;}
-        $this->_item = new \bolt\dao\item($this->getStruct(), array());
+        $this->_item = new \bolt\dao\item($this, array());
+    }
+    
+    public function adjunct($name, $val) {
+        $this->initItem();
+        $this->_item->_adjunct[$name] = $val;
     }
 
     // struct
@@ -63,7 +68,7 @@ class stack extends \SplStack {
         // if item is an array
         // lets turn it into an obj
         if (is_array($item)) {
-            $item = new \bolt\dao\item($this->getStruct(), $item);
+            $item = new \bolt\dao\item($this, $item);
         }
             
         // push to stak

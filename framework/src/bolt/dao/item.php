@@ -16,11 +16,12 @@ class item implements \Iterator {
     private $_data = array();
     private $_expand = array();
     private $_loaded = false;
+    private $_parent = false;
     
     // some protected stuff
 	protected $_useAddedTimestamp = false;
 	protected $_useModifiedTimestamp = false;    
-    protected $_adjunct = array();
+    public $_adjunct = array();
     
     
 	/////////////////////////////////////////////////
@@ -35,21 +36,27 @@ class item implements \Iterator {
 	/////////////////////////////////////////////////
 	/// @brief construct a DAO
     /////////////////////////////////////////////////	
-	public function __construct($struct=array(), $data=array()) {	
+	public function __construct($parent=false, $data=array()) {	
 	
-	   $this->_guid = uniqid();	
+	   $this->_guid = uniqid();			
 		
-		// if there's a struct 
-		$this->_struct = ($struct ? $struct : array()); 	
+		if (is_object($parent)) {
 		
-		// added and modified
-		if ( $this->_useAddedTimestamp === true ) {
-			$this->_struct['added'] = array( 'type' => 'added' );
-		}
-
-		if ( $this->_useModifiedTimestamp === true ) {
-			$this->_struct['modified'] = array( 'type' => 'modified' );							
-		}
+		
+		$this->_parent = $parent;    	
+    	
+    		// if there's a struct 
+    		$this->_struct = $parent->getStruct();
+    		
+    		// added and modified
+    		if ( property_exists($parent, '_useAddedTimestamp') AND $parent->_useAddedTimestamp === true ) {
+    			$this->_struct['added'] = array( 'type' => 'added' );
+    		}
+    
+    		if ( property_exists($parent, '_useModifiedTimestamp') AND $parent->_useModifiedTimestamp === true ) {
+    			$this->_struct['modified'] = array( 'type' => 'modified' );							
+    		}
+        }
 				
 		// struct
 		foreach ( $this->_struct as $key => $x ) {
@@ -77,7 +84,7 @@ class item implements \Iterator {
 	public function __get($name) {
 
         // data
-        $data = array_merge($this->_data, $this->_adjunct);
+        $data = array_merge($this->_data, $this->_adjunct);;
 
 		// check if it's something we need to expand
 		if ( array_key_exists($name, $this->_expand) ) {
@@ -92,9 +99,8 @@ class item implements \Iterator {
 			
 			}
 			else {
-				
-				// name
-				$data[$name] = new $this->_expand[$name][0];
+			
+    			$data[$name] = b::dao($this->_expand[$name][0]);
 				
 				// call our get
 				call_user_func_array(array($data[$name], "get"), $this->_expand[$name][1]);				
@@ -133,6 +139,7 @@ class item implements \Iterator {
 					'_ucfirst_' => function($v) { return ucfirst($v); },
 					'_toupper_' => function($v) { return strtoupper($v); },
 					'_tolower_' => function($v) { return strtolower($v); },			
+					'_ago_' => function($v) { return b::ago($v); },
 				);				
 				
 				foreach ( $modify as $str => $func ) {	
@@ -253,6 +260,8 @@ class item implements \Iterator {
 	/// @return mixed
     /////////////////////////////////////////////////		
     public function __call($name,$args) {
+    	
+    	//var_dump($this->_parent, method_exists($this->_parent, $name) ); 
     	
     	// return
     	$r = false;
@@ -572,7 +581,7 @@ class item implements \Iterator {
                     case 'dao':
                     
                     	// class
-                    	$cl = "\\dao\\{$info['class']}";
+                    	$cl = $info['class'];
                     	
                     	// args
                     	$args = p('args', array(), $info);
@@ -598,7 +607,10 @@ class item implements \Iterator {
                     	
                     	// stop
                     	break;
-                                                    
+                    
+                    // func
+                    case 'func':
+                       $this->_expand[$key] = array($info['func'], array($this)); break;
                         
                         
 /*
@@ -795,11 +807,17 @@ class item implements \Iterator {
 		if(!is_array($array)) { return $array; }
 			
 		if (is_array($array)) {
-            $s = new stack();		  
-            foreach ($array as $k => $v) {
-                $s->push(new item(array(), $v), $k); 
+            $o = false;
+            if (is_string(key($array))) {
+                $o = new item($this->_parent, $array);
             }
-            return $s;
+            else {
+                $o = new stack();
+                foreach ($array as $i) {
+                    $o->push($i);
+                }
+            }
+            return $o;
 		}
 	    else {
 	      return false;

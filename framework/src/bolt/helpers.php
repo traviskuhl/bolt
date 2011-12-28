@@ -149,6 +149,22 @@ class helpers {
 	
 	}
 	
+	public static function convertTimestamp($ts, $to, $from='UTC') {
+
+		// datetime
+		$dt = new \DateTime(null, new \DateTimeZone($from));
+		
+		// ts
+		$dt->setTimestamp($ts);		
+		
+		// set the timezone
+		$dt->setTimezone(new \DateTimeZone($to));
+
+        // give it 
+        return $dt->format('U');
+	   
+	}
+	
 	public static function plural($str, $count, $multi=false) {
 		if ( is_array($count) ) { $count = count($count); }
 		
@@ -189,6 +205,10 @@ class helpers {
 	    
 	     $dif = $cur_tm-$tm;	
 	
+	   // just now
+	   if ($dif == 0) {
+	       return 'just now';
+	   }
 	
 	    $pds = array('second','minute','hour','day','week','month','year','decade');
 	    $lngh = array(1,60,3600,86400,604800,2630880,31570560,315705600);

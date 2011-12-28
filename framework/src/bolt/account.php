@@ -34,14 +34,22 @@ class account extends \bolt\plugin\singleton {
     // create
     public function create($data) {
         
+        $name = explode(' ', $data['name']);
+        
+        $data['firstname'] = array_shift($name);
+        $data['lastname'] = implode(" ", $name);
+        
+        // unset
+        unset($data['name']);
+        
         // new 
-        $this->dao->set($data);
+        $this->_dao->set($data);
         
         // save
-        $this->save();
+        $this->_dao->save();
         
         // return
-        return $this;
+        return $this->_dao;
     
     }
 

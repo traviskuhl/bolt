@@ -16,7 +16,7 @@ class cookie extends plugin\singleton {
     /// 
     /// @return string url with additional params
     ////////////////////////////////////////////////
-	public static function setCookie($name, $value, $expires=false, $domain=false) {
+	public static function set($name, $value, $expires=false, $domain=false) {
 	
 		// domain
 		$domain = b::config()->get("cookies/domain");
@@ -55,7 +55,7 @@ class cookie extends plugin\singleton {
 	
 	}
 	
-	public static function deleteCookie($name) {
+	public static function delete($name) {
 
 		// domain
 		$domain = self::_('site/cookieDomain');
@@ -70,7 +70,7 @@ class cookie extends plugin\singleton {
 	
 	}
 	
-	public static function getCookie($name) {
+	public static function get($name) {
 
 	
 		// get name from config

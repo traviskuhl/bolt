@@ -1,0 +1,19 @@
+# dao.dpf -- 2010-08-06		
+		
+# internal variables
+src = ./src
+pear = /home/bolt/share/pear/bolt/v2/framework/bolt/common/dao
+
+# meta data
+meta project = bolt
+meta name = dao2
+meta version = file:changelog
+meta summary = Bolt Framework
+meta description = Bolt Framework Files
+meta changelog = changelog
+
+# dir
+dir - - - $(pear)
+
+# pear
+find - - - $(pear)			$(src)  -depth -name "*.php" 

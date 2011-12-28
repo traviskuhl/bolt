@@ -1,6 +1,7 @@
 <?php
 
 namespace bolt\dao\source;
+use \b as b;
 
 abstract class mongo extends \bolt\dao\stack {
 
@@ -28,7 +29,7 @@ abstract class mongo extends \bolt\dao\stack {
         $resp = $this->query(array($field => $val));
                 
         // what up
-        if ($resp->loaded()) {
+        if ($resp->loaded()) {        
             $this->setItem($resp->item('first'));
         }
         
@@ -44,7 +45,7 @@ abstract class mongo extends \bolt\dao\stack {
             
         // loop it up
         foreach ($sth as $item) {
-            $this->push(new \bolt\dao\item($this->getStruct(), $item), $item['_id']);
+            $this->push(new \bolt\dao\item($this, $item), $item['_id']);
         }
         
         // give me this
@@ -64,7 +65,7 @@ abstract class mongo extends \bolt\dao\stack {
 		$id = $data['id'];
 
 		// unset
-		unset($data['id']);	
+		unset($data['id'], $data['_id']);	
 
 		// save it 
 		try {
@@ -79,8 +80,11 @@ abstract class mongo extends \bolt\dao\stack {
 
 		// give back
 		return $id;	
+        
+    }
     
-    
+    public function getGridFS() {
+        return call_user_func_array(array(b::mongo(), 'getGridFS'), func_get_args());
     }
 
 }

@@ -11,7 +11,9 @@ class accounts extends \bolt\dao\source\mongo {
     public function getStruct() {
         return array(
             'id' => array('type' => 'uuid'),
-            'emails' => array(),
+            'firstname' => array(),
+            'lastname' => array(),
+            'email' => array(),
             'password' => array(),
             'data' => array()
         );    

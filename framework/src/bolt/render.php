@@ -88,6 +88,12 @@ class render extends plugin {
         // vars
         $vars = (isset($args['vars']) ? $args['vars'] : array());
     
+        // get, post, request
+        $vars['_get'] = $_GET;
+        $vars['_post'] = $_POST;
+        $vars['_request'] = $_REQUEST;
+        $vars['_server'] = $_SERVER;    
+    
         // our file name
         $x__file = $tmpl;
             
@@ -129,6 +135,12 @@ class render extends plugin {
     }
 
     public function string($str, $vars=array(), $view=false) {
+    
+        // get, post, request
+        $vars['_get'] = $_GET;
+        $vars['_post'] = $_POST;
+        $vars['_request'] = $_REQUEST;
+        $vars['_server'] = $_SERVER;
     
         // let's find some variables
         if (preg_match_all('/\{(\$[^\}]+)\}/', $str, $matches, PREG_SET_ORDER)) {
@@ -185,6 +197,18 @@ class render extends plugin {
             $exec = array_merge($exec, $matches);  
         }
         
+        // make sure everything is an object
+        foreach ($vars as $k => $v) {
+            if (is_array($v)) {
+                $vars[$k] = new \bolt\dao\item(array(), $v);
+            }
+        }        
+
+		// define all
+		foreach ( $vars as $k => $v ) {
+			$$k = $v;
+		}
+
         // anything to exec
         foreach ($exec as $stuff) {
             

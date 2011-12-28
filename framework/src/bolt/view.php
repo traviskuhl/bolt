@@ -79,11 +79,8 @@ class view {
     }
 
     // param
-    public function param($name, $value=false, $default=false) {
-        if ($value) {
-            return $this->_params[$name] = $value;
-        }
-        else if (array_key_exists($name, $this->_params)) {
+    public function getParam($name, $default=false) {
+        if (array_key_exists($name, $this->_params)) {
             return $this->_params[$name];
         }
         
@@ -91,15 +88,19 @@ class view {
         return p($name, $default);
         
     }
+    
+    public function setParam($name, $value=false) {
+        return $this->_params[$name] = $value;
+    }    
 
     // get
     public function __get($name) {
-        return $this->param($name);
+        return $this->getParam($name);
     }
     
     // set
     public function __set($name, $value) {
-        return $this->param($name, $value);
+        return $this->setParam($name, $value);
     }
 
     // render

@@ -109,7 +109,7 @@ abstract class plugin {
                                     
             // if we don't have an instance
             if (!array_key_exists($name, $this->_instance)) {  
-                $this->_instance[$name] = new $plug();
+                $this->_instance[$name] = new $plug($args);
             }        
             
             // instance
