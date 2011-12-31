@@ -16,6 +16,7 @@ class session extends plugin\singleton {
 
     // data
     private $_dao = array();
+    private $_cname = "s";
     
     // sid
     public $_id = false;
@@ -27,11 +28,15 @@ class session extends plugin\singleton {
     
         if (b::config()->get('session') != 'false') {        
         
+            // cookie name
+            $this->_cname = b::config()->get('session.cookie', 's');
+                    
             // no sid check the cookie
             if (!$id) {
-                $c = b::cookie()->get(b::config()->get('session.cookie'));
+                $c = b::cookie()->get($this->_cname);
                 if ($c) {
-                    $id = $c->id;
+                    $id = $c['id'];
+                    
                 }
             }
 
@@ -110,6 +115,9 @@ class session extends plugin\singleton {
         
         // save
         $this->_dao->save();
+
+        // cookie me    
+        b::cookie()->set($this->_cname, array('id'=>$this->sid(),'ip'=>IP,'t'=>b::utctime()));        
         
     }
 

@@ -7,9 +7,13 @@ class stack extends \SplStack {
     private $_map = array();
     private $_item = false; 
     
+    public function __construct() {
+        $this->_item = new item($this, array());
+    }
+    
     // loaded
     public function loaded() { 
-        if ($this->_item) {
+        if (!$this->count()) {
             return $this->_item->loaded();
         }
         else {
@@ -18,44 +22,33 @@ class stack extends \SplStack {
     }
     
     // get 
-    public function __get($name) {
-        $this->initItem();        
-        return $this->_item->__get($name);
+    public function __get($name) {       
+        return $this->getItem()->$name;
     }
     
     // set
     public function __set($name, $value) {
-        $this->initItem();
-        return $this->_item->__set($name, $value);
+        return $this->getItem()->$name = $value;
     }
     
     // call
-    public function __call($name, $args) {
-        $this->initItem();
-        if (method_exists($this->_item, $name)) {
-            return call_user_func_array(array($this->_item, $name), $args);
-        }
-        return false;
+    public function __call($name, $args) {    
+        return call_user_func_array(array($this->getItem(), $name), $args);
     }
 
     public function getItem() {
-        $this->initItem();    
         return $this->_item;
     }
-    
-    public function setItem($item=false) {    
-        $this->_item = $item;
-    }
-    
-    public function initItem() {
-        if ($this->_item) {return;}
-        $this->_item = new \bolt\dao\item($this, array());
-    }
-    
-    public function adjunct($name, $val) {
-        $this->initItem();
-        $this->_item->_adjunct[$name] = $val;
-    }
+
+    public function setItem($item) {
+        if (is_array($item)) {
+           return $this->_item->set($item);
+        }
+        else if (is_object($item)) {
+            return $this->_item->set($item->getData());
+        }    
+        return $this->_item;
+    }    
 
     // struct
     public function getStruct() { 

@@ -16,14 +16,14 @@ class cookie extends plugin\singleton {
     /// 
     /// @return string url with additional params
     ////////////////////////////////////////////////
-	public static function set($name, $value, $expires=false, $domain=false) {
+	public function set($name, $value, $expires=false, $domain=false) {
 	
 		// domain
 		$domain = b::config()->get("cookies/domain");
 	
 		// get name from config
 		if ( substr($name, 0, 1) == '$' ) {
-			$name = self::_(substr($name, 1));
+			$name = b::_(substr($name, 1));
 		}
 	
 		// is value a string
@@ -33,7 +33,7 @@ class cookie extends plugin\singleton {
 			if ( p($name, false, $_COOKIE) ) {
 				
 				// merge the values from the current cookie
-				$value = self::mergeArray( self::getCookie($name), $value );
+				$value = b::mergeArray( $this->get($name), $value );
 				
 			}
 			
@@ -41,13 +41,13 @@ class cookie extends plugin\singleton {
 			$e = base64_encode(json_encode($value));
 		
 			// return the padded value
-			$value = ":".self::md5($e).$e;
+			$value = ":".b::md5($e).$e;
 			
 		}
 		
 		// expires
-		if ( $expires AND $expires < self::utctime() ) {
-			$expires = self::utctime() + $expires;
+		if ( $expires AND $expires < b::utctime() ) {
+			$expires = b::utctime() + $expires;
 		}
 	
 		// set it 
@@ -55,14 +55,14 @@ class cookie extends plugin\singleton {
 	
 	}
 	
-	public static function delete($name) {
+	public function delete($name) {
 
 		// domain
-		$domain = self::_('site/cookieDomain');
+		$domain = b::_('site/cookieDomain');
 
 		// get name from config
 		if ( substr($name, 0, 1) == '$' ) {
-			$name = self::_(substr($name, 1));
+			$name = b::_(substr($name, 1));
 		}
 
 		// set it 
@@ -70,12 +70,12 @@ class cookie extends plugin\singleton {
 	
 	}
 	
-	public static function get($name) {
+	public function get($name) {
 
 	
 		// get name from config
 		if ( substr($name, 0, 1) == '$' ) {
-			$name = self::_(substr($name, 1));
+			$name = b::_(substr($name, 1));
 		}
 	
 		// try to get it 
@@ -88,7 +88,7 @@ class cookie extends plugin\singleton {
 		if ( $cookie{0} == ':' ) {
 							
 			// make sure we're goof
-			$cookie = self::getDecodedCookie($cookie);
+			$cookie = $this->getDecodedCookie($cookie);
 			
 		}
 	
@@ -97,7 +97,7 @@ class cookie extends plugin\singleton {
 	
 	}		
 	
-	public static function getDecodedCookie($cookie) {
+	public function getDecodedCookie($cookie) {
 
 		// split it 
 		$sig = substr($cookie, 1, 32);
@@ -106,7 +106,7 @@ class cookie extends plugin\singleton {
 		$e = substr($cookie, 33);
 		
 		// make sure we're goof
-		return ( self::md5($e) == $sig ? json_decode(base64_decode($e), true) : false );
+		return ( b::md5($e) == $sig ? json_decode(base64_decode($e), true) : false );
 		
 	}
 

@@ -52,5 +52,9 @@ class account extends \bolt\plugin\singleton {
         return $this->_dao;
     
     }
+    
+    public function factory() {
+        return b::dao('\bolt\common\dao\accounts');
+    }
 
 }

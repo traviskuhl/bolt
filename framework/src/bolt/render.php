@@ -167,7 +167,7 @@ class render extends plugin {
                 }
 
                 // if it's not a string we give up
-                if (!is_string($val)) {
+                if (!is_string($val) AND !is_numeric($val)) {
                     $val = "";
                 }
                 
@@ -265,8 +265,8 @@ class render extends plugin {
         }
         
         // there's a dispatch
-        else if (method_exists($view, '_dispatch')) {
-            $view->_dispatch();
+        else if (method_exists($view, '_dispatch')) {        
+            $view->_dispatch();            
         }
         
         // a get to fall back on 
@@ -275,10 +275,13 @@ class render extends plugin {
         }
         
         // wrap
-        if (isset($args['wrap']) AND $args['wrap'] AND $view->getWrap() !== false) {        
+        if (isset($args['wrap']) AND $args['wrap'] AND $view->getWrap() === -1) {                    
             $view->setWrap($this->template($args['wrap'], $args));
-        }        
-        
+        }
+        else if (stripos($view->getWrap(), '.template.php') !== false) {
+            $view->setWrap($this->template($view->getWrap(), $args));
+        }
+                        
         // accept
         $map = array();
         

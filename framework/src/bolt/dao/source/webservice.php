@@ -11,7 +11,13 @@ abstract class webservice extends \bolt\dao\stack {
 
     // construct
     public function __construct() {    
+    
+        // parent
+        parent::__construct();
+    
+        // setup ws
         $this->_ws = b::webservice($this->wsConfig);
+        
     }
     
     // request

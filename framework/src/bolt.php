@@ -113,7 +113,7 @@ final class b {
         foreach (self::$core as $name => $file) {
             
             // see if it's relative
-            if (substr($file,0,2) == './') { $file = bRoot."/{$file}"; }
+            if (substr($file,0,2) == './') { $file = bRoot."/".ltrim($file,'./'); }
             
             // make sure they want us to load it
             if (!in_array($name, $args['core'])) { continue; }

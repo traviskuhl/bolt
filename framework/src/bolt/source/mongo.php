@@ -190,7 +190,7 @@ class mongoi extends \bolt\plugin\factory {
 		$resp = $this->query($collection,$query,$args);
 
 		// return the first one
-		return $resp->item('first');
+		return array_shift($resp);
 
 	}
 

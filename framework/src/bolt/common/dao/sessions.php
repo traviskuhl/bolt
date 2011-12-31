@@ -11,7 +11,6 @@ class sessions extends \bolt\dao\source\mongo {
     public function getStruct() {
         return array(
             'id' => array('type' => 'uuid'),
-            'sid' => array(),
             'account' => array(),
             'created' => array(),
             'expires' => array(),

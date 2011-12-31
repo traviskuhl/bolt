@@ -26,11 +26,11 @@ abstract class mongo extends \bolt\dao\stack {
     public function row($field, $val=array()) {
     
         // query that shit up
-        $resp = $this->query(array($field => $val));
-                
+        $resp = \b::mongo()->row($this->table, array($field => $val));
+                        
         // what up
-        if ($resp->loaded()) {        
-            $this->setItem($resp->item('first'));
+        if ($resp) { 
+            $this->set($resp);
         }
         
         // this
@@ -56,13 +56,13 @@ abstract class mongo extends \bolt\dao\stack {
     public function save() {
     
 		// edit?
-		$edit = $this->id;
+		$edit = $this->getItem()->id;
 
 		// data
 		$data = $this->getItem()->normalize();
 
 		// id
-		$id = $data['id'];
+		$id = (isset($data['_id']) ? $data['_id'] : $data['id']);
 
 		// unset
 		unset($data['id'], $data['_id']);	

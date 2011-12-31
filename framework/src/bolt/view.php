@@ -14,7 +14,7 @@ class view {
     private $_data = false;
     private $_headers = array();
     private $_status = 200;
-    private $_wrap = true;
+    private $_wrap = -1;
     
     // this should be overrideable by the child
     protected $accept = array('*/*');

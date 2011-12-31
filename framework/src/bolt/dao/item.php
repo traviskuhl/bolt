@@ -6,7 +6,7 @@ use \b as b;
 /////////////////////////////////////
 /// @brief dao item
 /////////////////////////////////////
-class item implements \Iterator {
+class item implements \Iterator, \ArrayAccess {
     
     // guid
     public $_guid;
@@ -29,7 +29,19 @@ class item implements \Iterator {
 	/// 
 	/// @return array with object construct
     /////////////////////////////////////////////////	
-	protected function getStruct() { $this->_struct; }
+	protected function getStruct() { 
+	   $struct = false;
+	   if (is_object($this->_parent)) {
+	       $struct = $this->_parent->getStruct();
+	   }
+       if (!is_array($struct)) {
+        $struct = $this->_struct;
+       }
+       if (!is_array($struct)) {
+        $struct = array();
+       }
+       return $struct;
+    }
 	
 	public function loaded() { return $this->_loaded; }
 
@@ -41,7 +53,6 @@ class item implements \Iterator {
 	   $this->_guid = uniqid();			
 		
 		if (is_object($parent)) {
-		
 		
 		$this->_parent = $parent;    	
     	
@@ -57,13 +68,6 @@ class item implements \Iterator {
     			$this->_struct['modified'] = array( 'type' => 'modified' );							
     		}
         }
-				
-		// struct
-		foreach ( $this->_struct as $key => $x ) {
-			if ( !array_key_exists($key, $this->_data) ) {
-				$this->_data[$key] = false;
-			}
-		}
 
         // set some sdata
         if (count($data) > 0) {
@@ -84,8 +88,8 @@ class item implements \Iterator {
 	public function __get($name) {
 
         // data
-        $data = array_merge($this->_data, $this->_adjunct);;
-
+        $data = array_merge($this->_data, $this->_adjunct);
+         
 		// check if it's something we need to expand
 		if ( array_key_exists($name, $this->_expand) ) {
 			
@@ -101,9 +105,31 @@ class item implements \Iterator {
 			else {
 			
     			$data[$name] = b::dao($this->_expand[$name][0]);
+    			
+            	// args
+            	$args = $this->_expand[$name][1];
+
+            	   
+            	   if (!is_array($args)) { $args = array(); }
+            	
+                	// args
+                	if ( is_array($args) ) {
+                    	foreach ( $args as $k => $a ) {
+                    		if ( substr($a,0,1) == '$' ) {
+                    			$i = substr($a,1);
+                    			$args[$k] = (array_key_exists($i, $this->_data) ? $this->_data[$i] : false);
+                    		}
+                        	}
+                        }
+                        else {
+                		if ( substr($args,0,1) == '$' ) {
+                			$i = substr($args,1);
+                			$args = (array_key_exists($i, $this->_data) ? $this->_data[$i] : false);
+                		}	 	                        
+                        }    			
 				
 				// call our get
-				call_user_func_array(array($data[$name], "get"), $this->_expand[$name][1]);				
+				call_user_func_array(array($data[$name], "get"), $args);				
 				
 			}
 				
@@ -114,6 +140,14 @@ class item implements \Iterator {
 			unset($this->_expand[$name]);
 			
 		}
+	
+        // struct
+        $struct = $this->getStruct();
+        
+        // call it if it's func
+        if (array_key_exists($name, $struct) AND isset($struct[$name]['type']) AND $struct[$name]['type'] == 'func') {
+            return call_user_func($struct[$name]['func'], $this);
+        }
 	
 
 		// if it exists
@@ -506,30 +540,27 @@ class item implements \Iterator {
 	/// @return void
 	/////////////////////////////////////////////////
 	public function set($data){
-		
+
 		// needs to be an array
-		if ( !is_array($data) ) { return; }
+		if ( !is_array($data) ) { return; }		  		  
 		
 		// loaded
-		$this->_loaded = true;
-		
-		// data 
-		$this->_data = $data;						
+		$this->_loaded = true;		
 			
 		// normalize
-		array_walk($data, array($this, '__mapSet'), $this->_struct);																
-								
+		array_walk($data, array($this, '__mapSet'), $this->getStruct());
+										
 		// give back data
 		foreach ($data as $key => $val ) {
-			$this->_data[$key] = $val;
+			$this->_data[$key] = $this->objectify($val);
 		}		
-		
+				
 		// map our struct
-		foreach ($this->_struct as $k => $v) {
+		foreach ($this->getStruct() as $k => $v) {
 		  if (!array_key_exists($k, $this->_data)) {
 		      $this->_data[$k] = false;
 		  }
-		}
+		}	
 		
 	}
 
@@ -578,40 +609,28 @@ class item implements \Iterator {
                     	$this->_expand[$key] = array("\\dao\user", array($value)); break;
                         
                     // dao
+                    case 'account':                    
                     case 'dao':
+                        
+                        // account
+                        if ($info['type'] == 'account') {
+                            $info['class'] = '\bolt\common\dao\accounts';
+                            $info['args'] = array('id', '$'.$key);                        
+                        }
                     
                     	// class
                     	$cl = $info['class'];
                     	
                     	// args
                     	$args = p('args', array(), $info);
-                    	
-                        	// args
-                        	if ( is_array($args) ) {
-	                        	foreach ( $args as $k => $a ) {
-	                        		if ( substr($a,0,1) == '$' ) {
-	                        			$i = substr($a,1);
-	                        			$args[$k] = $this->{$i};
-	                        		}
- 	                        	}
- 	                        }
- 	                        else {
-                        		if ( substr($args,0,1) == '$' ) {
-                        			$i = substr($args,1);
-                        			$args = $this->{$i};
-                        		}	 	                        
- 	                        }
+                    	 	                        
 	                        	
 	                        // add to expand
 	                        $this->_expand[$key] = array($cl, $args);
                     	
                     	// stop
                     	break;
-                    
-                    // func
-                    case 'func':
-                       $this->_expand[$key] = array($info['func'], array($this)); break;
-                        
+
                         
 /*
                     // tags need to be turned into
@@ -686,17 +705,117 @@ class item implements \Iterator {
 	/// @return array
 	/////////////////////////////////////////////////	
 	public function normalize() {
-	
+
 		// data
-		$data = $this->_data;							
+		$data = $this->_data;				
 			
+        // one last loop
+        foreach ($data as $k => $value) {
+            if (is_object($value) AND method_exists($value, 'asArray')) {
+                $data[$k] = $value->asArray();
+            }
+        }
+        			
+/*
 		// normalize
-		array_walk($data, array($this, '__mapNormalize'), $this->_struct);			
+		array_walk($data, array($this, '__mapNormalize'), $this->getStruct());			
+*/
+
+        foreach ($this->getStruct() as $key => $info) {
+        
+            // current value
+            $value = (array_key_exists($key, $data) ? $data[$key] : false); 
+            
+            // if we have info lets map it
+            $data[$key] = $this->normalizeValid($info, $value, $key, $this);
+            
+        }
+
 			
 		// give back data
 		return $data;		
 	
 	}
+	
+	   private function normalizeValid($info, $value, $key, $p) {
+          
+            // based on data type do the transform
+            if ( isset($info['type']) ) {
+                
+                // which type
+                switch ($info['type']) {
+                
+                	// uuid
+					case 'uuid': 
+						if ( !$value ) { $value = b::uuid(); } break;
+						
+					// user
+					case 'user':
+						$value = (is_object($value)?$value->id:$value); break;
+                 
+                    // json we need to decode
+                    case 'json': 
+                        $value = json_encode($value); break;
+                        
+                    // tags need to be turned into
+                    // a tags array
+                    case 'tags':                            
+                        $value = (string)$value; break; 
+                        
+                    // dao
+                    case 'dao':
+                    	if ( is_object($value) ) {
+                    		$id = p('id','id',$info);                            	
+							$value = $value->{$id}; 
+						}
+						break;
+						
+					// timestsamp
+					case 'timestamp':
+					
+                    	// check user for a tzoffset
+				        $u = Session::getUser();
+				        
+				        // offset
+				        if ( $u AND $u->profile_tzoffset ) {
+				        	$value -= $u->profile_tzoffset;
+				        }							
+					
+						break;
+						
+					// added
+					case 'added':
+						if ( $value === false ) {
+							$value = b::utctime();
+						}							
+						break;
+						
+					// modified
+					case 'modified':
+						$value = b::utctime(); break;
+						
+					// changelog
+					case 'changelog':
+						$value = $p->_changes; break;
+                    
+                };
+                
+            }
+            
+            // is deafult
+            if ( isset($info['default']) AND $value === false ) {
+            	$value = $info['default'];
+            }
+            
+            // cast
+            if ( isset($info['cast']) ) {
+            	settype($value, $info['cast']);
+            }
+            
+            return $value;	   
+	   
+	   }
+	
 	
 		// map normalized strucs
 		private function __mapNormalize(&$item, $key, $struct) {
@@ -711,7 +830,7 @@ class item implements \Iterator {
 	                switch ($info['type']) {
 	                
 	                	// uuid
-						case 'uuid':
+						case 'uuid': 
 							if ( !$value ) { $value = b::uuid(); } break;
 							
 						// user
@@ -803,26 +922,27 @@ class item implements \Iterator {
 	/// @return stdclass object
 	/////////////////////////////////////////////////	
 	private function objectify($array) {
-	
-		if(!is_array($array)) { return $array; }
-			
-		if (is_array($array)) {
-            $o = false;
-            if (is_string(key($array))) {
-                $o = new item($this->_parent, $array);
+
+		if (is_array($array)) {   		
+                return new item(array(), $array);		  
+		
+            if (is_string(key($array)) AND !is_array($array[key($array)]) ) {
+                $o = new item(array(), $array);
             }
-            else {
-                $o = new stack();
-                foreach ($array as $i) {
-                    $o->push($i);
+            else {		
+                $o = new \bolt\dao\iterator();
+                foreach ($array as $i => $v) {
+                    if (is_array($v)) { 
+                        $o->offsetSet($i, new item(array(), $v));                                                
+                    }
+                    else {
+                        $o->offsetSet($i, $v);                    
+                    }
                 }
             }
             return $o;
 		}
-	    else {
-	      return false;
-	    }
-
+		return $array;
 
 	}		
 	
@@ -862,7 +982,12 @@ class item implements \Iterator {
             
             }
             else {
-                $resp[$key] = $value;
+                if (is_object($value) AND method_exists($value, 'asArray')) {
+                    $resp[$key] = $value->asArray();
+                }
+                else {
+                    $resp[$key] = $value;
+                }
             }        
         }
 						
@@ -976,5 +1101,51 @@ class item implements \Iterator {
         return $var;
     }
 
+    public function count() {
+        return count($this->_data);
+    }
+
+    // item
+    public function item($idx=0) {
+    
+        // what up
+        switch($idx) {
+        
+            // first item
+            case 'first':
+                $idx = key(array_slice($this->_data,0,1)); break;
+                
+            // last item
+            case 'last':
+                $idx = key(array_slice($this->_data,-1)); break;
+                
+            // else
+            default:
+                if (array_key_exists($idx, $this->_data)) { 
+                    return $this->_data[$idx];
+                }
+        };
+       
+        // nope
+        if (array_key_exists($idx, $this->_data)) {
+            return $this->_data[$idx];
+        }
+        else {
+            return false;
+        }    
+    }
+
+    public function offsetSet($offset, $value) {
+        $this->_data[$offset] = $value;
+    }
+    public function offsetExists($offset) {
+        return isset($this->_data[$offset]);
+    }
+    public function offsetUnset($offset) {
+        unset($this->_data[$offset]);
+    }
+    public function offsetGet($offset) {
+        return isset($this->_data[$offset]) ? $this->objectify($this->_data[$offset]) : null;
+    }
 
 }

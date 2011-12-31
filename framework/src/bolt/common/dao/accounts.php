@@ -15,7 +15,10 @@ class accounts extends \bolt\dao\source\mongo {
             'lastname' => array(),
             'email' => array(),
             'password' => array(),
-            'data' => array()
+            'data' => array(),
+            'name' => array('type'=>'func', 'func'=>function($item){
+                return implode(" ", array($item->firstname, $item->lastname));
+            })
         );    
     }
 
