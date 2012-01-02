@@ -120,16 +120,18 @@ class route extends plugin\singleton {
                 $params = array();
                 
                 // set the params
-                foreach ($matches as $key => $val) {
-                
-                    // params
-                    $params[$info[2][$key]] = $val;
+                if (isset($info[2]) AND count($info[2]) > 0) {
+                    foreach ($matches as $key => $val) {
                     
-                    // is it bPath
-                    if ($info[2][$key] == 'bPath') {
-                        b::config()->bPath = $val;
+                        // params
+                        $params[$info[2][$key]] = $val;
+                        
+                        // is it bPath
+                        if ($info[2][$key] == 'bPath') {
+                            b::config()->bPath = $val;
+                        }
+                        
                     }
-                    
                 }
                 
                 // set the class
@@ -181,7 +183,12 @@ class route extends plugin\singleton {
     }
     
     // url
-    public function url($name, $data=array(), $params=array(), $uri=false) {
+    public function url($name, $data=array(), $params=array(), $uri=false) {                
+                
+        // no url
+        if (!$uri) {
+            $uri = URI;
+        }                
                 
         // no url
         if (!array_key_exists($name, $this->urls)) {
@@ -198,11 +205,11 @@ class route extends plugin\singleton {
         foreach ($parts as $i => $part) {
         
             // does this part have a :
-            if (strpos($part, ':')!== false) {
+            if (strpos($part, '>')!== false) {
             
                 // loop through our data
                 foreach ($data as $k => $v) {                
-                    if (stripos($part, ":$k") !== false) {
+                    if (stripos($part, ">$k") !== false) {
                         $parts[$i] = $v; goto forward;
                     }
                 }
@@ -217,8 +224,16 @@ class route extends plugin\singleton {
                 
         }
         
-        return implode("/", $parts);
+        // path
+        $path = implode("/", $parts);
         
+        // base url
+        if (stripos($path, 'http') == false) {
+            $path = rtrim($uri,'/') . "/" . ltrim($path,'/');
+        }
+        
+        // return with params
+        return b::addUrlParams($path, $params);
     
     }
 

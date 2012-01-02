@@ -32,7 +32,22 @@ class item implements \Iterator, \ArrayAccess {
 	protected function getStruct() { 
 	   $struct = false;
 	   if (is_object($this->_parent)) {
+	       
+	       // parent
+	       $parent = $this->_parent;
+	       
+	       // struct
 	       $struct = $this->_parent->getStruct();
+	       
+    		// added and modified
+    		if ( property_exists($parent, '_useAddedTimestamp') AND $parent->_useAddedTimestamp === true ) {
+    			$struct['added'] = array( 'type' => 'added' );
+    		}
+    
+    		if ( property_exists($parent, '_useModifiedTimestamp') AND $parent->_useModifiedTimestamp === true ) {
+    			$struct['modified'] = array( 'type' => 'modified' );							
+    		}	       
+	       
 	   }
        if (!is_array($struct)) {
         $struct = $this->_struct;
@@ -67,6 +82,7 @@ class item implements \Iterator, \ArrayAccess {
     		if ( property_exists($parent, '_useModifiedTimestamp') AND $parent->_useModifiedTimestamp === true ) {
     			$this->_struct['modified'] = array( 'type' => 'modified' );							
     		}
+    		
         }
 
         // set some sdata

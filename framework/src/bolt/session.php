@@ -29,7 +29,7 @@ class session extends plugin\singleton {
         if (b::config()->get('session') != 'false') {        
         
             // cookie name
-            $this->_cname = b::config()->get('session.cookie', 's');
+            $this->_cname = b::config()->get('session.cookie', 's');                    
                     
             // no sid check the cookie
             if (!$id) {
@@ -58,10 +58,7 @@ class session extends plugin\singleton {
     
     public function sid() {
         // no id we should save it 
-        if (!$this->_dao->id) {
-            $this->save();
-        }    
-        return $this->_dao->id;
+        return ($this->_dao ? $this->_dao->id : false);
     }
     
     // get a value
@@ -94,7 +91,12 @@ class session extends plugin\singleton {
         $dao = b::config()->get('session.dao', '\bolt\common\dao\sessions');    
         
         // load it
-        $this->_dao = b::dao($dao)->get('id', $this->_id);
+        $this->_dao = b::dao($dao);
+        
+            // if we have an id, load it
+            if ($this->_id) {
+                $this->_dao->get('id', $this->_id);
+            }
         
         // if we have an a
         if ($this->_dao->account) {
@@ -117,8 +119,14 @@ class session extends plugin\singleton {
         $this->_dao->save();
 
         // cookie me    
-        b::cookie()->set($this->_cname, array('id'=>$this->sid(),'ip'=>IP,'t'=>b::utctime()));        
+        if ($this->sid()) {
+            b::cookie()->set($this->_cname, array('id'=>$this->sid(),'ip'=>IP,'t'=>b::utctime()));        
+        }
         
+    }
+    
+    public function delete() {
+        $this->_dao->delete();
     }
 
     // verify

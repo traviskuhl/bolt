@@ -83,6 +83,10 @@ abstract class mongo extends \bolt\dao\stack {
         
     }
     
+    public function delete() {
+        return b::mongo()->delete($this->table, array('_id' => $this->id));
+    }
+    
     public function getGridFS() {
         return call_user_func_array(array(b::mongo(), 'getGridFS'), func_get_args());
     }

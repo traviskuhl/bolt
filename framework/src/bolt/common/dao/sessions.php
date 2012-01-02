@@ -8,6 +8,10 @@ class sessions extends \bolt\dao\source\mongo {
 
     protected $table = "sessions";
 
+    public $_useAddedTimestamp = true;
+    public $_useModifiedTimestamp = true;
+
+
     public function getStruct() {
         return array(
             'id' => array('type' => 'uuid'),

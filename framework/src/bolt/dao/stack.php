@@ -76,6 +76,9 @@ class stack extends \SplStack {
         // if key add it to the map
         $this->_map[$key] = $i;
     
+        // chainable
+        return $this;
+    
     }
 
     // item
@@ -109,10 +112,102 @@ class stack extends \SplStack {
     
     }
     
+    public function reduce($cb) {      
+        $resp = array();
+        
+        // cb is a string
+        if(is_string($cb)) {
+            if ($cb{0} == '$') {
+                $key = substr($cb,1);
+                $cb = function($item) use ($key) {     
+                    $i = $item->$key;
+                        if (is_object($i)) {
+                            $i = $i->asArray();
+                        }
+                    return $i;
+                };            
+            }
+        }        
+    
+        foreach ($this as $item) {
+            if (($r = $cb($item)) !== false) { 
+                if (is_array($r)) {
+                    $resp = array_merge($r, $resp);
+                }
+                else {
+                    $resp[] = $r;
+                }
+            }
+        }
+    
+        // gives back a new stack
+        $s = new stack();
+        
+            // loop        
+            foreach (array_unique($resp) as $i) {
+                $s->push($i);
+            }
+        
+        // give bacl
+        return $s;
+    
+    } 
+    
+    public function map($cb) {      
+        $resp = array();
+        
+        // cb is a string
+        if(is_string($cb)) {
+            if ($cb{0} == '$') {
+                $key = substr($cb,1);
+                $cb = function($item) use ($key) {     
+                    return $item->$key;
+                };            
+            }
+        }        
+    
+        foreach ($this as $item) {
+            if (($r = $cb($item)) !== false AND !is_array($r)) {
+               $resp[] = $r;
+            }
+        }
+    
+        // gives back a new stack
+        $s = new stack();
+        
+            // loop        
+            foreach ($resp as $i) {
+                $s->push($i);
+            }
+        
+        // give bacl
+        return $s;
+    
+    }     
+    
+    public function filter($cb) {      
+        $s = new stack();
+    
+        foreach ($this as $item) {
+            if ($cb($item) !== false) {
+                $s->push($item);
+            }
+        }
+    
+        // give bacl
+        return $s;
+    
+    }     
+    
     public function asArray() {
         $array = array();
         foreach ($this as $item) {
-            $array[] = $item->asArray();
+            if (is_object($item) AND method_exists($item, 'asArray')) {
+                $array[] = $item->asArray();            
+            }
+            else {
+                $array[] = $item;
+            }
         }
         return $array;
     }

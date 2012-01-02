@@ -20,7 +20,12 @@ class helpers {
     /// 
     /// @return string url with additional params
     ////////////////////////////////////////////////
-    static function addUrlParams($url, $params) {
+    static function addUrlParams($url, $params=array()) {
+    
+        // no params
+        if(count($params)==0) {
+            return $url;
+        }
     
     	// parse the url
     	$u = parse_url($url);    	
@@ -308,5 +313,54 @@ class helpers {
 	public static function convertBase($str,$to=36,$from=10) {
 		return (string)base_convert(hexdec($str),$from, $to);
 	}
+
+    public function sendEmail($args) {
+    
+		// check for from 
+		if ( !isset($args['from']) OR !isset($args['to']) ) {
+			return false;
+		}
+
+		// headers
+		$headers['From']    = $args['from'];
+		$headers['To']      = $args['to'];
+		$headers['Subject'] = $args['subject'];		
+		$headers['Reply-To'] = p('reply', $args['from'], $args);
+
+		// body
+		$body = $args['message'];
+
+		// params
+		if ( p('prog', false, $args) == 'mail' ) {
+
+			// no subject in headers
+			unset($headers['Subject'], $headers['To']);
+
+			// go
+			return mail($args['to'], $args['subject'], $body, implode("\r\n", array_map(function($k, $v){ return "$k: $v"; }, array_keys($headers), $headers)));
+
+
+		}
+		else {
+
+
+			$params = array(
+				'host'		=> 'smtp.gmail.com', 
+				'port'		=> '587',
+				'auth'		=> true,
+				'username'	=> p('username', false, $args),
+				'password'	=> p('password', false, $args),
+			);
+
+			// Create the mail object using the Mail::factory method
+			$mail =& \Mail::factory('smtp', $params);
+
+			// send it out
+			return $mail->send($args['to'], $headers, $body);	
+
+		}
+    
+    
+    }
 
 }

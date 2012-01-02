@@ -28,6 +28,20 @@ class webservice extends \bolt\plugin\factory {
         $this->_config = array_merge($this->_config, $cfg);
     }
     
+    public function config($key, $val=false) {
+        if (is_array($key)) {
+            foreach ($key as $k => $v) {
+                $this->_config[$k] = $v;
+            }
+        }
+        else if ($key AND $val) {
+            $this->_config[$k] = $v;
+        }
+        else {
+            return $this->__set($key);
+        }
+    }
+    
     // set and get
     public function __get($name) {
         return (array_key_exists($name, $this->_config) ? $this->_config[$name] : false);

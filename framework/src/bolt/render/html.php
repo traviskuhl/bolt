@@ -22,6 +22,13 @@ class html extends \bolt\plugin\singleton {
         // give it up
         $html = $view->getContent();
         
+        // is html really an array
+        if (is_array($html)) {
+            if (isset($html['redirect'])) {
+                exit(call_user_func(array('b', 'location'), $html['redirect']));
+            }
+        }
+        
         // figure out of there's any wrap
         if ($view->getWrap()) {
             $html = str_replace("{child}", $html, $view->getWrap());
