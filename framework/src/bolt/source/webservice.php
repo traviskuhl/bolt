@@ -83,10 +83,10 @@ class webservice extends \bolt\plugin\factory {
         return $this->_oauth;
     }
     
-    protected function curlRequest($url, $params=array(), $method="GET", $headers=array()) {    
+    protected function curlRequest($url, $params=array(), $method="GET", $headers=array(), $useIniFilePost=false) {    
     
 		// headers
-		$headers = array_merge($this->headers, $headers);        
+		$headers = array_merge($this->headers, $headers);     
     
         // add our params 
         if ( $method == 'GET' ) {
@@ -103,23 +103,70 @@ class webservice extends \bolt\plugin\factory {
         curl_setopt($this->_curl, CURLOPT_CONNECTTIMEOUT,5);        
         curl_setopt($this->_curl, CURLOPT_CUSTOMREQUEST, $method);        
         curl_setopt($this->_curl, CURLOPT_FOLLOWLOCATION, 1);
-        curl_setopt($this->_curl, CURLOPT_SSL_VERIFYPEER, 0);    				
+        curl_setopt($this->_curl, CURLOPT_SSL_VERIFYPEER, 0);
+        
+        curl_setopt($this->_curl, CURLINFO_HEADER_OUT, 1);    				
 				
-				
-        // add headers
-        curl_setopt($this->_curl,CURLOPT_HTTPHEADER, array_map(function($k, $v){
-        	return "$k:$v";
-        },array_keys($headers), $headers));
-    
         // add params
-        if ( $method == 'POST' OR $method == 'PUT' ) {
-	        curl_setopt($this->_curl,CURLOPT_POSTFIELDS, $params );
+        if ( $method == 'POST' ) {
+        
+            if ($useIniFilePost) {
+                
+                // write our params to tmp       
+                $fp = fopen('php://temp/maxmemory:256000', 'w');
+                fwrite($fp, $params);
+                fseek($fp, 0); 
+                
+                // length
+                $len = strlen($params);
+                
+                // put it 
+                curl_setopt($this->_curl, CURLOPT_BINARYTRANSFER, true);            
+                curl_setopt($this->_curl, CURLOPT_INFILE, $fp);                
+                curl_setopt($this->_curl, CURLOPT_INFILESIZE, $len);       
+                curl_setopt($this->_curl, CURLOPT_POST, TRUE);                                
+            
+            }
+            else {
+            
+                // post
+    	        curl_setopt($this->_curl,CURLOPT_POSTFIELDS, $params );
+                curl_setopt($this->_curl, CURLOPT_POST, TRUE);
+            }
+	        
+        }
+        if ($method == 'PUT' ) {	        
+        
+            // if params is an array
+            if (is_array($params)) {
+                $params = http_build_query($params);
+            }
+                
+            // write our params to tmp       
+            $fp = fopen('php://temp/maxmemory:256000', 'w');
+            fwrite($fp, $params);
+            fseek($fp, 0); 
+            
+            // length
+            $len = strlen($params);
+            
+            // put it 
+            curl_setopt($this->_curl, CURLOPT_BINARYTRANSFER, true);            
+            curl_setopt($this->_curl, CURLOPT_PUT, TRUE);                
+            curl_setopt($this->_curl, CURLOPT_INFILE, $fp);                
+            curl_setopt($this->_curl, CURLOPT_INFILESIZE, $len);
+	               
         }
         
         // auth
         if ( isset($this->auth['username']) ) {
         	curl_setopt($this->_curl, CURLOPT_USERPWD, "{$this->auth['username']}:{$this->auth['password']}");
-        }
+        }				
+				
+        // add headers
+        curl_setopt($this->_curl,CURLOPT_HTTPHEADER, array_map(function($k, $v){
+        	return "$k:$v";
+        },array_keys($headers), $headers));
         
         // make the request
         $result = curl_exec($this->_curl);   
