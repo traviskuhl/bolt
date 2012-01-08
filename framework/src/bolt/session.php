@@ -24,7 +24,7 @@ class session extends plugin\singleton {
         
     // when we first create our singleton
     // we need to load it
-    public function start($id) {
+    public function start($id=false) {
     
         if (b::config()->get('session') != 'false') {        
         

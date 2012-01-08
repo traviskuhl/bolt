@@ -103,7 +103,7 @@ class render extends plugin {
             }
 
 		// get any globals
-		$vars = array_merge( $this->_globals, $vars );
+		$vars = array_merge( $this->_globals, $view->getParams(), $vars );
 
             // make sure everything is an object
             foreach ($vars as $k => $v) {
@@ -260,7 +260,7 @@ class render extends plugin {
         }        
 
         // does this method exist for this objet        
-        if (method_exists($view, $method)) {
+        if (method_exists($view, $method)) { 
             $view->$method();
         }
         
@@ -275,11 +275,11 @@ class render extends plugin {
         }
         
         // wrap
-        if (isset($args['wrap']) AND $args['wrap'] AND $view->getWrap() === -1) {                    
-            $view->setWrap($this->template($args['wrap'], $args));
+        if (isset($args['wrap']) AND $args['wrap'] AND $view->getWrap() === -1) {
+            $view->setWrap($this->template($args['wrap'], $args, $view));
         }
-        else if (stripos($view->getWrap(), '.template.php') !== false) {
-            $view->setWrap($this->template($view->getWrap(), $args));
+        else if (stripos($view->getWrap(), '.template.php') !== false) { 
+            $view->setWrap($this->template($view->getWrap(), $args, $view));
         }
                         
         // accept

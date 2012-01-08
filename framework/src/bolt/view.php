@@ -34,8 +34,6 @@ class view {
                 return $this->_status;
             case 'getParams':
                 return $this->_params;
-            case 'getWrap':
-                return $this->_wrap;
             case 'getAccept':
                 return $this->accept;
         
@@ -66,6 +64,9 @@ class view {
         };                
     }
     
+    public function getWrap() {
+        return $this->_wrap;
+    }
 
     // protected
     protected function template($tmpl) {
