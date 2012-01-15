@@ -130,7 +130,7 @@ class webservice extends \bolt\plugin\factory {
             else {
             
                 // post
-    	        curl_setopt($this->_curl,CURLOPT_POSTFIELDS, $params );
+    	        curl_setopt($this->_curl, CURLOPT_POSTFIELDS, http_build_query($params));
                 curl_setopt($this->_curl, CURLOPT_POST, TRUE);
             }
 	        
@@ -161,11 +161,13 @@ class webservice extends \bolt\plugin\factory {
         // auth
         if ( isset($this->auth['username']) ) {
         	curl_setopt($this->_curl, CURLOPT_USERPWD, "{$this->auth['username']}:{$this->auth['password']}");
-        }				
-				
+        }		
+        						
         // add headers
-        curl_setopt($this->_curl,CURLOPT_HTTPHEADER, array_map(function($k, $v){
-        	return "$k:$v";
+        curl_setopt($this->_curl,CURLOPT_HTTPHEADER, array_map(function($k, $v){ 
+            if ($k AND $v) {
+            	return "$k:$v";
+            }
         },array_keys($headers), $headers));
         
         // make the request

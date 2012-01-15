@@ -40,7 +40,7 @@ abstract class plugin {
     ////////////////////////////////////////////////////////////
     /// @brief call one of our plugins
     ////////////////////////////////////////////////////////////
-    public function call($name, $args=array()) {
+    public function call($name, $args=array()) {   
     
         // func
         $method = false;    
@@ -100,7 +100,7 @@ abstract class plugin {
         }    
         
         // ask the class what it is
-        if ($plug::$TYPE == 'factory') {
+        if ($plug::$TYPE == 'factory') { 
             return call_user_func_array(array($plug, "factory"), $args);
         }
         
@@ -114,7 +114,13 @@ abstract class plugin {
             
             // instance
             $i = $this->_instance[$name];     
-                       
+            
+            // if instance is another plugin
+            // we can chain our call method
+            if (get_parent_class($i) == 'bolt\plugin' AND isset($args[0]) AND is_string($args[0])) {
+                return $i->call(array_shift($args), $args);
+            }
+                                   
             // is it a string
             if ($method) {
                 return call_user_func_array(array($i, $method), $args);

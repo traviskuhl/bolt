@@ -7,6 +7,18 @@ abstract class mongo extends \bolt\dao\stack {
 
     // collection
     protected $table = false;
+    
+    // enableCaching
+    protected $cache = array('enable' => true, 'handler' => 'memcache', 'ttl' => 0);
+
+    public function getCacheHandler() {
+        if ($this->cache['handler'] == 'memcache') {
+            return b::memcache();
+        }
+        else {
+            return b::cache()->call($this->cache['handler']);
+        }
+    }
 
     // get
     public function get() {
@@ -25,8 +37,30 @@ abstract class mongo extends \bolt\dao\stack {
     
     public function row($field, $val=array()) {
     
-        // query that shit up
-        $resp = \b::mongo()->row($this->table, array($field => $val));
+        // start off with no resp
+        $resp = false;
+    
+        // if field is id and cache is enabled
+        // we should check the cache
+        if ($this->cache['enable'] == true AND $field == 'id') {        
+            $cid = "{$this->table}:{$val}";
+            $resp = call_user_func(array($this->getCacheHandler(), 'get'), $cid);
+        }
+    
+        // no resp
+        if (!$resp) {
+        
+            // query that shit up
+            $resp = \b::mongo()->row($this->table, array($field => $val));
+            
+            // if field is id and cache is enabled
+            // we should check the cache
+            if ($this->cache['enable'] == true AND $field == 'id') {
+                $cid = "{$this->table}:{$val}";
+                call_user_func(array($this->getCacheHandler(), 'set'), $cid, $resp, $this->cache['ttl']);
+            }
+            
+        }
                         
         // what up
         if ($resp) { 
@@ -74,6 +108,12 @@ abstract class mongo extends \bolt\dao\stack {
 		catch (MongoCursorException $e) {
 			return false;
 		}
+
+        // yes we should update the cache
+        if ($this->cache['enable'] == true AND $r) {
+            $cid = "{$this->table}:{$id}";
+            call_user_func(array($this->getCacheHandler(), 'set'), $cid, $data, $this->cache['ttl']);
+        }
 
 		// save id 
 		$this->id = $id;

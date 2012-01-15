@@ -107,7 +107,7 @@ class helpers {
 			if ( stripos($url,'http') === false )  {
 				$url = URI.trim($url,'/');
 			}						
-			$url = Config::addUrlParams($url, $a[1]);
+			$url = self::addUrlParams($url, $a[1]);
 		}
 
 		exit(header("Location:$url"));
@@ -204,7 +204,7 @@ class helpers {
 		}
 	}
 	
-	public static function ago($tm,$rcs = 0) {
+	public static function ago($tm, $short=false) {
 	
 	    $cur_tm = b::utctime();
 	    
@@ -215,12 +215,29 @@ class helpers {
 	       return 'just now';
 	   }
 	
-	    $pds = array('second','minute','hour','day','week','month','year','decade');
+	    if ($short) {
+    	    $pds = array('s','m','h','d','w');	    
+    	    if ($dif > (60*60*24*14)) {
+    	       return date('m/d');
+    	    }    	    
+	    }
+	    else { 
+    	    $pds = array('second','minute','hour','day','week','month','year','decade');
+        }
+	    	    
 	    $lngh = array(1,60,3600,86400,604800,2630880,31570560,315705600);
 	    for($v = sizeof($lngh)-1; ($v >= 0)&&(($no = $dif/$lngh[$v])<=1); $v--); if($v < 0) $v = 0; $_tm = $cur_tm-($dif%$lngh[$v]);
 	   
-	    $no = floor($no); if($no <> 1) $pds[$v] .='s'; $x=sprintf("%d %s ",$no,$pds[$v]);
-	    return trim($x) . ' ago';
+	    $no = floor($no); 
+	    
+	   if($no <> 1 AND !$short) { 
+	       $pds[$v] .='s'; 
+	       $x=sprintf("%d %s ",$no,$pds[$v]);
+	    }
+	    else {
+	       $x=sprintf("%d%s ",$no,$pds[$v]);
+	    }
+	    return ($short ? trim($x) : trim($x) . ' ago');
 	}
 	
 	public static function left($theTime, $level="days+hours+min+sec") {

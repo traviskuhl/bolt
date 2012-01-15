@@ -57,11 +57,11 @@ class route extends plugin\singleton {
                 list($_name, $path) = explode("<", $path);
                 
                 // add it to the url
-                $this->urls[$_name] = $path;
+                $this->urls[$_name] = trim($path,'/$');
                 
             }
             else if ($name) {
-                $this->urls[$name] = $path;
+                $this->urls[$name] = trim($path,'/$?');
             }
         
             // if class

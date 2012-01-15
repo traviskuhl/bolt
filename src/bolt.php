@@ -46,6 +46,7 @@ final class b {
         'source'    => "./bolt/source.php",
         'external'  => "./bolt/external.php",
         'account'   => "./bolt/account.php",
+        'cache'     => "./bolt/cache.php",
         
         // source
         'source-mongo'      => "./bolt/source/mongo.php",        
@@ -56,6 +57,9 @@ final class b {
         'render-xhr'       => "./bolt/render/xhr.php",
         'render-ajax'      => "./bolt/render/ajax.php",
         'render-html'      => "./bolt/render/html.php",
+        
+        // cache modules
+        'cache-memcache'    => "./bolt/cache/memcache.php",
         
     );    
     
@@ -117,6 +121,7 @@ final class b {
             
             // make sure they want us to load it
             if (!in_array($name, $args['core'])) { continue; }
+        
             
             // include it, only one
             include_once($file);

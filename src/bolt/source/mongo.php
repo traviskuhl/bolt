@@ -36,7 +36,7 @@ class mongoi extends \bolt\plugin\factory {
 	private $config = array();
 	private $grid = false;
 
-	public function __construct($config) {			
+	public function __construct($config) {	 
 		$this->config = $config;		
 	}
 
@@ -66,12 +66,22 @@ class mongoi extends \bolt\plugin\factory {
 		}
 		catch ( \MongoConnectionException $e ) { die( $e->getMessage() ); }
 
-
 	}
 
-	public function setDb($name) {	
+    public function __call($name, $args) {
+        return call_user_func_array(array($this->getHandle()->{$this->_db}, $name), $args);
+    }
+
+    public function __get($name) {
+        return $this->getHandle()->{$this->_db}->{$name};
+    }
+    
+	public function setDb($name) {		
 		$this->config += array('db'=>$name);
-		$this->_db = $name;				
+		$this->_db = $name;
+		if ($this->dbh) {
+		  $this->selectDB($name);
+		}
 	}
 
 	public function getDb() {	

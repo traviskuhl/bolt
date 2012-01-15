@@ -245,7 +245,7 @@ class render extends plugin {
     public function render($view, $args=array()) {
         
         // view
-        $method = p('method', 'get', $args);
+        $method = strtolower(p('method', 'get', $args));
         $accept = p('accept', 'text/html', $args);        
         
         // figure out if the requested accept
@@ -253,6 +253,7 @@ class render extends plugin {
         if (!in_array($accept, $view->getAccept()) AND !in_array('*/*', $view->getAccept())) {
             $accept = array_shift($view->getAccept());
         }
+
             
         // if our accept header says it's ajax
         if ($accept == 'text/javascript;text/ajax' AND method_exists($view, 'ajax')) {
@@ -260,12 +261,12 @@ class render extends plugin {
         }        
 
         // does this method exist for this objet        
-        if (method_exists($view, $method)) { 
+        if (method_exists($view, $method)) {  
             $view->$method();
-        }
+        }            
         
         // there's a dispatch
-        else if (method_exists($view, '_dispatch')) {        
+        else if (method_exists($view, '_dispatch')) { 
             $view->_dispatch();            
         }
         

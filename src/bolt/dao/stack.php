@@ -112,6 +112,13 @@ class stack extends \SplStack {
     
     }
     
+    public function import($items) {
+        foreach ($items as $key => $item) {
+            $this->push($item, $key);
+        }
+        return $this;
+    }
+    
     public function reduce($cb) {      
         $resp = array();
         
@@ -198,6 +205,7 @@ class stack extends \SplStack {
         return $s;
     
     }     
+    
     
     public function asArray() {
         $array = array();

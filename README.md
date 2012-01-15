@@ -8,7 +8,7 @@ php framework
 * other cool stuff
 
 ## Example
-    include_("./bolt.php");
+    include("./bolt.php");
     
     // initate our bolt instance
     // and set some config variables 

@@ -15,7 +15,7 @@ b::plug(array(
 class session extends plugin\singleton {
 
     // data
-    private $_dao = array();
+    private $_dao = false;
     private $_cname = "s";
     
     // sid
@@ -35,8 +35,7 @@ class session extends plugin\singleton {
             if (!$id) {
                 $c = b::cookie()->get($this->_cname);
                 if ($c) {
-                    $id = $c['id'];
-                    
+                    $id = $c['id'];                    
                 }
             }
 
@@ -50,6 +49,13 @@ class session extends plugin\singleton {
         // this
         return $this;
         
+    }
+    
+    public function regenerate() {
+        $this->delete();    
+        $this->_id = false;
+        $this->_dao = false;   
+        $this->load();         
     }
 
     public function __destruct() {
@@ -126,7 +132,8 @@ class session extends plugin\singleton {
     }
     
     public function delete() {
-        $this->_dao->delete();
+        ($this->_dao ? $this->_dao->delete() : false);
+        b::cookie()->set($this->_cname, false, b::utctime());        
     }
 
     // verify

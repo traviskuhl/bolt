@@ -14,10 +14,23 @@ class view {
     private $_data = false;
     private $_headers = array();
     private $_status = 200;
+    private $_input = false;
     private $_wrap = -1;
     
     // this should be overrideable by the child
     protected $accept = array('*/*');
+    
+    // function
+    public function __construct($params=array(), $method=false) {
+    
+        // set some stuff
+        $this->_params = $params;
+        $this->_method = $method;
+        
+        // set get the input
+        $this->_input = file_get_contents("php://input");
+        
+    }    
     
     // magic set
     public function __call($name, $args) {
@@ -34,6 +47,8 @@ class view {
                 return $this->_status;
             case 'getParams':
                 return $this->_params;
+            case 'getInput':
+                return $this->_input;                
             case 'getAccept':
                 return $this->accept;
         
@@ -48,6 +63,8 @@ class view {
                 return ($this->_status = $args[0]);
             case 'setWrap':
                 return ($this->_wrap = $args[0]);
+            case 'setInput':
+                return ($this->_input = $args[0]);                
             case 'setAccept':
                 return ($this->accept = $args[0]);
             
@@ -71,12 +88,6 @@ class view {
     // protected
     protected function template($tmpl) {
         return $tmpl;
-    }
-
-    // function
-    public function __construct($params=array(), $method=false) {
-        $this->_params = $params;
-        $this->_method = $method;
     }
 
     // param
