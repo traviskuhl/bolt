@@ -230,9 +230,15 @@ class helpers {
 	   
 	    $no = floor($no); 
 	    
-	   if($no <> 1 AND !$short) { 
-	       $pds[$v] .='s'; 
-	       $x=sprintf("%d %s ",$no,$pds[$v]);
+	    // numbers
+        $num = array('zero','one','two','three','four','five','six','seven','eight','nine','ten');
+	    
+	   if($short == false) { 
+	       ($no > 1 ? $pds[$v] .='s' : false); 
+	       if ($no <= 10) {
+	           $no = $num[$no];
+	       }
+	       $x=sprintf("%s %s ", (string)$no,$pds[$v]);
 	    }
 	    else {
 	       $x=sprintf("%d%s ",$no,$pds[$v]);

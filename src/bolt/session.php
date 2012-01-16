@@ -62,7 +62,7 @@ class session extends plugin\singleton {
         $this->save();
     }
     
-    public function sid() {
+    public function sid() {    
         // no id we should save it 
         return ($this->_dao ? $this->_dao->id : false);
     }
@@ -102,7 +102,7 @@ class session extends plugin\singleton {
             // if we have an id, load it
             if ($this->_id) {
                 $this->_dao->get('id', $this->_id);
-            }
+            } 
         
         // if we have an a
         if ($this->_dao->account) {

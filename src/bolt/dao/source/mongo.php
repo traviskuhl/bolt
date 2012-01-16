@@ -42,9 +42,9 @@ abstract class mongo extends \bolt\dao\stack {
     
         // if field is id and cache is enabled
         // we should check the cache
-        if ($this->cache['enable'] == true AND $field == 'id') {        
+        if ($this->cache['enable'] == true AND $field == 'id' AND $val) {        
             $cid = "{$this->table}:{$val}";
-            $resp = call_user_func(array($this->getCacheHandler(), 'get'), $cid);
+            $resp = call_user_func(array($this->getCacheHandler(), 'get'), $cid);                        
         }
     
         // no resp
@@ -55,8 +55,9 @@ abstract class mongo extends \bolt\dao\stack {
             
             // if field is id and cache is enabled
             // we should check the cache
-            if ($this->cache['enable'] == true AND $field == 'id') {
+            if ($this->cache['enable'] == true AND $field == 'id' AND $resp) {
                 $cid = "{$this->table}:{$val}";
+                $resp['id'] = $val;                
                 call_user_func(array($this->getCacheHandler(), 'set'), $cid, $resp, $this->cache['ttl']);
             }
             
@@ -112,6 +113,7 @@ abstract class mongo extends \bolt\dao\stack {
         // yes we should update the cache
         if ($this->cache['enable'] == true AND $r) {
             $cid = "{$this->table}:{$id}";
+            $data['id'] = $id;
             call_user_func(array($this->getCacheHandler(), 'set'), $cid, $data, $this->cache['ttl']);
         }
 
