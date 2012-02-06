@@ -65,7 +65,7 @@ class stack extends \SplStack {
         }
             
         // push to stak
-        parent::push($item);
+        parent::unshift($item);
         
         // i
         $i = $this->count() - 1;
@@ -88,12 +88,13 @@ class stack extends \SplStack {
         switch($idx) {
         
             // first item
-            case 'first':
-                $idx = array_shift(array_slice($this->_map,0,1)); break;
+            case 'first':            
+                $idx = $this->count()-1;                
+                break;
                 
             // last item
             case 'last':
-                $idx = array_shift(array_slice($this->_map,-1)); break;
+                $idx = 1; break;
                 
             // else
             default:
@@ -205,7 +206,48 @@ class stack extends \SplStack {
         return $s;
     
     }     
+
+    public function sort($cb, $sort=false) {
+        $s = new stack();
+        
+        // array
+        $array = array();
     
+        foreach ($this as $key => $item) {
+            $array[$key] = (is_callable($cb) ? $cb($item) : $item->$cb);
+        }
+        
+        // sort it 
+        if (is_callable($sort)) {
+            uasort($array, $sort);
+        }
+        else if ($sort) {
+            arsort($array);
+        }
+        else {
+            asort($array);
+        }
+        
+        foreach ($array as $key => $item) {
+            $s->push($this->item($key));
+        }
+    
+        // give bacl
+        return $s;
+    
+    }   
+    
+    public function each($cb) {      
+        $resp = array();
+    
+        foreach ($this as $key => $item) {
+            $resp[$key] = $cb($item);
+        }
+    
+        // give bacl
+        return $resp;
+    
+    }             
     
     public function asArray() {
         $array = array();

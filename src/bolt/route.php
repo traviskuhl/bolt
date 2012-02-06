@@ -199,7 +199,7 @@ class route extends plugin\singleton {
         $url = $this->urls[$name];
         
         // get our parts
-        $parts = explode("/", $url);
+        $parts = explode("/", stripslashes($url));
         
         // lets do it
         foreach ($parts as $i => $part) {

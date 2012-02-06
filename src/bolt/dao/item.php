@@ -766,7 +766,7 @@ class item implements \Iterator, \ArrayAccess {
 						if ( !$value ) { $value = b::uuid(); } break;
 						
 					// user
-					case 'user':
+					case 'account':
 						$value = (is_object($value)?$value->id:$value); break;
                  
                     // json we need to decode

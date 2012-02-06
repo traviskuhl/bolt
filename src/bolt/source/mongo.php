@@ -47,7 +47,7 @@ class mongoi extends \bolt\plugin\factory {
 
 		// get some
 		$this->_host = p('host', false, $this->config);
-		$this->_port = p('port', false, $this->config);
+		$this->_port = p('port', 27017, $this->config);
 		$this->_db = ($this->_db ? $this->_db : p('db', false, $this->config));
 		$this->_user = p('user', false, $this->config);
 		$this->_pass = p('pass', false, $this->config);

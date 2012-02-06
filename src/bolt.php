@@ -51,6 +51,7 @@ final class b {
         // source
         'source-mongo'      => "./bolt/source/mongo.php",        
         'source-webservice' => "./bolt/source/webservice.php",
+        'source-s3'         => "./bolt/source/s3.php",
         
         // renders
         'render-json'      => "./bolt/render/json.php",
@@ -60,6 +61,9 @@ final class b {
         
         // cache modules
         'cache-memcache'    => "./bolt/cache/memcache.php",
+        
+        // external
+        'ext-s3'            => "./bolt/external/s3.php"
         
     );    
     

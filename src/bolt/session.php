@@ -34,6 +34,7 @@ class session extends plugin\singleton {
             // no sid check the cookie
             if (!$id) {
                 $c = b::cookie()->get($this->_cname);
+                
                 if ($c) {
                     $id = $c['id'];                    
                 }
@@ -60,6 +61,10 @@ class session extends plugin\singleton {
 
     public function __destruct() {
         $this->save();
+    }
+    
+    public function getSid() {
+        return $this->sid();
     }
     
     public function sid() {    
