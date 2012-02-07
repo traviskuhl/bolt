@@ -725,9 +725,11 @@ class item implements \Iterator, \ArrayAccess {
 		// data
 		$data = $this->_data;				
 			
+		$s = $this->getStruct();	
+			
         // one last loop
         foreach ($data as $k => $value) {
-            if (is_object($value) AND method_exists($value, 'asArray')) {
+            if ( !array_key_exists($k, $s) AND is_object($value) AND method_exists($value, 'asArray')) {
                 $data[$k] = $value->asArray();
             }
         }
@@ -744,6 +746,11 @@ class item implements \Iterator, \ArrayAccess {
             
             // if we have info lets map it
             $data[$key] = $this->normalizeValid($info, $value, $key, $this);
+
+            // is an object
+            if (is_object($data[$key]) AND method_exists($data[$key], 'asArray')) {
+                $data[$key] = $data[$key]->asArray();
+            }
             
         }
 
