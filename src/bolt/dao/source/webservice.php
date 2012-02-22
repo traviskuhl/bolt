@@ -3,7 +3,7 @@
 namespace bolt\dao\source;
 use \b as b;
 
-abstract class webservice extends \bolt\dao\stack {
+abstract class webservice extends \bolt\dao\item {
 
     // collection
     protected $wsConfig = false;

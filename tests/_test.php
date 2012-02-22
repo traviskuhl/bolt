@@ -2,7 +2,7 @@
 <?php
 
 // bolt
-include("../framework/src/bolt.php");
+include("../src/bolt.php");
 
 // init bolt
 b::init(array(
@@ -27,7 +27,11 @@ b::init(array(
 b::config();
 
 // session
-$s = b::dao('\bolt\common\dao\sessions')->get('id', 'b6aff2fc-32fd-11e1-8345-7379ae0f4ae6');
+ $s = b::dao('\bolt\common\dao\sessions')->get('id', '67bf2206-5b45-11e1-a224-d38cf5eefb30');
+
+//$s = b::dao('\bolt\common\dao\sessions')->get(array());
+
+/*
 
 // create
 $s->set(array(
@@ -36,7 +40,8 @@ $s->set(array(
 
 // save
 $s->save();
+*/
 
-var_dump($s->id);
+var_dump($s->data_deep);
 
 ?>

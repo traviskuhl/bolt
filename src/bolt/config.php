@@ -28,6 +28,9 @@ class config extends plugin\singleton {
         return $this->set($name, $value);
     }
     
+    public function getData() {
+        return $this->_data;
+    }
 
     // get
     public function get($name, $default=false) {
@@ -60,7 +63,15 @@ class config extends plugin\singleton {
 
     // set
     public function set($name, $value=false) {
-        return ($this->_data[$name] = $value);
+        if (is_array($name) AND is_array($name[key($name)])) {
+            foreach ($name as $key => $val) {
+                $this->set($key, $val);
+            }
+        }
+        else {    
+            $this->_data[$name] = $value;
+        }
+        return $this;
     }
     
     // merge

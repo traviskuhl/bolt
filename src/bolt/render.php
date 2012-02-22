@@ -253,27 +253,47 @@ class render extends plugin {
         if (!in_array($accept, $view->getAccept()) AND !in_array('*/*', $view->getAccept())) {
             $accept = array_shift($view->getAccept());
         }
+        
+        // preresp
+        preresp:
 
+        // our resp
+        $resp = false;
             
         // if our accept header says it's ajax
         if ($accept == 'text/javascript;text/ajax' AND method_exists($view, 'ajax')) {
             $view->ajax();
         }        
 
-        // does this method exist for this objet        
-        if (method_exists($view, $method)) {  
-            $view->$method();
-        }            
-        
         // there's a dispatch
-        else if (method_exists($view, '_dispatch')) { 
-            $view->_dispatch();            
-        }
+        if (method_exists($view, '_dispatch')) { 
+            $resp = $view->_dispatch();            
+        }        
+
+        // does this method exist for this objet        
+        else if (method_exists($view, $method)) {  
+            $resp = $view->$method();
+        }                    
         
         // a get to fall back on 
         else if (method_exists($view, 'get')) {
-            $view->get();
+            $resp = $view->get();
         }
+        
+        // see if they want to forward to a different view
+        if ($resp AND is_string($resp) AND class_exists($resp)) {
+            
+            // replace the view and retry the resp
+            $view = new $resp($view->getParams(), $view->getMethod());
+            
+            // resp is false again
+            $resp = false;
+            
+            // go back
+            goto preresp;
+            
+        }
+        
         
         // wrap
         if (isset($args['wrap']) AND $args['wrap'] AND $view->getWrap() === -1) {

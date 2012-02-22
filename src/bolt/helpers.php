@@ -12,6 +12,75 @@ use \b as b;
 // helpers
 class helpers {
     
+    
+    ////////////////////////////////////////////////
+    /// encrypt a password
+    ////////////////////////////////////////////////    
+    public static function crypt($str, $salt=false) {
+        if (!$salt) { $salt = b::config()->salt; }
+        return crypt( $str, '$5$rounds=5000$'.$salt.'$' );
+    }
+    
+    ////////////////////////////////////////////////    
+    /// encrypt using mcrypt
+    ////////////////////////////////////////////////    
+    public static function encrypt($str, $salt) {
+        return self::mcrypt($str, $salt, MCRYPT_ENCRYPT);
+    }
+
+    ////////////////////////////////////////////////    
+    /// deencrypt using mcrypt
+    ////////////////////////////////////////////////    
+    public static function deencrypt($str, $salt) {
+        return self::mcrypt($str, $salt, MCRYPT_ENCRYPT);
+    }
+    
+    ////////////////////////////////////////////////    
+    /// mcrypt
+    ////////////////////////////////////////////////        
+    public static function mcrypt($str, $salt=false, $what=MCRYPT_DECRYPT) {            
+    
+        // nothing to do
+        if (!$str) { return ""; }
+    
+        // salt not string it's what
+        if (!is_string($salt)) {
+            $what = $salt;
+        }    
+    
+        // no salt
+        if ( ( $salt === false OR !is_string($salt) ) AND b::_("_domain") ) {
+            $salt = b::_("_domain")->salt;
+        }        
+    
+        // encrypt
+        $td = mcrypt_module_open('tripledes', '', 'ecb', '');
+        
+        // figure our how long our key should be     
+        $iv = mcrypt_create_iv(mcrypt_enc_get_iv_size($td), MCRYPT_DEV_URANDOM);
+        $ks = mcrypt_enc_get_key_size($td);        
+
+        // make our key
+        $key = substr(md5($salt), 0, $ks);
+        mcrypt_generic_init($td, $key, $iv);
+        
+        // do what 
+        if ( $what == MCRYPT_DECRYPT ) {        
+            $data = trim(mdecrypt_generic($td, base64_decode($str)));
+        }
+        else {
+            $data = base64_encode(mcrypt_generic($td, $str));    
+        }
+        
+        // end it 
+        mcrypt_generic_deinit($td);
+        mcrypt_module_close($td);
+        
+        // return data 
+        return $data;    
+    
+    }      
+    
     ////////////////////////////////////////////////
     /// @brief add url params to a url
     ///
@@ -89,7 +158,10 @@ class helpers {
         return $str;   
     
     }		
-
+            // shortcut
+            public static function randomString($len=30) {
+                return self::randString($len);
+            }
 
 	
 	public function md5($str) {
@@ -385,5 +457,20 @@ class helpers {
     
     
     }
+    
+	public static function mergeArray($a1, $a2) {
+	   if (!is_array($a1)) { $a1 = array(); }
+	   if (!is_array($a2)) { $a2 = array(); }
+	
+		foreach ( $a2 as $k => $v ) {
+			if ( array_key_exists($k, $a1) AND is_array($v) ) {
+				$a1[$k] = self::mergeArray($a1[$k], $a2[$k]);
+			}
+			else {
+				$a1[$k] = $v;
+			}
+		}
+		return $a1;
+	}	    
 
 }

@@ -3,67 +3,27 @@
 namespace bolt\dao;
 
 class stack extends \SplStack {
-
+    
+    // map
     private $_map = array();
-    private $_item = false; 
+    private $_class = false;
     
-    public function __construct() {
-        $this->_item = new item($this, array());
-    }
-    
-    // loaded
-    public function loaded() { 
-        if (!$this->count()) {
-            return $this->_item->loaded();
-        }
-        else {
-            return $this->count(); 
-        }
-    }
-    
-    // get 
-    public function __get($name) {       
-        return $this->getItem()->$name;
-    }
-    
-    // set
-    public function __set($name, $value) {
-        return $this->getItem()->$name = $value;
-    }
-    
-    // call
-    public function __call($name, $args) {    
-        return call_user_func_array(array($this->getItem(), $name), $args);
-    }
-
-    public function getItem() {
-        return $this->_item;
-    }
-
-    public function setItem($item) {
-        if (is_array($item)) {
-           return $this->_item->set($item);
-        }
-        else if (is_object($item)) {
-            return $this->_item->set($item->getData());
-        }    
-        return $this->_item;
-    }    
-
-    // struct
-    public function getStruct() { 
-        return array();
-    }
+    // construct
+    public function __construct($class=false) {
+        $this->_class = $class;
+    }        
 
     // push
-    public function push($item, $key=false) {            
-            
-        // if item is an array
-        // lets turn it into an obj
-        if (is_array($item)) {
-            $item = new \bolt\dao\item($this, $item);
-        }
-            
+    public function push($item, $key=false) {   
+    
+        // if item is not an item and 
+        // we have a class make an object
+        if (is_array($item) AND $this->_class) {
+            $_item = new $this->_class();
+            $_item->set($item);
+            $item = $_item;
+        }         
+                        
         // push to stak
         parent::unshift($item);
         

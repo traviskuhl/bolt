@@ -51,6 +51,8 @@ class view {
                 return $this->_input;                
             case 'getAccept':
                 return $this->accept;
+            case 'getMethod':
+                return $this->_method;
         
             // set
             case 'setContent':
@@ -69,11 +71,12 @@ class view {
                 return ($this->accept = $args[0]);
             
             // add 
+            case 'setHeader':            
             case 'addHeader':
                 return ($this->_headers[$args[0]] = $args[1]);
             case 'addData':
                 return ($this->_data[$args[0]] = $args[1]);
-            case 'addParams':
+            case 'addParam':
                 return ($this->_params[$args[0]] = $args[1]);
             case 'addAccept':
                 return ($this->accept[] = $args[0]);

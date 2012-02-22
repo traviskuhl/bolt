@@ -63,7 +63,8 @@ final class b {
         'cache-memcache'    => "./bolt/cache/memcache.php",
         
         // external
-        'ext-s3'            => "./bolt/external/s3.php"
+        'ext-s3'            => "./bolt/external/s3.php",
+        'ext-drib'          => "./bolt/external/drib.php",
         
     );    
     
@@ -111,21 +112,33 @@ final class b {
     ////////////////////////////////////////////////////////////
     public static function init($args=array()) {
     
-        // if no core
-        if (!array_key_exists('core', $args)) {
-            $args['core'] = array_keys(self::$core);
+        // core always starts with the default
+        $core = array_keys(self::$core);
+        
+        // nomods
+        $skip = array();
+            
+        // loop through core
+        if (array_key_exists('core', $args)) {
+            foreach ($args['core'] as $mod) {
+                if ($mod{0} == '-') {
+                    $slip[] = substr($mod, 1);
+                }
+                else {
+                    $core[] = $mod;
+                }
+            }
         }
     
         // we need to include all of our core
         // plugins
         foreach (self::$core as $name => $file) {
             
-            // see if it's relative
-            if (substr($file,0,2) == './') { $file = bRoot."/".ltrim($file,'./'); }
-            
             // make sure they want us to load it
-            if (!in_array($name, $args['core'])) { continue; }
-        
+            if (!in_array($name, $core) OR in_array($name, $skip)) { continue; }
+            
+            // see if it's relative
+            if (substr($file,0,2) == './') { $file = bRoot."/".ltrim($file,'./'); }        
             
             // include it, only one
             include_once($file);
@@ -212,28 +225,15 @@ final class b {
     }	   
 
     ////////////////////////////////////////////////////////////
-    /// @brief get a configuration paramater. passhtrough to
-    ///         config::get
+    /// @brief get/set a configuration paramater. passhtrough to
+    ///         config::get or config::set
     ///
     /// @param $name name of config param
     /// @return <mixed> config param or false if doesn't exist
     /// @see config::get
     ////////////////////////////////////////////////////////////
-    public static function _($name) {
-        return b::config()->get($name);
-    }
-
-    ////////////////////////////////////////////////////////////
-    /// @brief set a configuration paramater. passhtrough to
-    ///         config::set
-    ///
-    /// @param $name name of config param
-    /// @param $value value of config param to set
-    /// @return <mixed> config param that was set
-    /// @see config::set
-    ////////////////////////////////////////////////////////////
-    public static function __($name, $value=false) {
-        return b::config()->set($name, $value);
+    public static function _($name, $value=null) {
+        return ($value === null ? b::config()->get($name) : b::config()->set($name, $value));
     }
 
 	// constants

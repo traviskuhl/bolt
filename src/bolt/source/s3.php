@@ -20,7 +20,7 @@ class s3 extends \bolt\plugin\singleton {
     }
     
     // call it
-    public function __call($name, $args) {
+    public function __call($name, $args) {    
         return call_user_func_array(array($this->instance, $name), $args);
     }
 

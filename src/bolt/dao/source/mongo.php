@@ -3,7 +3,7 @@
 namespace bolt\dao\source;
 use \b as b;
 
-abstract class mongo extends \bolt\dao\stack {
+abstract class mongo extends \bolt\dao\item {
 
     // collection
     protected $table = false;
@@ -33,6 +33,7 @@ abstract class mongo extends \bolt\dao\stack {
         else {
             return call_user_func_array(array($this, 'row'), $args);
         }        
+        
     }
     
     public function row($field, $val=array()) {
@@ -74,27 +75,39 @@ abstract class mongo extends \bolt\dao\stack {
     }
     
     public function query($query, $args=array()) {
+        
+        // get the called class
+        $lsb = get_called_class();
+        
+        // no fields lets set to get just
+        // an id
+        if (!array_key_exists('fields', $args)) {
+            $args['fields'] = array('_id' => 1);
+        }
     
         // run our query
         $sth = \b::mongo()->query($this->table, $query, $args);
             
+        // stack
+        $stack = new \bolt\dao\stack($lsb);            
+            
         // loop it up
         foreach ($sth as $item) {
-            $this->push(new \bolt\dao\item($this, $item), $item['_id']);
+            $stack->push(b::dao($lsb)->get('id', $item['_id']), $item['_id']);
         }
         
         // give me this
-        return $this;
+        return $stack;
     
     }
     
     public function save() {
     
 		// edit?
-		$edit = $this->getItem()->id;
+		$edit = $this->id;
 
 		// data
-		$data = $this->getItem()->normalize();
+		$data = $this->normalize();
 
 		// id
 		$id = (isset($data['_id']) ? $data['_id'] : $data['id']);

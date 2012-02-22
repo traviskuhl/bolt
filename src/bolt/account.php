@@ -31,6 +31,13 @@ class account extends \bolt\plugin\singleton {
         return $this->_dao->$name = $value;
     }
     
+    public function setAccount($account) {
+        if (is_object($account) AND $account->loaded()) {
+            $this->_dao = $account;
+        }
+        return $this;
+    }
+    
     // create
     public function create($data) {
         
@@ -41,6 +48,13 @@ class account extends \bolt\plugin\singleton {
         
         // unset
         unset($data['name']);
+        
+        // password
+        $data['password'] = b::crypt($data['password'], b::_("salt"));
+        
+        // username
+        $data['email'] = strtolower(p('email', "", $data));        
+        $data['username'] = strtolower(p('username', "", $data));
         
         // new 
         $this->_dao->set($data);

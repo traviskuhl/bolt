@@ -32,8 +32,14 @@ class cookie extends plugin\singleton {
 			// see if this cookie already exists
 			if ( p($name, false, $_COOKIE) ) {
 				
+				// current
+				$cur = $this->get($name);
+				
+				    // not an array
+				    if (!is_array($cur)) { $cur = array(); }
+				
 				// merge the values from the current cookie
-				$value = b::mergeArray( $this->get($name), $value );
+				$value = b::mergeArray( $cur, $value );
 				
 			}
 			

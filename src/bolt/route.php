@@ -192,7 +192,7 @@ class route extends plugin\singleton {
                 
         // no url
         if (!array_key_exists($name, $this->urls)) {
-            return $name;
+            return rtrim($uri,'/')."/".ltrim($name,'/');
         }
     
         // get our url
