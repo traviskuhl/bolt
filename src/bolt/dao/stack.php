@@ -7,11 +7,50 @@ class stack extends \SplStack {
     // map
     private $_map = array();
     private $_class = false;
+    private $_meta = false;
+    
+    // pager stuff
+    private $_total = 0;
+    private $_limit = 0;
+    private $_offset = 0;
     
     // construct
     public function __construct($class=false) {
         $this->_class = $class;
     }        
+    
+    public function setTotal($t) {
+        $this->_total = $t;
+        return $this;
+    }
+
+    public function setLimit($l) {
+        $this->_limit = $l;
+        return $this;
+    }
+
+    public function setOffset($o) {
+        $this->_offset = $o;
+        return $this;
+    }
+
+    public function setMeta($o) {
+        $this->_meta = $o;
+        return $this;
+    }
+
+
+    public function __call($name, $args) {
+        return ($this->_meta ? call_user_func_array(array($this->_meta, $name), $args) : false);
+    }
+    
+    public function __get($name) {
+        return ($this->_meta ? $this->_meta->$name : false);
+    }
+
+    public function __set($name, $value) {
+        return ($this->_meta ? $this->_meta->$name = $val : false);
+    }
 
     // push
     public function push($item, $key=false) {   
@@ -39,6 +78,11 @@ class stack extends \SplStack {
         // chainable
         return $this;
     
+    }
+    
+    // add
+    public function add($item) {
+        parent::push($item);
     }
 
     // item

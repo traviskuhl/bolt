@@ -18,7 +18,7 @@ class helpers {
     ////////////////////////////////////////////////    
     public static function crypt($str, $salt=false) {
         if (!$salt) { $salt = b::config()->salt; }
-        return crypt( $str, '$5$rounds=5000$'.$salt.'$' );
+        return crypt( $str, ($salt{0} == '$' ? $salt : '$5$rounds=5000$'.$salt.'$'));
     }
     
     ////////////////////////////////////////////////    
@@ -113,12 +113,8 @@ class helpers {
     	
     	// reconstruct
     	$url = $u['scheme']."://".$u['host'].(isset($u['port'])?":{$u['port']}":"").$u['path'];
-    
-    	$p = array();
-    	foreach ( $params as $k => $v ) {
-    		$p[] = "{$k}=".urlencode($v);
-    	}
-    	$url .= (strpos($url,'?')==false?'?':'&').implode('&',$p);		
+
+    	$url .= (strpos($url,'?')==false?'?':'&').http_build_query($params);		
     	
     	if ( isset($u['fragment']) ) {
     		$url .= $u['fragment'];

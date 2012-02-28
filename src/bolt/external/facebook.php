@@ -18,8 +18,8 @@ class facebook extends \bolt\plugin\singleton {
     // construct
     public function __construct() {
         $this->_fb = new \Facebook(array(
-            'appId'  => b::config()->fbAppId,
-            'secret' => b::config()->fbAppSecret
+            'appId'  => b::config()->fb['id'],
+            'secret' => b::config()->fb['secret']
         ));
     }
     

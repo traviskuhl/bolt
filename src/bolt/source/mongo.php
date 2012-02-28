@@ -64,7 +64,7 @@ class mongoi extends \bolt\plugin\factory {
 			}
 
 		}
-		catch ( \MongoConnectionException $e ) { die( $e->getMessage() ); }
+		catch ( \MongoConnectionException $e ) { header("Content-Type:text/html", true, 500); error_log($e->getMessage()); die("database connect fail"); }
 
 	}
 

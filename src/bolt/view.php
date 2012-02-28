@@ -27,9 +27,6 @@ class view {
         $this->_params = $params;
         $this->_method = $method;
         
-        // set get the input
-        $this->_input = file_get_contents("php://input");
-        
     }    
     
     // magic set
@@ -48,7 +45,7 @@ class view {
             case 'getParams':
                 return $this->_params;
             case 'getInput':
-                return $this->_input;                
+                return ($this->_input ? $this->_input : file_get_contents("php://input"));
             case 'getAccept':
                 return $this->accept;
             case 'getMethod':
@@ -69,6 +66,8 @@ class view {
                 return ($this->_input = $args[0]);                
             case 'setAccept':
                 return ($this->accept = $args[0]);
+            case 'setParams':
+                return ($this->_params = $args[0]);
             
             // add 
             case 'setHeader':            
@@ -139,6 +138,81 @@ class view {
         // me
         return $this;
         
+    }
+    
+    // execute the view
+    public function execute($params=array(), $accept=false) {
+        
+        // i'm the view,
+        // but i could change if i'm forwarded
+        $view = $this;
+        
+        // method
+        $method = $this->_method;
+    
+        // preresp
+        preresp:
+        
+        // no params
+        if (!is_array($params)) { $params = array(); }
+
+        // our resp
+        $resp = false;
+            
+        // if our accept header says it's ajax
+        if ($accept == 'text/javascript;text/ajax' AND method_exists($view, 'ajax')) {
+            $resp = call_user_func_array(array($view, 'ajax'), $params);
+        }        
+        
+        // module
+        else if ($method == 'module' AND method_exists($view, 'module')) {
+            $resp = call_user_func_array(array($view, 'module'), $params);        
+        }
+
+        // there's a dispatch
+        if (method_exists($view, '_dispatch')) { 
+            $resp = call_user_func_array(array($view, '_dispatch'), $params);        
+        }        
+
+        // does this method exist for this objet        
+        else if (method_exists($view, $method)) {  
+            $resp = call_user_func_array(array($view, $method), $params);                
+        }                    
+        
+        // a get to fall back on 
+        else if (method_exists($view, 'get')) {
+            $resp = call_user_func_array(array($view, 'get'), $params);                
+        }
+        
+        // see if they want to forward to a different view
+        if ($resp AND is_string($resp) AND class_exists($resp)) {
+            
+            // replace the view and retry the resp
+            $view = new $resp($view->getParams(), $view->getMethod());
+            
+            // resp is false again
+            $resp = false;
+            
+            // go back
+            goto preresp;
+            
+        }
+        
+        // is a view
+        else if (is_object($resp)) {
+        
+            // set our response as a view
+            $view = $resp;
+
+            // go back
+            goto preresp;
+            
+        }
+
+    
+        // give back this
+        return $view;    
+    
     }
 
 }

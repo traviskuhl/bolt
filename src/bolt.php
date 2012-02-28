@@ -65,6 +65,7 @@ final class b {
         // external
         'ext-s3'            => "./bolt/external/s3.php",
         'ext-drib'          => "./bolt/external/drib.php",
+        'ext-fb'            => "./bolt/external/facebook.php"
         
     );    
     

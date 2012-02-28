@@ -310,7 +310,7 @@ class item implements \Iterator, \ArrayAccess {
             
         	// check if they want a key if the array
 			if ( isset($parts[2]) ) {
-				if ( !is_array($this->_data[$ary][$key]) ) {
+				if ( isset($this->_data[$ary][$key]) AND !is_array($this->_data[$ary][$key]) ) {
 					$this->_data[$ary][$key] = array();
 				}
         	            	
@@ -382,7 +382,7 @@ class item implements \Iterator, \ArrayAccess {
                 }
             
                 // give it 
-                return date($frm,$this->{$ts});
+                return date($frm, $this->{$ts});
             
             // ago
             case 'ago':            
@@ -431,6 +431,10 @@ class item implements \Iterator, \ArrayAccess {
 		return $this;
 		
 	}
+	
+    public function getDataValue($name, $object=false) {
+        return (array_key_exists($name, $this->_data) ? ($object ? new item($this->_data[$name]) : $this->_data[$name]) : false);
+    }
 
 
 	/////////////////////////////////////////////////
@@ -774,7 +778,7 @@ class item implements \Iterator, \ArrayAccess {
 	/////////////////////////////////////////////////	
     public function current() {
         $var = current($this->_data);
-        return $var;
+        return $this->objectify($var);
     }
 
 
@@ -785,7 +789,7 @@ class item implements \Iterator, \ArrayAccess {
 	/////////////////////////////////////////////////	
     public function key() {
         $var = key($this->_data);
-        return $var;
+        return $this->objectify($var);
     }
 
 
@@ -795,8 +799,8 @@ class item implements \Iterator, \ArrayAccess {
 	/// @return value of next item in set
 	/////////////////////////////////////////////////	
     public function next() {
-        $var = next($this->_data);
-        return $var;
+        $var = next($this->_data);    
+        return $this->objectify($var);
     }
 
 
@@ -807,7 +811,7 @@ class item implements \Iterator, \ArrayAccess {
 	/////////////////////////////////////////////////	
     public function valid() {
         $var = $this->current() !== false;
-        return $var;
+        return $this->objectify($var);
     }
 
     public function count() {

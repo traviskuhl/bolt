@@ -22,10 +22,15 @@ class webservice extends \bolt\plugin\factory {
     // oauth
     private $_oauth = false;
     private $_curl = false;
+    private $_last = false;
     
     // construct
     public function __construct($cfg=array()) {    
         $this->_config = array_merge($this->_config, $cfg);
+    }
+    
+    public function getLastResponse() {
+        return $this->_last;
     }
     
     public function config($key, $val=false) {
@@ -174,7 +179,7 @@ class webservice extends \bolt\plugin\factory {
         $result = curl_exec($this->_curl);   
             
         // return our re    
-        $r = new webserviceResponse(
+        $r = $this->_last = new webserviceResponse(
             $this,
             $result, 
             curl_getinfo($this->getCurl(),CURLINFO_HTTP_CODE), 

@@ -2,7 +2,6 @@
 		
 # internal variables
 src = ../src
-htdocs = /home/bolt/share/htdocs
 pear = /home/bolt/share/pear/bolt/v2/framework
 
 # meta data
@@ -18,10 +17,7 @@ set dev.mode false
 
 # dir
 dir - - - $(pear)
-dir - - - $(htdocs)
 dir - - - $(conf)
 
 # pear
 find - - - $(pear)			$(src)  -depth -name "*.php" 
-
-#find - - - $(htdocs)		$(src)/htdocs  -depth -name "*.php" 

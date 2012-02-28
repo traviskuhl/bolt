@@ -17,6 +17,9 @@ class render extends plugin {
 
     // global args
     private $_globals = array();
+    
+    // modules
+    private $_modules = array();
 
     // default
     public function _default($args=array()) {
@@ -81,6 +84,20 @@ class render extends plugin {
                 }
             }
         }
+    }
+
+    public function register($name, $class, $type='factory') {
+        
+        // add it 
+        $this->_modules[$name] = array(
+            'class' => $class,
+            'type' => $type
+        );
+        
+    }
+    
+    public function moduleExists($name) {
+        return array_key_exists($name, $this->_modules);
     }
 
     public function template($tmpl, $args=array(), $view=false) {    
@@ -182,7 +199,7 @@ class render extends plugin {
         $str = str_replace("\}", "%##%", $str);
         
         // exec
-        $exec = array();
+        $exec = $modules = array();
             	
     	// take the string and look for any functions
     	// functions always start with a b:, so that's what 
@@ -190,24 +207,90 @@ class render extends plugin {
 		if ( preg_match_all("/\{(b::?[^\}]+)\}/i", $str, $matches, PREG_SET_ORDER) ) {
             $exec = array_merge($exec, $matches);  
         }
-            
-    	
+
     	// now find direct function calls
-		if ( preg_match_all("/\{\%([^\}]+)\%\}/i", $str, $matches, PREG_SET_ORDER) ) {    
+		if ( preg_match_all("/\{\!([^\}]+)\!\}/i", $str, $matches, PREG_SET_ORDER) ) {    
             $exec = array_merge($exec, $matches);  
+        }            
+    	
+    	// now modules
+		if ( preg_match_all("/\{\%([^\}]+)\%\}/i", $str, $matches, PREG_SET_ORDER) ) {    
+            $modules = $matches;              
         }
         
         // make sure everything is an object
         foreach ($vars as $k => $v) {
             if (is_array($v)) {
-                $vars[$k] = new \bolt\dao\item(array(), $v);
+                $vars[$k] = new \bolt\dao\item($v);
             }
-        }        
+        }
+		
+		// go through modules
+		foreach ($modules as $module) {
+            
+            // args
+            $args = $vars;
+            $params = array();
+            $name = trim($module[1]);
+                
+            // if there's a ( we need to parse params
+            if (stripos($module[1], '(') !== false AND preg_match("#\(([^\)]+)\)#", $module[1], $p)) {
+            
+                // get our parts
+                $parts = explode(",", $p[1]);
+                foreach ($parts as $val) { 
+                    if (stripos($val, ':') === false)  {
+                        $params[] = trim($val);
+                    }
+                    else {                
+                        list($k, $v) = explode(":", trim($val));
+                        $args[trim($k)] = trim($v);
+                    }
+                }
+                
+                // reset name
+                $name = trim(str_replace($p[0], "", $name));
+                
+            }
+        
+            // see if we have this module
+            if (!array_key_exists($name, $this->_modules)) { continue; }
+		
+            // html
+            $v = false;
+		
+            // factory or singleton
+            if ($this->_modules[$name]['type'] == 'singleton') {
+                
+                // no instance
+                if (!array_key_exists('instance', $this->_modules[$name])) {
+                    $v = $this->_modules[$name]['instance'] = new $this->_modules[$name]['class']($args, 'module');
+                }
+                                
+            }
+            else {
+            
+                // make it 
+                $v = new $this->_modules[$name]['class']($args, 'module');                
+            
+            }
+		
+            // execute
+            $v->execute($params);
+		
+            // replace
+            $str = preg_replace("#".preg_quote($module[0], '#')."#", $v->getContent(), $str, 1);
+		
+		}        
+                
 
 		// define all
 		foreach ( $vars as $k => $v ) {
 			$$k = $v;
-		}
+		}		
+		
+		// view
+		$view = $this;
 
         // anything to exec
         foreach ($exec as $stuff) {
@@ -245,7 +328,6 @@ class render extends plugin {
     public function render($view, $args=array()) {
         
         // view
-        $method = strtolower(p('method', 'get', $args));
         $accept = p('accept', 'text/html', $args);        
         
         // figure out if the requested accept
@@ -254,47 +336,9 @@ class render extends plugin {
             $accept = array_shift($view->getAccept());
         }
         
-        // preresp
-        preresp:
-
-        // our resp
-        $resp = false;
-            
-        // if our accept header says it's ajax
-        if ($accept == 'text/javascript;text/ajax' AND method_exists($view, 'ajax')) {
-            $view->ajax();
-        }        
-
-        // there's a dispatch
-        if (method_exists($view, '_dispatch')) { 
-            $resp = $view->_dispatch();            
-        }        
-
-        // does this method exist for this objet        
-        else if (method_exists($view, $method)) {  
-            $resp = $view->$method();
-        }                    
-        
-        // a get to fall back on 
-        else if (method_exists($view, 'get')) {
-            $resp = $view->get();
-        }
-        
-        // see if they want to forward to a different view
-        if ($resp AND is_string($resp) AND class_exists($resp)) {
-            
-            // replace the view and retry the resp
-            $view = new $resp($view->getParams(), $view->getMethod());
-            
-            // resp is false again
-            $resp = false;
-            
-            // go back
-            goto preresp;
-            
-        }
-        
-        
+        // execute
+        $view = $view->execute(false, $accept);
+                
         // wrap
         if (isset($args['wrap']) AND $args['wrap'] AND $view->getWrap() === -1) {
             $view->setWrap($this->template($args['wrap'], $args, $view));
