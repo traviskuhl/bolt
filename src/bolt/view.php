@@ -208,7 +208,6 @@ class view {
             goto preresp;
             
         }
-
     
         // give back this
         return $view;    

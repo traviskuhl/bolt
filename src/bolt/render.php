@@ -125,7 +125,7 @@ class render extends plugin {
             // make sure everything is an object
             foreach ($vars as $k => $v) {
                 if (is_array($v)) {
-                    $vars[$k] = new \bolt\dao\item(array(), $v);
+                    $vars[$k] = new \bolt\dao\item($v);
                 }
             }
         
