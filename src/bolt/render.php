@@ -99,6 +99,42 @@ class render extends plugin {
     public function moduleExists($name) {
         return array_key_exists($name, $this->_modules);
     }
+    
+    public function getModule($name, $args=array()) {
+     
+        // if this module doesn't exist
+        if (!$this->moduleExists($name)) { return; }     
+     
+        // factory or singleton
+        if ($this->_modules[$name]['type'] == 'singleton') {
+            if (!array_key_exists('instance', $this->_modules[$name])) {
+                $v = $this->_modules[$name]['instance'] = new $this->_modules[$name]['class']($args, 'module');
+            }                            
+        }
+        else {
+            $v = new $this->_modules[$name]['class']($args, 'module');                        
+        }     
+        
+        // return it        
+        return $v;
+        
+    }
+
+    public function module($name, $args=array(), $params=array()) {
+        
+        // if this module doesn't exist
+        if (!$this->moduleExists($name)) { return; }
+    
+        // get module
+        $v = $this->getModule($name, $args);
+    
+        // execute
+        $v->execute($params);
+    
+        // now render the output as a string
+        return $this->string($v->getContent(), $args, $this);
+    
+    }
 
     public function template($tmpl, $args=array(), $view=false) {    
     
@@ -223,7 +259,7 @@ class render extends plugin {
             if (is_array($v)) {
                 $vars[$k] = new \bolt\dao\item($v);
             }
-        }
+        }    
 		
 		// go through modules
 		foreach ($modules as $module) {
@@ -257,32 +293,17 @@ class render extends plugin {
             if (!array_key_exists($name, $this->_modules)) { continue; }
 		
             // html
-            $v = false;
-		
-            // factory or singleton
-            if ($this->_modules[$name]['type'] == 'singleton') {
-                
-                // no instance
-                if (!array_key_exists('instance', $this->_modules[$name])) {
-                    $v = $this->_modules[$name]['instance'] = new $this->_modules[$name]['class']($args, 'module');
-                }
-                                
-            }
-            else {
-            
-                // make it 
-                $v = new $this->_modules[$name]['class']($args, 'module');                
-            
-            }
+            $v = $this->getModule($name, $args);
 		
             // execute
             $v->execute($params);
+                        
 		
             // replace
             $str = preg_replace("#".preg_quote($module[0], '#')."#", $v->getContent(), $str, 1);
 		
 		}        
-                
+		
 
 		// define all
 		foreach ( $vars as $k => $v ) {

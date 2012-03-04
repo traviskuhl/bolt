@@ -16,7 +16,8 @@ class webservice extends \bolt\plugin\factory {
         'protocol'  => 'http',
         'headers'   => array(),
         'method'    => 'curl',
-        'auth'      => array(),        
+        'auth'      => array(),
+        'curlOpts'  => array()
     );
     
     // oauth
@@ -108,8 +109,7 @@ class webservice extends \bolt\plugin\factory {
         curl_setopt($this->_curl, CURLOPT_CONNECTTIMEOUT,5);        
         curl_setopt($this->_curl, CURLOPT_CUSTOMREQUEST, $method);        
         curl_setopt($this->_curl, CURLOPT_FOLLOWLOCATION, 1);
-        curl_setopt($this->_curl, CURLOPT_SSL_VERIFYPEER, 0);
-        
+        curl_setopt($this->_curl, CURLOPT_SSL_VERIFYPEER, 0);        
         curl_setopt($this->_curl, CURLINFO_HEADER_OUT, 1);    				
 				
         // add params
@@ -175,6 +175,11 @@ class webservice extends \bolt\plugin\factory {
             }
         },array_keys($headers), $headers));
         
+        // curl ops
+        if ($this->curlOpts) {        
+            curl_setopt_array($this->_curl, $this->curlOpts);
+        }
+        
         // make the request
         $result = curl_exec($this->_curl);   
             
@@ -202,14 +207,32 @@ class webservice extends \bolt\plugin\factory {
         
         // if we don't have oauth
         if (!$this->_oauth) {
-            $this->_oauth = new OAuth($this->auth['key'], $this->auth['secret']);
+        
+            // setup
+            $this->_oauth = new \OAuth($this->auth['key'], $this->auth['secret'], OAUTH_SIG_METHOD_HMACSHA1, OAUTH_AUTH_TYPE_AUTHORIZATION);
+            $this->_oauth->enableDebug();
+            
         }
         
+        
+        // token
+        $this->_oauth->setToken($this->auth['key'], $this->auth['secret']);
+        
         // fetch it 
-        $this->_oauth->fetch($url, $params, $method, $headers);
+        try {
+            $this->_oauth->fetch($url, $params, $method, $headers);
+        }
+        catch(OAuthException $e) {
+            return new webserviceResponse(
+                $this,
+                "",
+                $e->getCode(),
+                array()
+            );        
+        }
     
         // info
-        $info = $this->_oauth->getLastResponseInfo();
+        $info = $this->_oauth->getLastResponseInfo(); 
         
         // return 
         return new webserviceResponse(

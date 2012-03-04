@@ -129,11 +129,11 @@ class view {
         }        
     
         // return our rendered
-        $this->setContent(b::render(array(
-            'template' => $this->template($tmpl),
-            'vars' => $vars,
-            'view' => $this
-        )));
+        $this->setContent(b::render()->template(
+            $this->template($tmpl),
+            $vars,
+            $this
+        ));
     
         // me
         return $this;
@@ -142,6 +142,7 @@ class view {
     
     // execute the view
     public function execute($params=array(), $accept=false) {
+        
         
         // i'm the view,
         // but i could change if i'm forwarded
@@ -170,7 +171,7 @@ class view {
         }
 
         // there's a dispatch
-        if (method_exists($view, '_dispatch')) { 
+        else if (method_exists($view, '_dispatch')) { 
             $resp = call_user_func_array(array($view, '_dispatch'), $params);        
         }        
 
@@ -208,6 +209,7 @@ class view {
             goto preresp;
             
         }
+    
     
         // give back this
         return $view;    

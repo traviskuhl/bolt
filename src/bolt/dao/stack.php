@@ -8,6 +8,7 @@ class stack extends \SplStack {
     private $_map = array();
     private $_class = false;
     private $_meta = false;
+    private $_loaded = false;
     
     // pager stuff
     private $_total = 0;
@@ -18,6 +19,10 @@ class stack extends \SplStack {
     public function __construct($class=false) {
         $this->_class = $class;
     }        
+    
+    public function loaded() {
+        return $this->_loaded;
+    }
     
     public function setTotal($t) {
         $this->_total = $t;
@@ -35,17 +40,28 @@ class stack extends \SplStack {
     }
 
     public function setMeta($o) {
-        $this->_meta = $o;
+        $this->_meta = (is_array($o) ? new item($o) : $o);
         return $this;
     }
+    
+    public function getTotal() {
+        return $this->_total;
+    }
 
+    public function getPage() {
+        return ($this->_offset ? floor($this->_offset / $this->_limit) + 1 : 1);
+    }
+
+    public function getPages() {
+        return ceil($this->_total / $this->_limit);
+    }
 
     public function __call($name, $args) {
         return ($this->_meta ? call_user_func_array(array($this->_meta, $name), $args) : false);
     }
     
     public function __get($name) {
-        return ($this->_meta ? $this->_meta->$name : false);
+        return ($this->_meta ? $this->_meta->__get($name) : false);
     }
 
     public function __set($name, $value) {
@@ -54,6 +70,9 @@ class stack extends \SplStack {
 
     // push
     public function push($item, $key=false) {   
+    
+        // loaded
+        $this->_loaded = true;
     
         // if item is not an item and 
         // we have a class make an object
@@ -80,8 +99,18 @@ class stack extends \SplStack {
     
     }
     
+    public function clear() {
+        $this->_loaded = false;
+        foreach ($this->_map as $idx) {
+            $this->shift();
+        }
+        $this->_map = array();
+        $this->rewind();
+    }
+    
     // add
     public function add($item) {
+        $this->_loaded = true;    
         parent::push($item);
     }
 
@@ -251,7 +280,16 @@ class stack extends \SplStack {
         // give bacl
         return $resp;
     
-    }             
+    }         
+    
+    public function slice($start, $len=null) {
+        $s = clone $this; $s->clear();
+        $parts = array_slice($this->_map, $start, $len, true);
+        foreach ($parts as $k => $i) {
+            $s->push($this->offsetGet($i), $k);
+        }
+        return $s;
+    }
     
     public function asArray() {
         $array = array();

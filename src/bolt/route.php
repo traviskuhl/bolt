@@ -197,7 +197,7 @@ class route extends plugin\singleton {
                 
         // no url
         if (!array_key_exists($name, $this->urls)) {
-            return rtrim($uri,'/')."/".ltrim($name,'/');
+            return strtolower(rtrim($uri,'/')."/".ltrim($name,'/'));
         }
     
         // get our url
@@ -238,7 +238,7 @@ class route extends plugin\singleton {
         }
         
         // return with params
-        return b::addUrlParams($path, $params);
+        return strtolower(b::addUrlParams($path, $params));
     
     }
 
