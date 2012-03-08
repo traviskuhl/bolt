@@ -7,7 +7,15 @@ use \b as b;
 b::external()->plug('facebook', '\bolt\external\facebook');
 
 // include our facebook
-include(bRoot."/bolt/external/facebook/facebook.php");
+include(bRoot."/bolt/external/facebook/base_facebook.php");
+
+// our localfacebook
+class bFacebook extends \BaseFacebook {
+  protected function setPersistentData($key, $value) {}
+  protected function getPersistentData($key, $default = false) {}
+  protected function clearPersistentData($key) {}  
+  protected function clearAllPersistentData() {}
+}
 
 // facebook
 class facebook extends \bolt\plugin\singleton {
@@ -17,7 +25,7 @@ class facebook extends \bolt\plugin\singleton {
 
     // construct
     public function __construct() {
-        $this->_fb = new \Facebook(array(
+        $this->_fb = new bFacebook(array(
             'appId'  => b::config()->fb['id'],
             'secret' => b::config()->fb['secret']
         ));

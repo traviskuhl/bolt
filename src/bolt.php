@@ -52,6 +52,7 @@ final class b {
         'source-mongo'      => "./bolt/source/mongo.php",        
         'source-webservice' => "./bolt/source/webservice.php",
         'source-s3'         => "./bolt/source/s3.php",
+        'source-pdo'        => "./bolt/source/pdo.php",
         
         // renders
         'render-json'      => "./bolt/render/json.php",

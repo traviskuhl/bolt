@@ -24,7 +24,7 @@ class view {
     public function __construct($params=array(), $method=false) {
     
         // set some stuff
-        $this->_params = $params;
+        $this->_params = (is_array($params) ? $params : array());
         $this->_method = $method;
         
     }    

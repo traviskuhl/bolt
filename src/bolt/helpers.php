@@ -12,6 +12,20 @@ use \b as b;
 // helpers
 class helpers {
     
+    ////////////////////////////////////////////////
+    /// payload
+    ////////////////////////////////////////////////        
+    public static function payload($payload) {
+        if (is_string($payload) AND $payload{0} == ':') {
+            $sig = substr($payload, 1, 32);
+            $data = substr($payload, 33);
+            return ($sig == b::md5($data) ? json_decode(base64_decode($data), true) : false);
+        }
+        else {
+            $json = base64_encode(json_encode($payload));
+            return ":".b::md5($json).$json;
+        }
+    }
     
     ////////////////////////////////////////////////
     /// encrypt a password

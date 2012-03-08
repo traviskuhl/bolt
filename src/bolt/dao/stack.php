@@ -43,6 +43,14 @@ class stack extends \SplStack {
         $this->_meta = (is_array($o) ? new item($o) : $o);
         return $this;
     }
+
+    public function getOffset() {
+        return $this->_offset;
+    }
+    
+    public function getLimit() {
+        return $this->_limit;
+    }
     
     public function getTotal() {
         return $this->_total;
@@ -121,13 +129,15 @@ class stack extends \SplStack {
         switch($idx) {
         
             // first item
-            case 'first':            
-                $idx = $this->count()-1;                
+            case 'first':       
+                $idx = 0;
                 break;
                 
             // last item
             case 'last':
-                $idx = 1; break;
+                $idx = array_shift($this->_map); 
+                
+                break;
                 
             // else
             default:
@@ -288,6 +298,17 @@ class stack extends \SplStack {
         foreach ($parts as $k => $i) {
             $s->push($this->offsetGet($i), $k);
         }
+        return $s;
+    }
+    
+    public function shuffle() {
+        $s = clone $this; $s->clear();        
+        $c = array_flip($this->_map);
+        shuffle($this->_map);
+        foreach ($this->_map as $i) {
+            $k = $c[$i];
+            $s->push($this->offsetGet($i), $k);
+        }        
         return $s;
     }
     

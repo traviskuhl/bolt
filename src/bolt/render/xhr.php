@@ -44,7 +44,7 @@ class xhr extends \bolt\plugin\singleton {
             'response' => array(
                 'html' => $body,
                 'data' => $view->getData(),
-                'bootstarp' => array(
+                'bootstrap' => array(
                     'javascript' => $js,
                     'css' => $css
                 )

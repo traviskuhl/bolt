@@ -96,7 +96,7 @@ class render extends plugin {
         
     }
     
-    public function moduleExists($name) {
+    public function moduleExists($name) {        
         return array_key_exists($name, $this->_modules);
     }
     
