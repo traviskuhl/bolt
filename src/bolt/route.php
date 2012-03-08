@@ -41,7 +41,13 @@ class route extends plugin\singleton {
         // if paths is a string,
         // make it an array
         if (is_string($paths)) {
-            $paths = array($paths);
+            
+            // weight
+            $w = p('weight', 0, $args);
+            
+            // add it
+            $paths = array($w => $paths);
+    
         }
     
         // now loop it up
@@ -192,7 +198,7 @@ class route extends plugin\singleton {
                 
         // no url
         if (!array_key_exists($name, $this->urls)) {
-            return rtrim($uri,'/')."/".ltrim($name,'/');
+            return strtolower(rtrim($uri,'/')."/".ltrim($name,'/'));
         }
     
         // get our url
@@ -233,7 +239,7 @@ class route extends plugin\singleton {
         }
         
         // return with params
-        return b::addUrlParams($path, $params);
+        return strtolower(b::addUrlParams($path, $params));
     
     }
 

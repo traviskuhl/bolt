@@ -189,7 +189,8 @@ class view {
             $resp = call_user_func_array(array($view, 'get'), $params);                
         }
         
-        // we've executed
+        // we've executed, just in case they
+        // try returning the same view
         $view->hasExecuted = true;
         
         // see if they want to forward to a different view
@@ -206,7 +207,8 @@ class view {
             
         }
         
-        // is a view
+        // is a view, but make sure it hasn't been executed
+        // already. TODO: add better check for same view
         else if (is_object($resp) AND $resp->hasExecuted() !== true) {
         
             // set our response as a view
