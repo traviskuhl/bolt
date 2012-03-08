@@ -835,7 +835,7 @@ class item implements \Iterator, \ArrayAccess {
             // else
             default:
                 if (array_key_exists($idx, $this->_data)) { 
-                    return $this->_data[$idx];
+                    return $this->objectify($this->_data[$idx]);
                 }
         };
        
