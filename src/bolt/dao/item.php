@@ -247,7 +247,7 @@ class item implements \Iterator, \ArrayAccess {
             
                 // json we need to decode
                 case 'json':                                         
-                    $value = ( is_array($value ) ? $value : json_decode($value,true) ); 
+                    $value = ( is_array($value) ? $value : json_decode($value,true) ); 
                     if ( is_null($value) ) {
                         $value = false;
                     }
@@ -269,7 +269,7 @@ class item implements \Iterator, \ArrayAccess {
                     // account
                     if ($info['type'] == 'account') {
                         $info['class'] = '\bolt\common\dao\accounts';
-                        $info['args'] = array('id', '$'.$key);                        
+                        $info['args'] = array('id', '$'.$name);                        
                     }
             
                     // class
@@ -279,7 +279,7 @@ class item implements \Iterator, \ArrayAccess {
                     $args = p('args', array(), $info);
                             
                     // add to expand
-                    $this->_expand[$key] = array($cl, $args);
+                    $this->_expand[$name] = array($cl, $args);
             
                     // stop
                     break;                    
