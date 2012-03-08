@@ -16,6 +16,7 @@ class view {
     private $_status = 200;
     private $_input = false;
     private $_wrap = -1;
+    private $_hasExecuted = false;
     
     // this should be overrideable by the child
     protected $accept = array('*/*');
@@ -140,10 +141,13 @@ class view {
         
     }
     
+    public function hasExecuted() {
+        return $this->_hasExecuted = true;
+    }
+    
     // execute the view
     public function execute($params=array(), $accept=false) {
-        
-        
+                
         // i'm the view,
         // but i could change if i'm forwarded
         $view = $this;
@@ -185,6 +189,9 @@ class view {
             $resp = call_user_func_array(array($view, 'get'), $params);                
         }
         
+        // we've executed
+        $view->hasExecuted = true;
+        
         // see if they want to forward to a different view
         if ($resp AND is_string($resp) AND class_exists($resp)) {
             
@@ -200,7 +207,7 @@ class view {
         }
         
         // is a view
-        else if (is_object($resp)) {
+        else if (is_object($resp) AND $resp->hasExecuted() !== true) {
         
             // set our response as a view
             $view = $resp;
