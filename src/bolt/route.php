@@ -41,13 +41,13 @@ class route extends plugin\singleton {
         // if paths is a string,
         // make it an array
         if (is_string($paths)) {
-        
+            
             // weight
             $w = p('weight', 0, $args);
             
-            // add it 
+            // add it
             $paths = array($w => $paths);
-            
+    
         }
     
         // now loop it up
@@ -123,7 +123,7 @@ class route extends plugin\singleton {
                 array_shift($matches);
                 
                 // params
-                $params = array();               
+                $params = array();
                 
                 // set the params
                 if (isset($info[2]) AND count($info[2]) > 0) {
@@ -181,6 +181,7 @@ class route extends plugin\singleton {
                 
         // render me 
         exit(b::render()->render($view, array( 
+            'method' => $method,
             'accept' => $accept,
             'wrap' => b::config()->wrapTemplate
         )));
