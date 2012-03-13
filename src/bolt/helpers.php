@@ -372,11 +372,11 @@ class helpers {
 		
 	}
 	
-	public static function short($str,$len=200,$onwords=true) {
+	public static function short($str, $len=200, $onwords=true, $append=false) {
 		if ( mb_strlen($str) < $len ) { return $str; }
 		if ( !$onwords ) {
 			if ( mb_strlen($str) > $len ) {
-				return substr($str,0,$len)."...";
+				return substr($str,0,$len)."...".$append;
 			}
 		}
 		else {
@@ -385,7 +385,7 @@ class helpers {
 			$c = 0;
 			foreach ( $words as $word ) {
 				if ( $c+mb_strlen($word) > $len ) {
-					return implode(' ',$final). '...';
+					return implode(' ',$final). '...'.$append;
 				}
 				$c += mb_strlen($word);
 				$final[] = $word;
