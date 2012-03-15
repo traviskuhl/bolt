@@ -148,7 +148,7 @@ class view {
     }
     
     public function hasExecuted() {
-        return $this->_hasExecuted = true;
+        return $this->_hasExecuted;
     }
     
     // execute the view
