@@ -2,4 +2,4 @@ language: php
 php:
   - 5.3
   - 5.4
-script: phpunit ./tests/boltTest.php ./tests/bolt/*.php
+script: phpunit --no-configuration ./tests/boltTest.php ./tests/bolt/*.php

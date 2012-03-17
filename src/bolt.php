@@ -28,6 +28,9 @@ date_default_timezone_set("UTC");
 /// @class b
 ////////////////////////////////////////////////////////////
 final class b {
+    
+    // public autoload
+    public static $autoload = array();    
 
     // our plugin instance
     private static $instance = false;
@@ -219,7 +222,7 @@ final class b {
         }
     
         // config
-        $autoload = b::config()->autoload;
+        $autoload = self::$autoload;
         
         // if autoload
         if (is_array($autoload)) {
