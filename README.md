@@ -1,5 +1,5 @@
 # Bolt
-php framework
+php "micro" framework
 
 [![Build Status](https://secure.travis-ci.org/traviskuhl/bolt.png?branch=beta)](http://travis-ci.org/traviskuhl/bolt)
 
