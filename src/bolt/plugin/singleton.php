@@ -8,7 +8,7 @@ class singleton {
     public static $TYPE = "singleton";
 
     // call
-    public function __call($name, $args=array()) {
+    public function __call($name, $args) {
         return $this;
     }
     
