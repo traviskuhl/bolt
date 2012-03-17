@@ -15,7 +15,7 @@ class dao extends plugin\factory {
     ////////////////////////////////////////////////////////////
     /// @brief factory
     ////////////////////////////////////////////////////////////    
-    public static function factory() {
+    public static function factory($args = array()) {
         
         // args
         $args = func_get_args();
