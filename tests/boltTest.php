@@ -13,9 +13,6 @@ class boltTest extends bolt_test {
             'config' => array(
                 'test' => true
             ),
-            'core' => array(
-                'config'
-            ),
             'load' => array(
                 dirname(__FILE__).'/_blank.php'
             )
@@ -28,10 +25,7 @@ class boltTest extends bolt_test {
         $b = b::bolt();
         
         // test get bolt
-        $this->assertInstanceOf('bolt', $b);
-        
-        // make sure they both have
-        $this->assertEquals($a['core'], array_keys($b->getPlugins()));
+        $this->assertInstanceOf('bolt', $b);        
         
         // loaded
         $this->assertEquals($a['load'], b::getLoaded());
@@ -43,10 +37,11 @@ class boltTest extends bolt_test {
         $this->assertTrue(b::_("test"));
 
         // config
-        $this->assertEquals(b::__("test2", true), true);
+        $this->assertInstanceOf('bolt\config', b::_("test2", true));
         
         // param
-            
+        $this->assertTrue(b::_("test2"));
+                    
     }
 
 }

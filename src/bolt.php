@@ -101,6 +101,16 @@ final class b {
     public static function plug() {
         return call_user_func_array(array(self::bolt(), 'plug'), func_get_args());
     }
+    
+    ////////////////////////////////////////////////////////////
+    /// @brief return a list of core modules
+    ///
+    /// @return bolt instance
+    ////////////////////////////////////////////////////////////
+    public static function getCore() {  
+        return array_keys(self::$core);
+    }     
+    
 
     ////////////////////////////////////////////////////////////
     /// @brief initalize the bolt framework
