@@ -40,7 +40,7 @@ php framework
                 'name' => $this->param('name'),
                 'place' => $this->param('place')
             );
-            $this->render($params)->string('{$name} {$place}');
+            $this->render()->string('{$name} {$place}', $params);
         }
     }    
     
