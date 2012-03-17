@@ -2,7 +2,7 @@
 
 namespace bolt\plugin;
 
-abstract class factory {
+class factory {
 
     // constant
     public static $TYPE = "factory";
