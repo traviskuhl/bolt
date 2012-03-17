@@ -47,7 +47,8 @@ class xhr extends \bolt\plugin\singleton {
                 'bootstrap' => array(
                     'javascript' => $js,
                     'css' => $css
-                )
+                ),
+                'uid' => uniqid("u")
             )
         ));
     

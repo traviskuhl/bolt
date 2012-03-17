@@ -408,7 +408,12 @@ class item implements \Iterator, \ArrayAccess {
             
                 // return
                 return $val . (substr($val,-1)=='s'?"'":"'s");
-            
+                
+            // in
+            case 'in':
+                $val = $args[0];
+                $ar = $this->asArray();
+                return in_array($val, $ar);            
         };
             
     }

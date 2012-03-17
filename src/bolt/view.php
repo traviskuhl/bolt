@@ -108,6 +108,12 @@ class view {
         return $this->_params[$name] = $value;
     }    
 
+    public function addParam($name, $value, $key=false) {
+        if (!array_key_exists($name, $this->_params)) { $this->_params[$name] = array(); }
+        ($key ? ($this->_params[$name][$key] = $value) : $this->_params[$name][] = $value);        
+        return $this;
+    }     
+
     // get
     public function __get($name) {
         return $this->getParam($name);
@@ -142,7 +148,7 @@ class view {
     }
     
     public function hasExecuted() {
-        return $this->_hasExecuted = true;
+        return $this->_hasExecuted;
     }
     
     // execute the view
