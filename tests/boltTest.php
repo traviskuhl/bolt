@@ -1,7 +1,4 @@
 <?php
-    
-// include bootstrap
-include("bootstrap.php");
 
 class boltTest extends bolt_test {
     
@@ -14,7 +11,7 @@ class boltTest extends bolt_test {
                 'test' => true
             ),
             'load' => array(
-                dirname(__FILE__).'/_blank.php'
+                dirname(__FILE__).'/_blank'
             )
         );                    
             

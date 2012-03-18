@@ -1,7 +1,9 @@
 <?php
 
+// do dev mode
 define("bDevMode", true);
 
+// include our bolt
 include_once(dirname(__FILE__)."/../src/bolt.php");
 
 // do it 

@@ -1,7 +1,5 @@
 <?php
 
-include(dirname(__FILE__)."/../bootstrap.php");
-
 class routeTest extends bolt_test {
 
     private $i = false;
