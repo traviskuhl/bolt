@@ -349,7 +349,7 @@ class render extends plugin {
     public function render($view, $args=array()) {
         
         // view
-        $accept = p('accept', 'text/html', $args);        
+        $accept = p('accept', false, $args);        
         
         // figure out if the requested accept
         // is allowed in the view
@@ -388,7 +388,7 @@ class render extends plugin {
         }); 
         
         // plug
-        $plug = "html";  
+        $plug = (HOST === false ? "cli" : "html");  
         
         // loop it 
         foreach ($map as $item) {
@@ -396,12 +396,14 @@ class render extends plugin {
                 $plug = $item[2]; break;
             }
         }
-        
+                
         // get our 
         $p = $this->call($plug);
 
-        // what do they want back
-        header("Content-Type:{$p->contentType}", false, $view->getStatus());
+        // print a content type
+        if ($p->contentType) {
+            header("Content-Type:{$p->contentType}", false, $view->getStatus());
+        }
     
         // headers
         foreach (array_merge($view->getHeaders(), $view->getHeaders()) as $name => $value) {

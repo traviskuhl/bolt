@@ -62,6 +62,7 @@ final class b {
         'render-xhr'       => "./bolt/render/xhr.php",
         'render-ajax'      => "./bolt/render/ajax.php",
         'render-html'      => "./bolt/render/html.php",
+        'render-cli'       => "./bolt/render/cli.php",
         
         // cache modules
         'cache-memcache'    => "./bolt/cache/memcache.php",
@@ -475,5 +476,8 @@ else {
     if (!defined("URI")) {
         define("URI", false);	
     }
+
+    // our path
+    define("bPath",         "");
 
 }
