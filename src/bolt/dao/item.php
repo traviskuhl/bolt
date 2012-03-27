@@ -293,6 +293,7 @@ class item implements \Iterator, \ArrayAccess {
 		 	$this->_data[$name] = $val;
 		}
 			
+/*
         // check for _
         else if ( mb_strpos($name,'_') ) {
             
@@ -323,6 +324,9 @@ class item implements \Iterator, \ArrayAccess {
 			}
             
         }
+*/
+        
+        
         else {
         	$this->_data[$name] = $val;
         }
@@ -682,7 +686,7 @@ class item implements \Iterator, \ArrayAccess {
 	public function asArray($adjunct=false) {
 	
 		// get the scheme
-		$resp = array();		
+		$resp = array();	
 				
         // loop through the data 
         foreach ($this->_data as $key => $value) {

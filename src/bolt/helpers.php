@@ -11,6 +11,48 @@ use \b as b;
 
 // helpers
 class helpers {
+
+    ////////////////////////////////////////////////
+    /// csrf
+    ////////////////////////////////////////////////            
+    public static function csrf($do, $name) {
+    
+        // what to do 
+        $cname = b::md5($name);
+    
+        // what to do
+        switch($do) {
+        
+            // set 
+            case 'set':
+                $cid = md5(uniqid("{$cname}-"));
+                $token = uniqid(b::randomString()."-");
+                $pl = array($token, $cid, IP);
+                b::cookie()->set($cname, $pl, "+5 minutes", null, false, true);
+                b::memcache()->set($cid, $pl);
+                return $token;
+                
+            // verify
+            case 'verify':
+                if (bDevMode) { return true;}            
+                $cookie = b::cookie()->get($cname);
+                if (!$cookie OR !is_array($cookie)) { return false; }
+                list($token, $cid, $ip) = $cookie;
+                if (!$token OR !$cid OR !$ip) { return false; }
+                $tok = p("_csrf");
+                $ctok = b::memcache()->get($cid);
+                if ($token != $tok OR $token != $ctok[0] OR $ctok[0] != $tok) {  return false; }
+                if ($ip != IP OR IP != $ctok[2]) { return false; }
+                b::cookie($cname)->delete();
+                b::memcache()->delete($cid);
+                return true;
+        }
+    
+        // nope
+        return false;
+    
+    }
+
     
     ////////////////////////////////////////////////
     /// payload
@@ -45,7 +87,7 @@ class helpers {
     ////////////////////////////////////////////////    
     /// deencrypt using mcrypt
     ////////////////////////////////////////////////    
-    public static function deencrypt($str, $salt) {
+    public static function decrypt($str, $salt) {
         return self::mcrypt($str, $salt, MCRYPT_ENCRYPT);
     }
     

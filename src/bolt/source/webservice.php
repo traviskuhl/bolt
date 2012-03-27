@@ -146,21 +146,21 @@ class webservice extends \bolt\plugin\factory {
             if (is_array($params)) {
                 $params = http_build_query($params);
             }
+                    
+                // write our params to tmp       
+                $fp = fopen('php://temp/maxmemory:256000', 'w');
+                fwrite($fp, $params);
+                fseek($fp, 0); 
                 
-            // write our params to tmp       
-            $fp = fopen('php://temp/maxmemory:256000', 'w');
-            fwrite($fp, $params);
-            fseek($fp, 0); 
-            
-            // length
-            $len = strlen($params);
-            
-            // put it 
-            curl_setopt($this->_curl, CURLOPT_BINARYTRANSFER, true);            
-            curl_setopt($this->_curl, CURLOPT_PUT, TRUE);                
-            curl_setopt($this->_curl, CURLOPT_INFILE, $fp);                
-            curl_setopt($this->_curl, CURLOPT_INFILESIZE, $len);
-	               
+                // length
+                $len = strlen($params);
+                
+                // put it 
+                curl_setopt($this->_curl, CURLOPT_BINARYTRANSFER, true);            
+                curl_setopt($this->_curl, CURLOPT_PUT, TRUE);                
+                curl_setopt($this->_curl, CURLOPT_INFILE, $fp);                
+                curl_setopt($this->_curl, CURLOPT_INFILESIZE, $len);
+                
         }
         
         // auth

@@ -186,7 +186,7 @@ class view {
         }        
 
         // does this method exist for this objet        
-        else if (method_exists($view, $method)) {  
+        else if (method_exists($view, $method)) {
             $resp = call_user_func_array(array($view, $method), $params);                
         }                    
         
@@ -224,7 +224,6 @@ class view {
             goto preresp;
             
         }
-    
     
         // give back this
         return $view;    

@@ -16,7 +16,7 @@ class cookie extends plugin\singleton {
     /// 
     /// @return string url with additional params
     ////////////////////////////////////////////////
-	public function set($name, $value, $expires=false, $domain=false) {
+	public function set($name, $value, $expires=false, $domain=false, $secure=false, $http=false) {
 	
 		// domain
 		$domain = b::config()->get("cookies/domain");
@@ -52,12 +52,16 @@ class cookie extends plugin\singleton {
 		}
 		
 		// expires
-		if ( $expires AND $expires < b::utctime() ) {
+		if ($expires AND $expires{0} == '+') {
+            $expires = strtotime($expires);
+		}
+		else if ( $expires AND $expires < b::utctime() ) {
 			$expires = b::utctime() + $expires;
 		}
 	
 		// set it 
-		setcookie($name, $value, $expires, '/', $domain);
+		setcookie($name, $value, $expires, '/', $domain, $secure, $http);
+		
 	
 	}
 	
