@@ -1,5 +1,7 @@
 # Bolt
-php framework
+php "micro" framework
+
+[![Build Status](https://secure.travis-ci.org/traviskuhl/bolt.png?branch=beta)](http://travis-ci.org/traviskuhl/bolt)
 
 ## Features
 * simple and lightweight
@@ -40,7 +42,7 @@ php framework
                 'name' => $this->param('name'),
                 'place' => $this->param('place')
             );
-            $this->render($params)->string('{$name} {$place}');
+            $this->render()->string('{$name} {$place}', $params);
         }
     }    
     

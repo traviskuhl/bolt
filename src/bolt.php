@@ -28,6 +28,9 @@ date_default_timezone_set("UTC");
 /// @class b
 ////////////////////////////////////////////////////////////
 final class b {
+    
+    // public autoload
+    public static $autoload = array();    
 
     // our plugin instance
     private static $instance = false;
@@ -59,6 +62,7 @@ final class b {
         'render-xhr'       => "./bolt/render/xhr.php",
         'render-ajax'      => "./bolt/render/ajax.php",
         'render-html'      => "./bolt/render/html.php",
+        'render-cli'       => "./bolt/render/cli.php",
         
         // cache modules
         'cache-memcache'    => "./bolt/cache/memcache.php",
@@ -101,6 +105,16 @@ final class b {
     public static function plug() {
         return call_user_func_array(array(self::bolt(), 'plug'), func_get_args());
     }
+    
+    ////////////////////////////////////////////////////////////
+    /// @brief return a list of core modules
+    ///
+    /// @return bolt instance
+    ////////////////////////////////////////////////////////////
+    public static function getCore() {  
+        return array_keys(self::$core);
+    }     
+    
 
     ////////////////////////////////////////////////////////////
     /// @brief initalize the bolt framework
@@ -209,7 +223,7 @@ final class b {
         }
     
         // config
-        $autoload = b::config()->autoload;
+        $autoload = self::$autoload;
         
         // if autoload
         if (is_array($autoload)) {
@@ -462,5 +476,8 @@ else {
     if (!defined("URI")) {
         define("URI", false);	
     }
+
+    // our path
+    define("bPath",         "");
 
 }

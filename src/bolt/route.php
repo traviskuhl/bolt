@@ -38,6 +38,9 @@ class route extends plugin\singleton {
     // register
     public function register($paths, $class=false, $name=false, $args=array()) {
     
+        // method
+        $method = "GET";
+    
         // if paths is a string,
         // make it an array
         if (is_string($paths)) {
@@ -49,9 +52,20 @@ class route extends plugin\singleton {
             $paths = array($w => $paths);
     
         }
+        
+        // figure if class is really a method
+        if (is_string($class) AND in_array(strtolower($class), array("get","post","put","delete","head"))) {
+            $method = strtoupper($class);
+            $class = $name;
+        }
     
         // now loop it up
         foreach ($paths as $weight => $path) {
+        
+            // ?
+            if(strpos($path, '?P') !== false) {
+                $this->routes[$path] = array($weight, $class, array(), $args, $method); continue;
+            }
         
             // params
             $params = array();
@@ -87,7 +101,7 @@ class route extends plugin\singleton {
                 }
                     
                 // add the routes
-                $this->routes[$path] = array($weight, $class, $params, $args);
+                $this->routes[$path] = array($weight, $class, $params, $args, $method);
                 
             }
             
@@ -98,7 +112,7 @@ class route extends plugin\singleton {
     }
 
     // match
-    public function match($path=false) {
+    public function match($path=false, $method=false) {
     
         // sort routes by weight
         uasort($this->routes, function($a,$b){
@@ -114,11 +128,13 @@ class route extends plugin\singleton {
         // params
         $params = array();
         $args = array();
+
+
     
         // let's loop through 
-        foreach ($this->routes as $route => $info) {        
-            if (preg_match('#'.$route.'#', $path, $matches)) {
-                
+        foreach ($this->routes as $route => $info) {                
+            if (preg_match('#'.$route.'#', $path, $matches) AND $info[4] == $method) {
+                            
                 // we don't need the match
                 array_shift($matches);
                 
@@ -139,6 +155,9 @@ class route extends plugin\singleton {
                         
                     }
                 }
+                else if (strpos($route, "?P") !== false) {
+                    $params = $matches;
+                }
                 
                 // set the class
                 $class = $info[1];
@@ -148,6 +167,9 @@ class route extends plugin\singleton {
                 
             }        
         }
+        
+        // nothing
+        if (!$class) { die; }
 
         // return what we foudn
         return array(
@@ -167,24 +189,80 @@ class route extends plugin\singleton {
         $accept = p('accept', p('_accept', p('HTTP_ACCEPT', false, $_SERVER)), $args);            
             
         // get our class
-        $route = $this->match(bPath);
+        $route = $this->match($path, $method);
         
         // define
         $class = $route['class'];
         $params = $route['params'];
         
-        // method
-        $m = strtolower($method);        
-    
-        // call our class
-        $view = new $class($params, $method);  
+        // closuer
+        if (is_a($class, "Closure")) {        
+            
+            // remove our params
+            foreach ($params as $key => $val) {
+                if (!is_string($key)) {
+                    unset($params[$key]);
+                }
+            }            
+            
+            // reflect our function 
+            $f = new \ReflectionFunction($class);
+            
+            // params
+            $p = $f->getParameters();
+            
+            // yes or no
+            if (count($p) > 0) {
                 
+                // do it 
+                $_params = array();
+                
+                // loop
+                foreach ($p as $item) {
+                    $_params[] = (array_key_exists($item->name, $params) ? $params[$item->name] : false);                    
+                }
+            
+                // call our function
+                $view = call_user_func_array($class, $_params);
+                            
+            }
+            else {
+                $view = $class($params);
+            }
+        
+            // is r a view
+            if (is_string($view)) {
+            
+                // view
+                $v = new view();
+            
+                // content
+                $v->setContent($view);
+                
+                // rest r
+                $view = $v;
+            
+            }
+        
+        }
+        
+        // class
+        else {
+            
+            // method
+            $m = strtolower($method);        
+        
+            // call our class
+            $view = new $class($params, $method);  
+                                
+        }
+        
         // render me 
         exit(b::render()->render($view, array( 
             'method' => $method,
             'accept' => $accept,
             'wrap' => b::config()->wrapTemplate
-        )));
+        )));        
             
     }
     

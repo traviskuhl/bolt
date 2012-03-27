@@ -19,29 +19,18 @@ b::init(array(
             'cookie' => 's',
             'exp' => '+2 weeks'
         ),
-        'defaultView' => "testRoute"
     )
 ));
 
-// config
-b::config();
+// route
+b::route("(?P<say>[^/]+)/(?P<place>[^/]+)", function($place, $say){
+    return "poop";
+});
 
-// session
- $s = b::dao('\bolt\common\dao\sessions')->get('id', '67bf2206-5b45-11e1-a224-d38cf5eefb30');
-
-//$s = b::dao('\bolt\common\dao\sessions')->get(array());
-
-/*
-
-// create
-$s->set(array(
-    'expires' => 'hello'
+b::run(array(
+    'path' => "hello/world",
 ));
 
-// save
-$s->save();
-*/
 
-var_dump($s->data_deep);
 
 ?>
