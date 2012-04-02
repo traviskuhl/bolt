@@ -39,7 +39,7 @@ class route extends plugin\singleton {
     public function register($paths, $class=false, $name=false, $args=array()) {
     
         // method
-        $method = "GET";
+        $method = "*";
     
         // if paths is a string,
         // make it an array
@@ -128,12 +128,15 @@ class route extends plugin\singleton {
         // params
         $params = array();
         $args = array();
-
-
     
         // let's loop through 
-        foreach ($this->routes as $route => $info) {                
-            if (preg_match('#'.$route.'#', $path, $matches) AND $info[4] == $method) {
+        foreach ($this->routes as $route => $info) {         
+            if (preg_match('#'.$route.'#', $path, $matches)) {
+            
+                // method match
+                if ($info[4] != '*' AND $info[4] != $method) {
+                    continue;
+                }
                             
                 // we don't need the match
                 array_shift($matches);
@@ -146,12 +149,18 @@ class route extends plugin\singleton {
                     foreach ($matches as $key => $val) {
                     
                         // params
-                        $params[$info[2][$key]] = $val;
+                        if (array_key_exists($key, $info[2])) {
                         
-                        // is it bPath
-                        if ($info[2][$key] == 'bPath') {
-                            b::config()->bPath = $val;
+                            // set it
+                            $params[$info[2][$key]] = $val;
+                            
+                            // is it bPath
+                            if ($info[2][$key] == 'bPath') {
+                                b::config()->bPath = $val;
+                            }                            
+                            
                         }
+                    
                         
                     }
                 }

@@ -17,12 +17,16 @@ class view {
     private $_input = false;
     private $_wrap = -1;
     private $_hasExecuted = false;
+    private $_guid = false;
     
     // this should be overrideable by the child
     protected $accept = array('*/*');
     
     // function
     public function __construct($params=array(), $method=false) {
+    
+        // guid
+        $this->_guid = uniqid();
     
         // set some stuff
         $this->_params = (is_array($params) ? $params : array());
@@ -51,6 +55,8 @@ class view {
                 return $this->accept;
             case 'getMethod':
                 return $this->_method;
+            case 'getGuid':
+                return $this->_guid;
         
             // set
             case 'setContent':
@@ -94,8 +100,8 @@ class view {
     }
 
     // param
-    public function getParam($name, $default=false) {
-        if (array_key_exists($name, $this->_params)) {
+    public function getParam($name, $default=false) {     
+        if (array_key_exists($name, $this->_params) AND $this->_params[$name]) {
             return $this->_params[$name];
         }
         
@@ -133,7 +139,7 @@ class view {
         // no template means return just the render
         if (!$tmpl) {
             return b::render($args);
-        }        
+        }                
     
         // return our rendered
         $this->setContent(b::render()->template(
@@ -147,8 +153,8 @@ class view {
         
     }
     
-    public function hasExecuted() {
-        return $this->_hasExecuted;
+    public function hasExecuted($done=false) {
+        return ($done ? ($this->_hasExecuted = true) : $this->_hasExecuted);
     }
     
     // execute the view
@@ -160,6 +166,9 @@ class view {
         
         // method
         $method = $this->_method;
+        
+        // guid
+        $guid = $this->_guid();
     
         // preresp
         preresp:
@@ -197,7 +206,7 @@ class view {
         
         // we've executed, just in case they
         // try returning the same view
-        $view->hasExecuted = true;
+        $view->hasExecuted(true);
         
         // see if they want to forward to a different view
         if ($resp AND is_string($resp) AND class_exists($resp)) {
@@ -217,11 +226,19 @@ class view {
         // already. TODO: add better check for same view
         else if (is_object($resp) AND $resp->hasExecuted() !== true) {
         
-            // set our response as a view
-            $view = $resp;
+            // if it's this view just stop
+            if ($guid != $resp->getGuid()) {
+            
+                // set our response as a view
+                $view = $resp;
+                
+                // set guid
+                $guid = $resp->getGuid();
 
-            // go back
-            goto preresp;
+                // go back
+                goto preresp;
+                
+            }
             
         }
     

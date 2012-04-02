@@ -63,6 +63,7 @@ final class b {
         'render-ajax'      => "./bolt/render/ajax.php",
         'render-html'      => "./bolt/render/html.php",
         'render-cli'       => "./bolt/render/cli.php",
+        'render-xml'       => "./bolt/render/xml.php",
         
         // cache modules
         'cache-memcache'    => "./bolt/cache/memcache.php",

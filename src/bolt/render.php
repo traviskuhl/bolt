@@ -158,12 +158,14 @@ class render extends plugin {
 		// get any globals
 		$vars = array_merge( $this->_globals, $view->getParams(), $vars );
 
+
+
             // make sure everything is an object
             foreach ($vars as $k => $v) {
                 if (is_array($v)) {
                     $vars[$k] = new \bolt\dao\item($v);
                 }
-            }
+            }                    
         
 		// start ob buffer
 		ob_start();
@@ -171,17 +173,17 @@ class render extends plugin {
 		// define all
 		foreach ( $vars as $k => $v ) {
 			$$k = $v;
-		}
+		}		
 
 		// include the page
-		include $x__file;
+		include($x__file);
 
 		// stop
 		$page = ob_get_contents();
 
 		// clean
-		ob_clean();
-
+		ob_clean();        
+        
 		// give it back
 		return $this->string($page, $vars, $view);
     

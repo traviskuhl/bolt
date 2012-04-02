@@ -44,9 +44,12 @@ class drib extends \bolt\plugin\singleton {
     }
 
     // get
-    public function __get($name) {
+    public function get($name) {
         return (array_key_exists($name, $this->_settings) ? $this->_settings[$name] : false);
     }
     
+    public function __get($name) {
+        return $this->get($name);
+    }
 
 }

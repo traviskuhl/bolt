@@ -110,7 +110,24 @@ class webservice extends \bolt\plugin\factory {
         curl_setopt($this->_curl, CURLOPT_CUSTOMREQUEST, $method);        
         curl_setopt($this->_curl, CURLOPT_FOLLOWLOCATION, 1);
         curl_setopt($this->_curl, CURLOPT_SSL_VERIFYPEER, 0);        
-        curl_setopt($this->_curl, CURLINFO_HEADER_OUT, 1);    				
+        curl_setopt($this->_curl, CURLINFO_HEADER_OUT, 1);    
+        
+        // cookies
+        if (array_key_exists('cookies', $headers)) {
+        
+            // cookies
+            $cookies = array();
+        
+            // headers
+            foreach ($headers['cookies'] as $k => $v) {
+                $cookies[] = "$k=$v";
+            }
+            
+            // cookies
+            curl_setopt($this->_curl, CURLOPT_COOKIE, implode(';',$cookies));            
+            unset($headers['cookies']);
+            
+        }				
 				
         // add params
         if ( $method == 'POST' ) {
