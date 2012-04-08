@@ -19,7 +19,7 @@ class cookie extends plugin\singleton {
 	public function set($name, $value, $expires=false, $domain=false, $secure=false, $http=false) {
 	
 		// domain
-		$domain = b::config()->get("cookies/domain");
+		$domain = b::config()->get("cookies.domain");
 	
 		// get name from config
 		if ( substr($name, 0, 1) == '$' ) {

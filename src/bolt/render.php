@@ -353,14 +353,14 @@ class render extends plugin {
         // view
         $accept = p('accept', false, $args);        
         
+        // execute
+        $view = $view->execute(false, $accept);        
+        
         // figure out if the requested accept
         // is allowed in the view
         if (!in_array($accept, $view->getAccept()) AND !in_array('*/*', $view->getAccept())) {
             $accept = array_shift($view->getAccept());
-        }
-        
-        // execute
-        $view = $view->execute(false, $accept);
+        }    
                 
         // wrap
         if (isset($args['wrap']) AND $args['wrap'] AND $view->getWrap() === -1) {

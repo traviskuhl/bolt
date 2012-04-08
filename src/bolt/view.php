@@ -3,6 +3,38 @@
 namespace bolt;
 use \b as b;
 
+// view
+b::plug('view', '\bolt\viewFactory');
+
+// source
+class viewFactory extends plugin {
+
+    // type is singleton 
+    // since this is really a plugin dispatch
+    public static $TYPE = "factory";
+    
+    // factory
+    public static function factory() {
+        
+        // args
+        $args = func_get_args();
+        
+        // give them a view 
+        if (!class_exists($args[0], true)) { return false; }
+    
+        // params
+        $params = (isset($args[1]) ? $args[1] : array());
+        $method = (isset($args[2]) ? $args[2] : false);
+    
+        // lets do it 
+        return new $args[0]($params, $method);
+    
+    }    
+
+}
+
+
+// the view
 class view {
 
     // params

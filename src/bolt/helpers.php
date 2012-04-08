@@ -35,7 +35,7 @@ class helpers {
             // verify
             case 'verify':
                 if (bDevMode) { return true;}            
-                $cookie = b::cookie()->get($cname);
+                $cookie = b::cookie()->get($cname);                
                 if (!$cookie OR !is_array($cookie)) { return false; }
                 list($token, $cid, $ip) = $cookie;
                 if (!$token OR !$cid OR !$ip) { return false; }
