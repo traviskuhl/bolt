@@ -20,7 +20,12 @@ if ( !defined("bDevMode") ) {
 	}
 
 // set date
-date_default_timezone_set("UTC");
+if (!defined("bTimeZone")) {
+    define("bTimeZone", "UTC");
+}
+
+// set it
+date_default_timezone_set(bTimeZone);
 
 ////////////////////////////////////////////////////////////
 /// @brief static bolt wrapper instance
@@ -441,9 +446,13 @@ if ( isset($_SERVER['HTTP_HOST']) ) {
     	$_SERVER['REMOTE_ADDR'] = $_SERVER['HTTP_X_FORWARDED_FOR'];
     }
 
-    if (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) == 'https') {
+    if (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) AND $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https') {
         $_SERVER['SERVER_PORT'] = 443;
     }
+    
+    if (isset($_SERVER['HTTP_X_FORWARDED_PORT'])) {
+        $_SERVER['SERVER_PORT'] = $_SERVER['HTTP_X_FORWARDED_PORT'];
+    }    
     
     define("HTTP_HOST",		 $_SERVER['HTTP_HOST']);
     define("HOST",      	 ($_SERVER['SERVER_PORT']==443?"https://":"http://").$_SERVER['HTTP_HOST']);
