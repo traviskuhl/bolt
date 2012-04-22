@@ -44,16 +44,20 @@ class stack extends \SplStack {
         return $this;
     }
 
+    public function getMeta() {
+        return $this->_meta;
+    }
+
     public function getOffset() {
-        return $this->_offset;
+        return (int)$this->_offset;
     }
     
     public function getLimit() {
-        return $this->_limit;
+        return (int)$this->_limit;
     }
     
     public function getTotal() {
-        return $this->_total;
+        return (int)$this->_total;
     }
 
     public function getPage() {

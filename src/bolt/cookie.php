@@ -68,7 +68,7 @@ class cookie extends plugin\singleton {
 	public function delete($name) {
 
 		// domain
-		$domain = b::_('site/cookieDomain');
+		$domain = b::config()->get("cookies.domain");
 
 		// get name from config
 		if ( substr($name, 0, 1) == '$' ) {

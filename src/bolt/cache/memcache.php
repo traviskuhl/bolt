@@ -55,7 +55,9 @@ class memcachei extends \bolt\plugin\factory {
 		// base_ns
 		// we add the host so that dev boxes
 		// have their own cache namespace
-		$this->_ns = p('ns', 'cache', $cfg).":";
+		$ns = p('ns', false, $cfg);
+		
+		$this->_ns = ($ns ? "{$ns}:" : false);
 
         // pid
         $pid = p('pid', false, $cfg);
@@ -66,6 +68,13 @@ class memcachei extends \bolt\plugin\factory {
 		// add servers
 		$this->_handle->addServers(array_map(function($el){ return array($el, 11211, 1); }, $hosts));    
     
+    }
+    
+    public function getHandle() {
+        return $this->_handle;
+    }
+    public function getConfig() {
+        return $this->_cfg;
     }
 
     public function __get($name) {
@@ -92,7 +101,7 @@ class memcachei extends \bolt\plugin\factory {
             
                 // reset our key with
                 // with the namespace
-                $args[0] = "{$this->_ns}:{$args[0]}";
+                $args[0] = "{$this->_ns}{$args[0]}";
                 
                 // done            
                 break;
@@ -104,7 +113,7 @@ class memcachei extends \bolt\plugin\factory {
                 
                 // loop through each key
                 foreach ($args[0] as $i => $key) {
-                    $args[0][$i] = "{$this->_ns}:{$key}";
+                    $args[0][$i] = "{$this->_ns}{$key}";
                 }
             
                 // done
@@ -121,7 +130,7 @@ class memcachei extends \bolt\plugin\factory {
             
                 // reset our key with
                 // with the namespace
-                $args[1] = "{$this->_ns}:{$args[1]}";
+                $args[1] = "{$this->_ns}{$args[1]}";
                 
                 // done            
                 break;            
@@ -134,7 +143,7 @@ class memcachei extends \bolt\plugin\factory {
                 
                 // loop through each key
                 foreach ($args[1] as $i => $key) {
-                    $args[1][$i] = "{$this->_ns}:{$key}";
+                    $args[1][$i] = "{$this->_ns}{$key}";
                 }
             
                 // done

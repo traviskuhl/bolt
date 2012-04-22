@@ -195,7 +195,7 @@ class route extends plugin\singleton {
         // some default params
         $path = p('path', bPath, $args);
         $method = p('method', p("REQUEST_METHOD", "GET", $_SERVER), $args); 
-        $accept = p('accept', p('_accept', p('HTTP_ACCEPT', false, $_SERVER)), $args);            
+        $accept = p('accept', p('_accept', p('HTTP_ACCEPT', false, $_SERVER)), $args);                                    
             
         // get our class
         $route = $this->match($path, $method);
