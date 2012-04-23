@@ -214,8 +214,6 @@ class view {
 
         // our resp
         $resp = false;
-        
-        error_log($method);
             
         // if our accept header says it's ajax
         if ($accept == 'text/javascript;text/ajax' AND method_exists($view, 'ajax')) {

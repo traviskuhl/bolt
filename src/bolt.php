@@ -174,33 +174,42 @@ final class b {
         
         // load
         if (isset($args['load'])) {
-            foreach($args['load'] as $pattern) {
-            
-                // is it a file
-                if (stripos($pattern, '.php') !== false AND stripos($pattern, '*') === false)  {
-                    $files = array($pattern);
-                }
-                else {
-                    $files = glob($pattern);            
-                }
-                
-                // loop through each file
-                foreach ($files as $file) {
-                
-                    // template
-                    if (stripos($file, '.template.php') !== false) { continue; }
-                
-                    // load it 
-                    include_once($file);
-                    
-                    // loaded
-                    self::$loaded[] = $file;
-                    
-                }
-                
-            }
+            self::load($args['load']);
         }
     
+    }
+
+    ////////////////////////////////////////////////////////////
+    /// @brief load files
+    ///
+    /// @param $paths list of paths to load
+    ////////////////////////////////////////////////////////////
+    public static function load($paths) { 
+        foreach($paths as $pattern) {
+        
+            // is it a file
+            if (stripos($pattern, '.php') !== false AND stripos($pattern, '*') === false)  {
+                $files = array($pattern);
+            }
+            else {
+                $files = glob($pattern);            
+            }
+            
+            // loop through each file
+            foreach ($files as $file) {
+            
+                // template
+                if (stripos($file, '.template.php') !== false) { continue; }
+            
+                // load it 
+                include_once($file);
+                
+                // loaded
+                self::$loaded[] = $file;
+                
+            }
+            
+        }
     }
     
     ////////////////////////////////////////////////////////////
