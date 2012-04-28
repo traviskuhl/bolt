@@ -60,7 +60,7 @@ class cookie extends plugin\singleton {
 		}
 	
 		// set it 
-		setcookie($name, $value, $expires, '/', $domain, $secure, $http);
+		$r = setcookie($name, $value, $expires, '/', $domain, $secure, $http);
 		
 	
 	}

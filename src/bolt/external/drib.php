@@ -45,6 +45,7 @@ class drib extends \bolt\plugin\singleton {
 
     // get
     public function get($name) {
+        $name = str_replace(".", "_", $name);
         return (array_key_exists($name, $this->_settings) ? $this->_settings[$name] : false);
     }
     

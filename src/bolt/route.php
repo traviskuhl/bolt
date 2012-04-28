@@ -282,6 +282,11 @@ class route extends plugin\singleton {
         if (!$uri) {
             $uri = URI;
         }                
+
+        // uri doesn't have a http://
+        if (substr($uri,0,4) != 'http') {
+            $uri = "http://$uri";
+        }
                 
         // no url
         if (!array_key_exists($name, $this->urls)) {
