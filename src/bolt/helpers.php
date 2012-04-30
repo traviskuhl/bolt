@@ -59,7 +59,7 @@ class helpers {
                 $ctok = b::memcache()->get($cid); b::memcache()->delete($cid);                
                 if ($token != $tok OR $token != $ctok[0] OR $ctok[0] != $tok) { return false; }
                 if ($ip != IP OR IP != $ctok[2]) { return false; }
-                b::cookie($cname)->delete();
+                if ($cname) { b::cookie($cname)->delete(); }
                 return true;
         }
     
