@@ -290,7 +290,7 @@ class route extends plugin\singleton {
                 
         // no url
         if (!array_key_exists($name, $this->urls)) {
-            return strtolower(rtrim($uri,'/')."/".ltrim($name,'/'));
+            return rtrim(strtolower(b::addUrlParams(rtrim($uri,'/')."/".ltrim($name,'/'), $params)),'/');
         }
     
         // get our url
@@ -327,11 +327,11 @@ class route extends plugin\singleton {
         
         // base url
         if (stripos($path, 'http') == false) {
-            $path = rtrim($uri,'/') . "/" . ltrim($path,'/');
+            $path = rtrim($uri,'/') . "/" . trim($path,'/');
         }
         
         // return with params
-        return strtolower(b::addUrlParams($path, $params));
+        return rtrim(strtolower(b::addUrlParams($path, $params)),'/');
     
     }
 
