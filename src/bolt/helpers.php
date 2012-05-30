@@ -40,7 +40,7 @@ class helpers {
                 
             // verify
             case 'verify':
-                if (bDevMode) { return true;}     
+//                if (bDevMode) { return true;}     
                 $tok = p("_csrf");  
                                 
                 // cookie check

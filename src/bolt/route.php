@@ -289,7 +289,7 @@ class route extends plugin\singleton {
         }
                 
         // no url
-        if (!array_key_exists($name, $this->urls)) {
+        if (!$name OR ($name AND !array_key_exists($name, $this->urls))) {
             return rtrim(strtolower(b::addUrlParams(rtrim($uri,'/')."/".ltrim($name,'/'), $params)),'/');
         }
     

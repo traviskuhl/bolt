@@ -195,7 +195,7 @@ class render extends plugin {
         $vars['_get'] = $_GET;
         $vars['_post'] = $_POST;
         $vars['_request'] = $_REQUEST;
-        $vars['_server'] = $_SERVER;
+        $vars['_server'] = $_SERVER;    
     
         // let's find some variables
         if (preg_match_all('/\{(\$[^\}]+)\}/', $str, $matches, PREG_SET_ORDER)) {
@@ -232,6 +232,8 @@ class render extends plugin {
             }
             
         }
+        
+
     
         // first sanatize out our string
         $str = str_replace("\}", "%##%", $str);
@@ -342,6 +344,8 @@ class render extends plugin {
             $str = preg_replace("#".preg_quote($match, '#')."#", $out, $str, 1);		  
 		
 		}    	
+		
+	//	var_dump($str); 
     	
     	// return a string
     	return $str;
