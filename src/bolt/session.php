@@ -154,7 +154,7 @@ class session extends plugin\singleton {
     }
     
     public function delete() {
-        ($this->_dao ? $this->_dao->delete() : false);
+        ($this->_dao ? $this->_dao->delete() : false);    
         b::cookie()->set($this->_cname, false, b::utctime());        
     }
 
