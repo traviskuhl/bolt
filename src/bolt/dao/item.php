@@ -430,6 +430,9 @@ class item implements \Iterator, \ArrayAccess {
 	/// @return void
 	/////////////////////////////////////////////////
 	public function set($data){
+
+        // not an array
+        if (!is_array($data)) {return $this;}
     
         // loop through and set
         foreach ($data as $name => $value) {

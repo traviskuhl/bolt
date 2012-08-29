@@ -27,16 +27,39 @@ class xhr extends \bolt\plugin\singleton {
         
         // holders
         $js = $css = array();
-                
-        // pick our javascript and css
-		// need to remove comments
-		$body = preg_replace(array("/\/\/[a-zA-Z0-9\s\&\?\.]+\n/", "/\/\*(.*)\*\//"), " ", $body);
+                    
+        // script
+        $body = preg_replace("#<script([^>]+)(\>)#", "<script$1%%E%%", $body);
 
-		// if yes remove
-		if ( preg_match_all("/((<[\s\/]*script\b[^>]*>)([^>]*)(<\/script>))/i", $body, $_js) ) {
-			$body = preg_replace("/((<[\s\/]*script\b[^>]*>)([^>]*)(<\/script>))/i", "", $body);
-			$js = @$_js[3];
-		}
+        // replace any </stript>'s'
+        $body = str_replace(
+            array(
+                "</script>",
+                ">",
+                "%%E%%"
+            ),
+            array(
+                "</script%%E%%",
+                "%%EE%%",
+                ">"
+            ),
+            $body);
+
+
+        // pick our javascript and css
+        // need to remove comments
+        $body = preg_replace(array("/\/\/[a-zA-Z0-9\s\&\?\.]+\n/", "/\/\*(.*)\*\//"), " ", $body);    
+
+        // if yes remove
+        if ( preg_match_all("/((<[\s\/]*script\b[^>]*>)([^>]*)(<\/script>))/i", $body, $_js) ) {
+            $body = preg_replace("/((<[\s\/]*script\b[^>]*>)([^>]*)(<\/script>))/i", "", $body);
+            $js = @$_js[3];
+            if ($js) {
+                $js = array_map(function($str){ return str_replace(array("%%EE%%", "%%E%%"),">", $str); }, $js);
+            }
+        }
+
+        $body = str_replace(array("%%EE%%", "%%E%%"),">", $body);
         
         // give it up
         return json_encode(array(

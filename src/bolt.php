@@ -76,7 +76,8 @@ final class b {
         // external
         'ext-s3'            => "./bolt/external/s3.php",
         'ext-drib'          => "./bolt/external/drib.php",
-        'ext-fb'            => "./bolt/external/facebook.php"
+        'ext-fb'            => "./bolt/external/facebook.php",
+        'ext-beanstalk'     => "./bolt/external/beanstalk.php"
         
     );    
     
@@ -144,7 +145,7 @@ final class b {
         if (array_key_exists('core', $args)) {
             foreach ($args['core'] as $mod) {
                 if ($mod{0} == '-') {
-                    $slip[] = substr($mod, 1);
+                    $skip[] = substr($mod, 1);
                 }
                 else {
                     $core[] = $mod;
