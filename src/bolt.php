@@ -463,6 +463,10 @@ if ( isset($_SERVER['HTTP_HOST']) ) {
     if (isset($_SERVER['HTTP_X_FORWARDED_PORT'])) {
         $_SERVER['SERVER_PORT'] = $_SERVER['HTTP_X_FORWARDED_PORT'];
     }    
+
+    if (isset($_SERVER['HTTP_X_FORWARDED_SERVER'])) {
+        $_SERVER['SERVER_NAME'] = $_SERVER['HTTP_X_FORWARDED_SERVER'];
+    }
     
     define("HTTP_HOST",		 $_SERVER['HTTP_HOST']);
     define("HOST",      	 ($_SERVER['SERVER_PORT']==443?"https://":"http://").$_SERVER['HTTP_HOST']);
