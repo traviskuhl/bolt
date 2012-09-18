@@ -158,14 +158,12 @@ class render extends plugin {
 		// get any globals
 		$vars = array_merge( $this->_globals, $view->getParams(), $vars );
 
-
-
             // make sure everything is an object
             foreach ($vars as $k => $v) {
                 if (is_array($v)) {
                     $vars[$k] = new \bolt\dao\item($v);
                 }
-            }                    
+            }                   
         
 		// start ob buffer
 		ob_start();
@@ -195,7 +193,7 @@ class render extends plugin {
         $vars['_get'] = $_GET;
         $vars['_post'] = $_POST;
         $vars['_request'] = $_REQUEST;
-        $vars['_server'] = $_SERVER;    
+        $vars['_server'] = $_SERVER;  
     
         // let's find some variables
         if (preg_match_all('/\{(\$[^\}]+)\}/', $str, $matches, PREG_SET_ORDER)) {

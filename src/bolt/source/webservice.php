@@ -176,7 +176,7 @@ class webservice extends \bolt\plugin\factory {
                 curl_setopt($this->_curl, CURLOPT_BINARYTRANSFER, true);            
                 curl_setopt($this->_curl, CURLOPT_PUT, TRUE);                
                 curl_setopt($this->_curl, CURLOPT_INFILE, $fp);                
-                curl_setopt($this->_curl, CURLOPT_INFILESIZE, $len);
+                curl_setopt($this->_curl, CURLOPT_INFILESIZE, $len);                
                 
         }
         

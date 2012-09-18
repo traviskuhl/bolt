@@ -465,9 +465,14 @@ if ( isset($_SERVER['HTTP_HOST']) ) {
     }    
 
     if (isset($_SERVER['HTTP_X_FORWARDED_SERVER'])) {
-        $_SERVER['SERVER_NAME'] = $_SERVER['HTTP_X_FORWARDED_SERVER'];
+        $_SERVER['SERVER_NAME'] = $_SERVER['HTTP_X_FORWARDED_SERVER'];        
     }
     
+    // make sure host has a port if it's non-standard
+    if (!in_array($_SERVER['SERVER_PORT'],array(80,443)) AND stripos($_SERVER['HTTP_HOST'], ':') === false) {
+        $_SERVER['HTTP_HOST'] = $_SERVER['HTTP_HOST'].":".$_SERVER['SERVER_PORT'];
+    }
+
     define("HTTP_HOST",		 $_SERVER['HTTP_HOST']);
     define("HOST",      	 ($_SERVER['SERVER_PORT']==443?"https://":"http://").$_SERVER['HTTP_HOST']);
     define("HOST_NSSL",  	 "http://".$_SERVER['HTTP_HOST']);
@@ -483,6 +488,7 @@ if ( isset($_SERVER['HTTP_HOST']) ) {
     // our path
     define("bPath",         (getenv("REDIRECT_bPath")?getenv("REDIRECT_bPath"):getenv("bPath")));
     
+
 }
 else {
 
