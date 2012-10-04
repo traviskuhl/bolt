@@ -15,6 +15,15 @@ class stack extends \SplStack {
     private $_limit = 0;
     private $_offset = 0;
     
+    // create
+    public static function create($items, $class='\bolt\dao\item') {
+        $s = new stack();
+        foreach ($items as $item) {
+            $s->push(new $class($item));
+        }
+        return $s;
+    }
+
     // construct
     public function __construct($class=false) {
         $this->_class = $class;
