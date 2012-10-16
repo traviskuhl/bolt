@@ -473,6 +473,11 @@ if ( isset($_SERVER['HTTP_HOST']) ) {
         $_SERVER['HTTP_HOST'] = $_SERVER['HTTP_HOST'].":".$_SERVER['SERVER_PORT'];
     }
 
+    // , means it's ben forwarded
+    if (stripos($_SERVER['REMOTE_ADDR'], ',') !== false) {
+        $_SERVER['REMOTE_ADDR'] = trim(array_shift(explode(',', $_SERVER['REMOTE_ADDR'])));
+    }
+
     define("HTTP_HOST",		 $_SERVER['HTTP_HOST']);
     define("HOST",      	 ($_SERVER['SERVER_PORT']==443?"https://":"http://").$_SERVER['HTTP_HOST']);
     define("HOST_NSSL",  	 "http://".$_SERVER['HTTP_HOST']);

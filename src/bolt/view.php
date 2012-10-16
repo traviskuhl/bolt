@@ -243,7 +243,7 @@ class view {
         // we've executed, just in case they
         // try returning the same view
         $view->hasExecuted(true);
-        
+
         // see if they want to forward to a different view
         if ($resp AND is_string($resp) AND class_exists($resp)) {
             

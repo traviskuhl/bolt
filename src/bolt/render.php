@@ -7,7 +7,10 @@ use \b as b;
 // render
 b::plug(array(
     'render' => '\bolt\render',
-    'template' => 'render::template'
+    'template' => 'render::template',
+    'module' => function() {
+        return call_user_func_array(array(b::render(), 'module'), func_get_args());
+    }
 ));
 
 class render extends plugin {
