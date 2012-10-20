@@ -9,8 +9,7 @@ use \b as b;
 // plug route 
 b::plug(array(
     'route' => '\bolt\route',
-    'url' => 'route::url',
-    'run' => 'route::execute'
+    'url' => 'route::url'
 ));
 
 // route
@@ -113,7 +112,7 @@ class route extends plugin\singleton {
 
     // match
     public function match($path=false, $method=false) {
-    
+
         // sort routes by weight
         uasort($this->routes, function($a,$b){
             if ($a[0] == $b[0]) {
@@ -189,92 +188,6 @@ class route extends plugin\singleton {
     
     }
     
-    // run
-    public function execute($args=array()) {
-        
-        // some default params
-        $path = p('path', bPath, $args);
-        $method = p('method', p("REQUEST_METHOD", "GET", $_SERVER), $args); 
-        $accept = p('accept', p('_accept', p('HTTP_ACCEPT', false, $_SERVER)), $args);                                    
-            
-        // get our class
-        $route = $this->match($path, $method);
-        
-        // define
-        $class = $route['class'];
-        $params = $route['params'];
-        
-        // closuer
-        if (is_a($class, "Closure")) {        
-            
-            // remove our params
-            foreach ($params as $key => $val) {
-                if (!is_string($key)) {
-                    unset($params[$key]);
-                }
-            }            
-            
-            // reflect our function 
-            $f = new \ReflectionFunction($class);
-            
-            // params
-            $p = $f->getParameters();
-            
-            // yes or no
-            if (count($p) > 0) {
-                
-                // do it 
-                $_params = array();
-                
-                // loop
-                foreach ($p as $item) {
-                    $_params[] = (array_key_exists($item->name, $params) ? $params[$item->name] : false);                    
-                }
-            
-                // call our function
-                $view = call_user_func_array($class, $_params);
-                            
-            }
-            else {
-                $view = $class($params);
-            }
-        
-            // is r a view
-            if (is_string($view)) {
-            
-                // view
-                $v = new view();
-            
-                // content
-                $v->setContent($view);
-                
-                // rest r
-                $view = $v;
-            
-            }
-        
-        }
-        
-        // class
-        else {
-            
-            // method
-            $m = strtolower($method);        
-        
-            // call our class
-            $view = new $class($params, $method);  
-                                
-        }
-        
-        // render me 
-        exit(b::render()->render($view, array( 
-            'method' => $method,
-            'accept' => $accept,
-            'wrap' => b::config()->wrapTemplate
-        )));        
-            
-    }
-    
     // url
     public function url($name, $data=array(), $params=array(), $uri=false) {                
                 
@@ -287,6 +200,9 @@ class route extends plugin\singleton {
         if (substr($uri,0,4) != 'http') {
             $uri = "http://$uri";
         }
+
+        // not a sting
+        if (!is_string($name)) { $name = (string)$name; }
                 
         // no url
         if (!$name OR ($name AND !array_key_exists($name, $this->urls))) {

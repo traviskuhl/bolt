@@ -13,7 +13,8 @@ class config extends plugin\singleton {
     private $_data = array();
 
     // default 
-    public function _default() {        
+    public function _default() {       
+
         // forward it to call
         return call_user_func_array(array($this, 'merge'), func_get_args());
     }

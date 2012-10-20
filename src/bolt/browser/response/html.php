@@ -1,9 +1,9 @@
 <?php
 
-namespace bolt\render;
+namespace bolt\browser\response;
 use \b as b;
 
-b::render()->plug('html', '\bolt\render\html');
+b::response()->plug('html', '\bolt\browser\response\html');
 
 // json
 class html extends \bolt\plugin\singleton {
@@ -17,7 +17,7 @@ class html extends \bolt\plugin\singleton {
     public $contentType = "text/html";
     
     //
-    public function render($view) {
+    public function getContent($view) {
         
         // give it up
         $html = $view->getContent();

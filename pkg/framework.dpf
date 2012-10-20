@@ -2,11 +2,11 @@
 		
 # internal variables
 src = ../src
-pear = /home/bolt/share/pear/bolt/v2/framework
+pear = /home/bolt/share/pear/bolt/
 
 # meta data
 meta project = bolt
-meta name = framework2
+meta name = bolt
 meta version = file:changelog
 meta summary = Bolt Framework
 meta description = Bolt Framework Files

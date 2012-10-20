@@ -11,8 +11,8 @@ class drib extends \bolt\plugin\singleton {
 
     private $_settings = array();
     
-    public function __construct() {
-        
+    public function __construct() {    
+
         // the cid
         $cid = "bolt.drib.settings";
         

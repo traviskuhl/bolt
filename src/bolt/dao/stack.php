@@ -74,7 +74,7 @@ class stack extends \SplStack {
     }
 
     public function getPages() {
-        return ceil($this->_total / $this->_limit);
+        return ($this->_limit ? ceil($this->_total / $this->_limit) : 0);
     }
 
     public function __call($name, $args) {

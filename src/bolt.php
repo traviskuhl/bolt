@@ -48,27 +48,21 @@ final class b {
         'config'    => "./bolt/config.php",
         'dao'       => "./bolt/dao.php",
         'route'     => "./bolt/route.php",
-        'render'    => "./bolt/render.php",
-        'cookie'    => "./bolt/cookie.php",
-        'session'   => "./bolt/session.php",
+        'render'    => "./bolt/render.php",        
         'source'    => "./bolt/source.php",
-        'external'  => "./bolt/external.php",
-        'account'   => "./bolt/account.php",
+        'external'  => "./bolt/external.php",        
         'cache'     => "./bolt/cache.php",
-        
+        'bucket'    => "./bolt/bucket.php",
+
+        // template renders
+        'render-mustache' => "./bolt/render/mustache.php",
+
         // source
         'source-mongo'      => "./bolt/source/mongo.php",        
         'source-webservice' => "./bolt/source/webservice.php",
         'source-s3'         => "./bolt/source/s3.php",
         'source-pdo'        => "./bolt/source/pdo.php",
         
-        // renders
-        'render-json'      => "./bolt/render/json.php",
-        'render-xhr'       => "./bolt/render/xhr.php",
-        'render-ajax'      => "./bolt/render/ajax.php",
-        'render-html'      => "./bolt/render/html.php",
-        'render-cli'       => "./bolt/render/cli.php",
-        'render-xml'       => "./bolt/render/xml.php",
         
         // cache modules
         'cache-memcache'    => "./bolt/cache/memcache.php",
@@ -76,8 +70,7 @@ final class b {
         // external
         'ext-s3'            => "./bolt/external/s3.php",
         'ext-drib'          => "./bolt/external/drib.php",
-        'ext-fb'            => "./bolt/external/facebook.php",
-        'ext-beanstalk'     => "./bolt/external/beanstalk.php"
+        'ext-fb'            => "./bolt/external/facebook.php",        
         
     );    
     
@@ -136,7 +129,7 @@ final class b {
     public static function init($args=array()) {
     
         // core always starts with the default
-        $core = array_keys(self::$core);
+        $core = array_keys(self::$core); $use = self::$core;
         
         // nomods
         $skip = array();
@@ -145,29 +138,15 @@ final class b {
         if (array_key_exists('core', $args)) {
             foreach ($args['core'] as $mod) {
                 if ($mod{0} == '-') {
-                    $skip[] = substr($mod, 1);
-                }
-                else {
-                    $core[] = $mod;
-                }
+                    unset($use[substr($mod, 1)]);
+                }                
             }
         }
-    
+
         // we need to include all of our core
         // plugins
-        foreach (self::$core as $name => $file) {
-            
-            // make sure they want us to load it
-            if (!in_array($name, $core) OR in_array($name, $skip)) { continue; }
-            
-            // see if it's relative
-            if (substr($file,0,2) == './') { $file = bRoot."/".ltrim($file,'./'); }        
-            
-            // include it, only one
-            include_once($file);
-            
-        }
-    
+        b::load(array_values($use));
+
         // config
         if (isset($args['config'])) {
             b::config($args['config']);
@@ -179,6 +158,46 @@ final class b {
         }
     
     }
+
+    ////////////////////////////////////////////////////////////
+    /// @brief deside how to run the framework
+    ///
+    /// @return void
+    ////////////////////////////////////////////////////////////
+    public static function run() {
+
+        // figure out how to run
+        if (php_sapi_name() == 'cli') {
+
+// "./bolt/render/cli.php",
+
+        }
+        else {
+
+            // load our browser resources
+            b::load(array(                                        
+
+                // browser
+                "./bolt/browser/request.php",
+                "./bolt/browser/response.php",
+                "./bolt/browser/cookie.php",
+
+                // renders
+                "./bolt/browser/response/json.php",
+                "./bolt/browser/response/xhr.php",
+                "./bolt/browser/response/ajax.php",
+                "./bolt/browser/response/html.php",
+                "./bolt/browser/response/xml.php",
+
+            ));
+
+            // browser request
+            b::request('execute');
+
+        }
+
+    }
+
 
     ////////////////////////////////////////////////////////////
     /// @brief load files
@@ -198,6 +217,9 @@ final class b {
             
             // loop through each file
             foreach ($files as $file) {
+
+                // see if it's relative
+                if (substr($file,0,2) == './') { $file = bRoot."/".ltrim($file,'./'); }  
             
                 // template
                 if (stripos($file, '.template.php') !== false) { continue; }

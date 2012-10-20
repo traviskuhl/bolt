@@ -36,34 +36,39 @@ class viewFactory extends plugin {
 
 // the view
 class view {
-
-    // params
-    private $_params = array();
-    private $_method = false;
     
     // some things we're going to need
-    private $_content = false;
-    private $_data = false;
-    private $_headers = array();
-    private $_status = 200;
-    private $_input = false;
+    private $_content = false;    
+    private $_data = array();
     private $_wrap = -1;
     private $_hasExecuted = false;
     private $_guid = false;
-    
-    // this should be overrideable by the child
-    protected $accept = array('*/*');
-    
+    private $_args = array();
+
+    // share
+    protected $request;
+    protected $response;
+    protected $params;
+
     // function
-    public function __construct($params=array(), $method=false) {
-    
+    public function __construct($args=array()) {
+
         // guid
         $this->_guid = uniqid();
     
-        // set some stuff
-        $this->_params = (is_array($params) ? $params : array());
-        $this->_method = strtolower($method);
-        
+        // request
+        $this->request = b::request();
+        $this->response = b::response();
+
+        // local params
+        $this->params = b::bucket();
+        $this->_args = b::bucket($args);
+
+        // init function in sub view
+        if (method_exists($this, 'init')) {
+            $this->init();
+        }
+
     }    
     
     // magic set
@@ -76,19 +81,23 @@ class view {
             case 'getData':
                 return $this->_data;
             case 'getHeaders':
-                return $this->_headers;
+                return $this->request->getHeaders();
             case 'getStatus':
-                return $this->_status;
+                return $this->response->getStatus();
             case 'getParams':
-                return $this->_params;
+                return $this->request->getParams();
             case 'getInput':
-                return ($this->_input ? $this->_input : file_get_contents("php://input"));
+                return $this->request->getInput();
             case 'getAccept':
-                return $this->accept;
+                return $this->request->getAccept();
             case 'getMethod':
-                return $this->_method;
+                return $this->request->getMethod();
             case 'getGuid':
                 return $this->_guid;
+            case 'getArgs':
+                return $this->_args;
+            case 'getArg':
+                return $this->_args->get($name);
         
             // set
             case 'setContent':
@@ -96,30 +105,25 @@ class view {
             case 'setData':
                 return ($this->_data = $args[0]);
             case 'setHeaders':
-                return ($this->_headers = $args[0]);
+                return ($this->response->headers->add($args[0]));
             case 'setStatus':
-                return ($this->_status = $args[0]);
+                return ($this->response->setStatus($args[0]));
             case 'setWrap':
-                return ($this->_wrap = $args[0]);
-            case 'setInput':
-                return ($this->_input = $args[0]);                
+                return ($this->_wrap = $args[0]);            
             case 'setAccept':
-                return ($this->accept = $args[0]);
-            case 'setParams':
-                return ($this->_params = $args[0]);
+                return ($this->accept = $args[0]);            
             
             // add 
             case 'setHeader':            
             case 'addHeader':
-                return ($this->_headers[$args[0]] = $args[1]);
+                return ($this->response->headers->set($args[0], $args[1]));
             case 'addData':
-                return ($this->_data[$args[0]] = $args[1]);
-            case 'addParam':
-                return ($this->_params[$args[0]] = $args[1]);
+                return ($this->_data[$args[0]] = $args[1]);            
             case 'addAccept':
-                return ($this->accept[] = $args[0]);
+                return ($this->response->setAccept($args[0]));
         
         };                
+        return $this;
     }
     
     public function getWrap() {
@@ -132,28 +136,26 @@ class view {
     }
 
     // param
-    public function getParam($name, $default=false) {     
-        if (array_key_exists($name, $this->_params) AND $this->_params[$name]) {
-            return $this->_params[$name];
-        }
-        
-        // fallback
-        return p($name, $default);
-        
+    public function getParam($name, $default=false) {  
+        return ($this->params->get($name, $default) ?: $this->request->params->get($name, $default));    
     }
     
     public function setParam($name, $value=false) {
-        return $this->_params[$name] = $value;
+        $this->params->set($name, $value);
+        return $this;
     }    
 
-    public function addParam($name, $value, $key=false) {
-        if (!array_key_exists($name, $this->_params)) { $this->_params[$name] = array(); }
-        ($key ? ($this->_params[$name][$key] = $value) : $this->_params[$name][] = $value);        
+    public function addParam($name, $value) {
+        $this->params->get($name)->push($value);
         return $this;
     }     
+    public function setParams(\bolt\bucket $params) {
+        $this->params = $params;
+        return $this;
+    }
 
     public function getParams() {
-        return $this->_params;
+        return $this->params;
     }
 
     // get
@@ -169,9 +171,6 @@ class view {
     // render
     public function render($tmpl=false, $args=array()) {
     
-        // merge in our params
-        $vars = array_merge($args, $this->_params);    
-    
         // no template means return just the render
         if (!$tmpl) {
             return b::render($args);
@@ -180,8 +179,9 @@ class view {
         // return our rendered
         $this->setContent(b::render()->template(
             $this->template($tmpl),
-            $vars,
-            $this
+            array(
+                'view' => $this
+            )
         ));
     
         // me
@@ -194,51 +194,81 @@ class view {
     }
     
     // execute the view
-    public function execute($params=array(), $accept=false) {
-                
+    public function execute($as=false) {
+
         // i'm the view,
         // but i could change if i'm forwarded
         $view = $this;
         
         // method
-        $method = $this->_method;
+        $method = $this->request->getMethod();
+        $accept = $this->request->getAccept();
         
         // guid
         $guid = $this->_guid();
     
         // preresp
-        preresp:
-        
-        // no params
-        if (!is_array($params)) { $params = array(); }
+        preresp:        
 
-        // our resp
-        $resp = false;
-            
-        // if our accept header says it's ajax
-        if ($accept == 'text/javascript;text/ajax' AND method_exists($view, 'ajax')) {
-            $resp = call_user_func_array(array($view, 'ajax'), $params);
-        }        
-        
+        // what function to run
+        $func = false;
+                    
         // module
-        else if ($method == 'module' AND method_exists($view, 'module')) {
-            $resp = call_user_func_array(array($view, 'module'), $params);        
+        if ($as == 'module' AND method_exists($view, 'module')) {
+            $func = 'module';
+            // $resp = call_user_func_array(array($view, 'module'), $params);        
         }
+
+        // if our accept header says it's ajax
+        else if ($accept == 'text/javascript;text/ajax' AND method_exists($view, 'ajax')) {
+            $func = 'ajax';
+
+            // $resp = call_user_func_array(array($view, 'ajax'), $params);
+        }                    
 
         // there's a dispatch
         else if (method_exists($view, '_dispatch')) { 
-            $resp = call_user_func_array(array($view, '_dispatch'), $params);        
+            $func = '_dispatch';
+            //$resp = call_user_func_array(array($view, '_dispatch'), $params);        
         }        
 
         // does this method exist for this objet        
         else if (method_exists($view, $method)) {
-            $resp = call_user_func_array(array($view, $method), $params);                
+            $func = strtolower($method);
+            // $resp = call_user_func_array(array($view, $method), $params);                
         }                    
         
         // a get to fall back on 
         else if (method_exists($view, 'get')) {
-            $resp = call_user_func_array(array($view, 'get'), $params);                
+            $func = 'get';
+            // $resp = call_user_func_array(array($view, 'get'), $params);                
         }
+
+        
+        // reflect our method
+        $m = new \ReflectionMethod($view, $func); 
+
+        // args we're going to send when we call
+        $args = array();
+
+        // params
+        if ($m->getNumberOfParameters() > 0) {
+            // loop through and find our names
+            foreach ($m->getParameters() as $i => $param) {
+                if ($this->_args->exists($param->name)) {
+                    $args[] = $this->_args->getValue($param->name);
+                }
+                else {                        
+                    $args[] = $this->_args->getValue($i);
+                }
+            }
+        }
+        else {
+            $args = $this->getArgs()->asArray();
+        }
+
+        // go ahead an execute
+        $resp = call_user_func_array(array($view, $func), $args);
         
         // we've executed, just in case they
         // try returning the same view
@@ -277,7 +307,22 @@ class view {
             }
             
         }
-    
+
+        // if we have a wrapper
+        // let's do that now
+               // wrap
+        if (isset($args['wrap']) AND $args['wrap'] AND $view->getWrap() === -1) {
+            $view->setWrap($this->template($args['wrap'], $args, $view));
+        }
+        else if (stripos($view->getWrap(), '.template.php') !== false) {             
+            $view->setWrap(b::render()->template(
+                $view->getWrap(),
+                array(
+                    'view' => $view
+                )
+            ));
+        }
+
         // give back this
         return $view;    
     
