@@ -175,12 +175,18 @@ class view {
 
     // get
     public function __get($name) {
-        return $this->getParam($name);
+        if ($this->params->exists($name)) {
+            return $this->params->getValue($name);
+        }
+        else if ($this->_args->exists($name)) {
+            return $this->_args->getValue($name);
+        }
+        return false;
     }
     
     // set
     public function __set($name, $value) {
-        return $this->setParam($name, $value);
+        return $this->params->setValue($name, $value);
     }
 
     // render
