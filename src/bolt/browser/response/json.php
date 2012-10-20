@@ -1,9 +1,9 @@
 <?php
 
-namespace bolt\render;
+namespace bolt\browser\response;
 use \b as b;
 
-b::render()->plug('json', '\bolt\render\json');
+b::response()->plug('json', '\bolt\browser\response\json');
 
 // json
 class json extends \bolt\plugin\singleton {
@@ -17,7 +17,7 @@ class json extends \bolt\plugin\singleton {
     public $contentType = "text/javascript";
     
     //
-    public function render($view) {
+    public function getContent($view) {
         
         // give it up
         return json_encode(array(

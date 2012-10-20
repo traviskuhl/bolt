@@ -124,8 +124,7 @@ class route extends plugin\singleton {
         // class
         $class = b::_("defaultView");
         
-        // params
-        $params = array();
+        // params        
         $args = array();
     
         // let's loop through 
@@ -138,10 +137,7 @@ class route extends plugin\singleton {
                 }
                             
                 // we don't need the match
-                array_shift($matches);
-                
-                // params
-                $params = array();
+                array_shift($matches);            
                 
                 // set the params
                 if (isset($info[2]) AND count($info[2]) > 0) {
@@ -151,7 +147,7 @@ class route extends plugin\singleton {
                         if (array_key_exists($key, $info[2])) {
                         
                             // set it
-                            $params[$info[2][$key]] = $val;
+                            $args[$info[2][$key]] = $val;
                             
                             // is it bPath
                             if ($info[2][$key] == 'bPath') {
@@ -164,7 +160,7 @@ class route extends plugin\singleton {
                     }
                 }
                 else if (strpos($route, "?P") !== false) {
-                    $params = $matches;
+                    $args = $matches;
                 }
                 
                 // set the class
@@ -181,8 +177,7 @@ class route extends plugin\singleton {
 
         // return what we foudn
         return array(
-            'class' => $class,
-            'params' => $params,
+            'class' => $class,            
             'args' => $args
         ); 
     

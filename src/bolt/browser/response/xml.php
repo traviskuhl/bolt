@@ -1,12 +1,12 @@
 <?php
 
-namespace bolt\render;
+namespace bolt\browser\response;
 use \b as b;
 use \DOMAttr;
 use \DOMDocument;
 use \DOMCDATASection;
 
-b::render()->plug('xml', '\bolt\render\xml');
+b::response()->plug('xml', '\bolt\browser\response\xml');
 
 // json
 class xml extends \bolt\plugin\singleton {
@@ -20,7 +20,7 @@ class xml extends \bolt\plugin\singleton {
     public $contentType = "application/xml";
     
     //
-    public function render($view) {
+    public function getContent($view) {
     
 		// print 
 		$g = new xmlGenerator($view->getData());    

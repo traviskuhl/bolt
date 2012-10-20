@@ -20,7 +20,7 @@ class request extends \bolt\plugin\singleton {
 
 		// get from env
 		$this->_method = p("REQUEST_METHOD", "GET", $_SERVER);
-		$this->_accept = p('HTTP_ACCEPT', false, $_SERVER);
+		$this->_accept = explode(',', p('HTTP_ACCEPT', false, $_SERVER));
 
 		// create a bucket of our params
 		$this->_get = b::bucket($_GET);

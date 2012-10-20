@@ -49,6 +49,7 @@ class view {
     protected $request;
     protected $response;
     protected $params;
+    protected $accept = false;
 
     // function
     public function __construct($args=array()) {
@@ -63,6 +64,12 @@ class view {
         // local params
         $this->params = b::bucket();
         $this->_args = b::bucket($args);
+
+        // if accept is false,
+        // get it from teh request
+        if ($this->accept === false) {
+            $this->accept = $this->request->getAccept();
+        }
 
         // init function in sub view
         if (method_exists($this, 'init')) {
@@ -89,7 +96,7 @@ class view {
             case 'getInput':
                 return $this->request->getInput();
             case 'getAccept':
-                return $this->request->getAccept();
+                return $this->accept;
             case 'getMethod':
                 return $this->request->getMethod();
             case 'getGuid':
@@ -137,7 +144,15 @@ class view {
 
     // param
     public function getParam($name, $default=false) {  
-        return ($this->params->get($name, $default) ?: $this->request->params->get($name, $default));    
+        if ($this->params->exists($name)) {
+            return $this->params->get($name, $default);
+        }
+        else if ($this->_args->exists($name)) {
+            return $this->_args->get($name, $default);
+        }
+        else {
+            return $this->request->params->get($name, $default);
+        }        
     }
     
     public function setParam($name, $value=false) {

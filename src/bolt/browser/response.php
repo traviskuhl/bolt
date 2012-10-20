@@ -73,14 +73,15 @@ class response extends \bolt\plugin {
         
         // plug
         $plug = "html"; 
-        
+       
+
         // loop it 
         foreach ($map as $item) {
-            if ($item[1] == b::request()->getAccept()) {
+            if (in_array($item[1], $this->_view->getAccept())) {
                 $plug = $item[2]; break;
             }
         }
-                
+
         // get our 
         $p = $this->call($plug);
 

@@ -6,7 +6,7 @@ use \b;
 // bucket
 b::plug('bucket', '\bolt\bucket');
 
-class bucket extends \bolt\plugin\factory {
+class bucket extends \bolt\plugin\factory implements \ArrayAccess {
 
 	private $_parent;
 	private $_root;
@@ -14,7 +14,7 @@ class bucket extends \bolt\plugin\factory {
 
 	// bucket
 	public function __construct($data=array(), $root=false, $parent=false) {
-		$this->_data = $data;
+		$this->_data = (is_array($data) ? $data : array());
 		$this->_parent = $parent;
 		$this->_root=  $root;
 	}
@@ -96,6 +96,10 @@ class bucket extends \bolt\plugin\factory {
 		return (array_key_exists($name, $this->_data));
 	}
 
+	public function __isset($name) {	var_dump($name); die;
+		return $this->exists($name);
+	}
+
 	public function __toString() {
 		return json_encode($this->_data);
 	}
@@ -106,6 +110,23 @@ class bucket extends \bolt\plugin\factory {
 	public function item($idx) {
 		return $this->getValue($idx);
 	}
+
+    public function offsetSet($offset, $value) {
+        if (is_null($offset)) {
+            $this->_data[] = $value;
+        } else {
+            $this->_data[$offset] = $value;
+        }
+    }
+    public function offsetExists($offset) {
+        return isset($this->_data[$offset]);
+    }
+    public function offsetUnset($offset) {
+        unset($this->_data[$offset]);
+    }
+    public function offsetGet($offset) {
+        return isset($this->_data[$offset]) ? $this->_data[$offset] : null;
+    }
 
 }
 
@@ -128,8 +149,20 @@ class item {
 		$this->parent->set($this->key, $value);
 		return $this;
 	}	
+	public function __isset($name) {
+		if (is_object($this->value) AND method_exists($this, '__isset')) {
+			return $this->value->__isset($name);
+		}
+		return true;		
+	}
 	public function __get($name) {
-		return $this->value->__get($name);
+		if (is_object($this->value) AND method_exists($this, '__get')) {
+			return $this->value->__get($name);
+		}
+		else if (is_object($this->value)) {
+			return $this->value->{$name};
+		}
+		return $this->value;
 	}
 	public function __set($name, $value) {
 		return $this->value->__set($name, $value);

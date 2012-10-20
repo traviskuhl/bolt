@@ -215,6 +215,16 @@ class item implements \Iterator, \ArrayAccess {
 	}	
 	
 	
+    public function __isset($name) {
+        if (array_key_exists($name, $this->_data)) {
+            return true;
+        }
+        else if (method_exists($this, "get{$name}")) {
+            return true;
+        }
+        return false;
+    }
+
 	/////////////////////////////////////////////////
 	/// @brief MAGIC set a property from data array
 	/// 

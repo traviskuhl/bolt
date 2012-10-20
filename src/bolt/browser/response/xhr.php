@@ -1,9 +1,9 @@
 <?php
 
-namespace bolt\render;
+namespace bolt\browser\response;
 use \b as b;
 
-b::render()->plug('xhr', '\bolt\render\xhr');
+b::response()->plug('xhr', '\bolt\browser\response\xhr');
 
 // json
 class xhr extends \bolt\plugin\singleton {
@@ -17,13 +17,10 @@ class xhr extends \bolt\plugin\singleton {
     public $contentType = "text/javascript";
     
     //
-    public function render($view) {
-    
-        // we need to ask the html renderer
-        $h = b::render()->call('html');
+    public function getContent($view) {
         
         // body
-        $body = $h->render($view);
+        $body = $view->getContent();
         
         // holders
         $js = $css = array();

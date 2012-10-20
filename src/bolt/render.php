@@ -123,6 +123,10 @@ class render extends plugin {
         
     }
 
+    public function getModules() {
+      return $this->_modules;
+    }
+
     public function module($name, $params=array(), $args=array()) {
 
         // if this module doesn't exist
@@ -215,51 +219,6 @@ class render extends plugin {
                     $vars[$k] = b::bucket($v);
                 }
             }            
-
-
-        // modules to execute
-        if ( preg_match_all("/\{\%([^\}]+)\%\}/i", $str, $modules, PREG_SET_ORDER) ) {                 
-
-          // go through modules
-          foreach ($modules as $module) {
-
-            // name of module
-            $name = trim($module[1]);
-            $args = array();
-            $_vars = $vars;
-
-            // if there's a ( we need to parse params
-            if (stripos($module[1], '(') !== false AND preg_match("#\(([^\)]+)\)#", $module[1], $p)) {
-
-              // get our parts
-              $parts = explode(",", $p[1]);
-              foreach ($parts as $val) { 
-                if (stripos($val, ':') === false)  {
-                  $args[] = trim($val);
-                }
-                else {                
-                  list($k, $v) = explode(":", trim($val));
-                  $_vars[trim($k)] = trim($v);
-                }
-              }
-
-              // reset name
-              $name = trim(str_replace($p[0], "", $name));
-
-            }
-
-            $content = "";
-
-            // see if we have this module
-            if (array_key_exists($name, $this->_modules)) { 
-              $content = $this->module($name, $_vars, $args);
-            }            
-            
-            // replace
-            $str = preg_replace("#".preg_quote($module[0], '#')."#", $content, $str, 1);
-
-          }  
-        }
 
       // what renderer
       $renderer = p('renderer', 'mustache', $args);
