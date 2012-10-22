@@ -48,10 +48,7 @@ class render extends plugin {
         // who the hell knows
         // assume the args are just args
         else {
-            
-            // set args and return me
-            $this->_globals += $args;
-            
+                        
             // this is em
             return $this;
             

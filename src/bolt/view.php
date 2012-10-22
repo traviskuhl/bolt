@@ -145,13 +145,13 @@ class view {
     // param
     public function getParam($name, $default=false) {  
         if ($this->params->exists($name)) {
-            return $this->params->get($name, $default);
+            return $this->params->getValue($name, $default);
         }
         else if ($this->_args->exists($name)) {
-            return $this->_args->get($name, $default);
+            return $this->_args->getValue($name, $default);
         }
         else {
-            return $this->request->params->get($name, $default);
+            return $this->request->params->getValue($name, $default);
         }        
     }
     
@@ -160,7 +160,7 @@ class view {
         return $this;
     }    
 
-    public function addParam($name, $value) {
+    public function addParam($name, $value) {        
         $this->params->get($name)->push($value);
         return $this;
     }     
@@ -233,7 +233,7 @@ class view {
 
         // what function to run
         $func = false;
-                    
+
         // module
         if ($as == 'module' AND method_exists($view, 'module')) {
             $func = 'module';
@@ -241,7 +241,7 @@ class view {
         }
 
         // if our accept header says it's ajax
-        else if ($accept == 'text/javascript;text/ajax' AND method_exists($view, 'ajax')) {
+        else if (in_array('text/javascript;text/ajax', $accept) AND method_exists($view, 'ajax')) {
             $func = 'ajax';
 
             // $resp = call_user_func_array(array($view, 'ajax'), $params);
@@ -264,7 +264,6 @@ class view {
             $func = 'get';
             // $resp = call_user_func_array(array($view, 'get'), $params);                
         }
-
         
         // reflect our method
         $m = new \ReflectionMethod($view, $func); 

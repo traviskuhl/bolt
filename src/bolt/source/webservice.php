@@ -41,7 +41,7 @@ class webservice extends \bolt\plugin\factory {
             }
         }
         else if ($key AND $val) {
-            $this->_config[$k] = $v;
+            $this->_config[$key] = $val;
         }
         else {
             return $this->__set($key);

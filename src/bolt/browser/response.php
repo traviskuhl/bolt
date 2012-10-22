@@ -74,7 +74,6 @@ class response extends \bolt\plugin {
         // plug
         $plug = "html"; 
        
-
         // loop it 
         foreach ($map as $item) {
             if (in_array($item[1], $this->_view->getAccept())) {

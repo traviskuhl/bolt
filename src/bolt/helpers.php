@@ -183,7 +183,7 @@ class helpers {
     	}
     	
     	// reconstruct
-    	$url = $u['scheme']."://".$u['host'].(isset($u['port'])?":{$u['port']}":"").$u['path'];
+    	$url = $u['scheme']."://".$u['host'].(isset($u['port'])?":{$u['port']}":"").(isset($u['path']) ? $u['path'] : "");
 
     	$url .= (strpos($url,'?')==false?'?':'&').http_build_query($params);		
     	

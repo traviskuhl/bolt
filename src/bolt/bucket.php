@@ -29,7 +29,7 @@ class bucket extends \bolt\plugin\factory implements \ArrayAccess {
 	}
 
 	public function get($name, $default=false) {
-		if (!array_key_exists($name, $this->_data)) { return $default; }
+		if (!array_key_exists($name, $this->_data)) { $this->_data[$name] = false; }
 
 		// figureo ut if it's an object
 		if (is_a($this->_data[$name], '\bolt\bucket')) {
@@ -144,9 +144,16 @@ class item {
 	public function value($default) {
 		return ($this->value ?: $default);
 	}
+	public function push($value) {
+		if ($this->value AND !is_array($this->value)) { $this->value = array(); }		
+		$this->value[] = $value;
+
+		$this->set($this->value);
+		return $this;
+	}
 	public function set($value) {
 		$this->value = $value;
-		$this->parent->set($this->key, $value);
+		$this->_parent->set($this->key, $value);
 		return $this;
 	}	
 	public function __isset($name) {
@@ -175,5 +182,8 @@ class item {
 	}
 	public function __toString() {
 		return (string)$this->value;
+	}
+	public function asArray() {
+		return (array)$this->value;
 	}
 }

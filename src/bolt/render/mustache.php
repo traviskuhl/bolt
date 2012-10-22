@@ -30,6 +30,9 @@ class mustache extends \bolt\plugin\singleton {
 
 	public function render($str, $vars=array()) {			
 
+    // render
+    $s = microtime(true);
+
 		$_modules = b::render()->getModules();	
 
 		// modules to execute
@@ -82,6 +85,8 @@ class mustache extends \bolt\plugin\singleton {
             $str = preg_replace("#".preg_quote($match[0], '#')."#", '{{'.trim($match[1],'$').'}}', $str, 1);
           }
         }
+
+      error_log("mustache render time: ".(microtime(true)-$s));
 
 		return $this->eng->render($str, $vars);
 	}
