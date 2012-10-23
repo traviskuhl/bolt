@@ -481,6 +481,10 @@ if ( isset($_SERVER['HTTP_HOST']) ) {
     if (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) AND $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https') {
         $_SERVER['SERVER_PORT'] = 443;
     }
+
+    if (isset($_SERVER['HTTP_X_PORT'])) {
+        $_SERVER['SERVER_PORT'] = $_SERVER['HTTP_X_PORT'];
+    }    
     
     if (isset($_SERVER['HTTP_X_FORWARDED_PORT'])) {
         $_SERVER['SERVER_PORT'] = $_SERVER['HTTP_X_FORWARDED_PORT'];
