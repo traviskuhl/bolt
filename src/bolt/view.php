@@ -275,12 +275,17 @@ class view {
         if ($m->getNumberOfParameters() > 0) {
             // loop through and find our names
             foreach ($m->getParameters() as $i => $param) {
+                $v = false;
                 if ($this->_args->exists($param->name)) {
-                    $args[] = $this->_args->getValue($param->name);
+                    $v = $this->_args->getValue($param->name);
                 }
-                else {                        
-                    $args[] = $this->_args->getValue($i);
+                else {        
+                    $v = $this->_args->getValue($i);                                    
+                } 
+                if ($v === false) {
+                    $v = $param->getDefaultValue();
                 }
+                $args[] = $v;
             }
         }
         else {
