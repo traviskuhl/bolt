@@ -6,7 +6,7 @@ use \b;
 // bucket
 b::plug('bucket', '\bolt\bucket');
 
-class bucket extends \bolt\plugin\factory implements \ArrayAccess {
+class bucket extends \bolt\plugin\factory implements \Iterator, \ArrayAccess {
 
 	private $_parent;
 	private $_root;
@@ -127,7 +127,29 @@ class bucket extends \bolt\plugin\factory implements \ArrayAccess {
     public function offsetGet($offset) {
         return isset($this->_data[$offset]) ? $this->_data[$offset] : null;
     }
+    function rewind() {       
+        reset($this->_data);
+    }
 
+    function current() {
+        $var = current($this->_data);
+        return $var;
+    }
+
+    function key() {
+          $var = key($this->_data);
+        return $var;
+    }
+
+    function next() {
+        $var = next($this->_data);    
+        return $var;
+    }
+
+    function valid() {
+        $var = $this->current() !== false;
+        return $var;
+    }
 }
 
 namespace bolt\bucket;
