@@ -257,8 +257,8 @@ class Mustache_Tokenizer
      *
      * @return int New index value
      */
-    private function changeDelimiters($text, $index)
-    {
+    private function changeDelimiters($text, $index) {        
+
         $startIndex = strpos($text, '=', $index) + 1;
         $close      = '='.$this->ctag;
         $closeIndex = strpos($text, $close, $index);

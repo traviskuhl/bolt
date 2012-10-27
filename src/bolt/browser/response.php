@@ -49,6 +49,16 @@ class response extends \bolt\plugin {
 		// execute our view
 		$this->_view->execute();
 
+		// rendere
+		$r = b::render();
+
+		// allow the renderers to finalize
+		foreach ($r->getPlugins() as $plug => $class) {
+			if (method_exists($r->call($plug), 'finalize')) {
+				$this->_view->setContent($r->call($plug)->finalize($this->_view->getContent()));
+			}
+		}
+
 		// what do we want to accept
 		$req = b::request();
                        

@@ -221,7 +221,7 @@ class render extends plugin {
       $renderer = p('renderer', 'mustache', $args);
 
       // render it 
-      $str = b::render($renderer)->render($str, $vars);
+      $str =  b::render($renderer)->render($str, $vars);
 
       // str
       return $str;

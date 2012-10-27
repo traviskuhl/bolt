@@ -22,7 +22,12 @@ class mustache extends \bolt\plugin\singleton {
 		$this->eng = new \Mustache_Engine(array(
 				'escape' => function($value) {
 					return htmlentities($value, ENT_QUOTES, 'UTF-8', false);
-				}
+				},                
+        'helpers' => array(
+            'boltJsEscape' => function($text) {              
+                return ($text ? '__:'.base64_encode($text).':__' : $text);
+            }
+          )
 			));
 
 
@@ -32,7 +37,18 @@ class mustache extends \bolt\plugin\singleton {
 
     // render
     $s = microtime(true);
+  
+  // convert any oldschool {$xx} to {{name}}
+      if (preg_match_all('/\{(\$[^\}]+)\}/', $str, $matches, PREG_SET_ORDER)) {
+        foreach ($matches as $match) {
+          $str = preg_replace("#".preg_quote($match[0], '#')."#", $this->eng->render('{{'.trim($match[1],'$').'}}', $vars), $str, 1);
+        }
+      }
 
+    // repalce
+    $str = preg_replace(array("#<script([^>]+)?>#","#</script>#"), array("{{#boltJsEscape}}<script$1>","</script>{{/boltJsEscape}}"), $str);      
+
+    // modules
 		$_modules = b::render()->getModules();	
 
 		// modules to execute
@@ -78,18 +94,22 @@ class mustache extends \bolt\plugin\singleton {
 
           }  
         }
+      
 
-        // convert any oldschool {$xx} to {{name}}
-        if (preg_match_all('/\{(\$[^\}]+)\}/', $str, $matches, PREG_SET_ORDER)) {
-          foreach ($matches as $match) {
-            $str = preg_replace("#".preg_quote($match[0], '#')."#", '{{'.trim($match[1],'$').'}}', $str, 1);
-          }
-        }
-
+      $str = $this->eng->render($str, $vars);      
+    
       error_log("mustache render time: ".(microtime(true)-$s));
 
-		return $this->eng->render($str, $vars);
+		return $str;
 	}
 
+  public function finalize($str) {
+    if(preg_match_all("#__:([^:]+)?:__#", $str, $matches, PREG_SET_ORDER)) { 
+        foreach ($matches as $match) {
+          $str = str_replace($match[0], base64_decode($match[1]), $str);
+        }        
+    }
+    return $str;
+  }
 
 }

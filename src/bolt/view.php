@@ -348,6 +348,11 @@ class view {
             ));
         }
 
+        // figure out of there's any wrap
+        if ($view->getWrap()) {
+            $this->setContent(str_replace("{child}", $this->getContent(), $view->getWrap()));
+        }
+
         // give back this
         return $view;    
     
