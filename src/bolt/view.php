@@ -299,12 +299,19 @@ class view {
         // try returning the same view
         $view->hasExecuted(true);
 
+
         // see if they want to forward to a different view
         if ($resp AND is_string($resp) AND class_exists($resp)) {
+
+            error_log('str response from view: '.$resp);
             
             // replace the view and retry the resp
-            $view = new $resp($view->getParams(), $view->getMethod());
-            
+            $view = new $resp($this->_args->asArray());     
+
+            // transfer params
+            $view->setParams($this->params);
+            $view->setAccept($this->accept);            
+
             // resp is false again
             $resp = false;
             
@@ -350,7 +357,7 @@ class view {
 
         // figure out of there's any wrap
         if ($view->getWrap()) {
-            $this->setContent(str_replace("{child}", $this->getContent(), $view->getWrap()));
+            $view->setContent(str_replace("{child}", $view->getContent(), $view->getWrap()));
         }
 
         // give back this

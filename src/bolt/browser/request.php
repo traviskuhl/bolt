@@ -20,7 +20,7 @@ class request extends \bolt\plugin\singleton {
 
 		// get from env
 		$this->_method = p("REQUEST_METHOD", "GET", $_SERVER);
-		$this->_accept = explode(',', p('HTTP_ACCEPT', false, $_SERVER));
+		$this->_accept = explode(',', p('_b_accept', p('HTTP_ACCEPT', false, $_SERVER), $_GET));
 
 		// create a bucket of our params
 		$this->_get = b::bucket($_GET);
@@ -42,8 +42,50 @@ class request extends \bolt\plugin\singleton {
 				die(" YOU SHOULDN'T SEE THIS. EMAIL ME NOW! ");
 			}
 
-		// create our view
-		$view = new $route['class']($route['args']);
+		// is the route a clouser
+		if (is_a($route['class'], 'Closure')) {
+
+			// args
+			$args = $route['args'];
+            
+            // reflect our function 
+            $f = new \ReflectionFunction($route['class']);
+            
+            // params
+            $p = $f->getParameters();
+            
+            // yes or no
+            if (count($p) > 0) {
+                
+                // do it 
+                $_params = array();
+                
+                // loop
+                foreach ($p as $item) {
+                    $_params[] = (array_key_exists($item->name, $args) ? $args[$item->name] : $item->getDefaultValue());                    
+                }
+            
+                // call our function
+                $view = call_user_func_array($route['class'], $_params);
+                            
+            }
+            else {
+                $view = $route['class']();
+            }
+                    
+            // resp is a string not a view
+            if (is_string($view)) {
+            	$view = new \bolt\view();
+            	$vite->setContent($view);
+            }           
+
+		}
+		else {
+
+			// create our view
+			$view = new $route['class']($route['args']);
+
+		}
 
 		// now create a response 
 		b::response()->setView($view)->respond();

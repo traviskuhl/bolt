@@ -47,7 +47,7 @@ class response extends \bolt\plugin {
 	public function respond() {
 
 		// execute our view
-		$this->_view->execute();
+		$this->_view = $this->_view->execute();
 
 		// rendere
 		$r = b::render();
@@ -83,7 +83,7 @@ class response extends \bolt\plugin {
         
         // plug
         $plug = "html"; 
-       
+
         // loop it 
         foreach ($map as $item) {
             if (in_array($item[1], $this->_view->getAccept())) {
