@@ -17,7 +17,8 @@ class webservice extends \bolt\plugin\factory {
         'headers'   => array(),
         'method'    => 'curl',
         'auth'      => array(),
-        'curlOpts'  => array()
+        'curlOpts'  => array(),
+        'timeout'   => 10
     );
     
     // oauth
@@ -111,6 +112,7 @@ class webservice extends \bolt\plugin\factory {
         curl_setopt($this->_curl, CURLOPT_FOLLOWLOCATION, 1);
         curl_setopt($this->_curl, CURLOPT_SSL_VERIFYPEER, 0);        
         curl_setopt($this->_curl, CURLINFO_HEADER_OUT, 1);    
+        curl_setopt($this->_curl, CURLOPT_TIMEOUT, $this->timeout);
         
         // cookies
         if (array_key_exists('cookies', $headers)) {

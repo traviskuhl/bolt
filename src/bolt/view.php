@@ -273,6 +273,7 @@ class view {
 
         // params
         if ($m->getNumberOfParameters() > 0) {
+
             // loop through and find our names
             foreach ($m->getParameters() as $i => $param) {
                 $v = false;
@@ -282,9 +283,9 @@ class view {
                 else {        
                     $v = $this->_args->getValue($i);                                    
                 } 
-                if ($v === false) {
+                if ($v === false AND $param->isOptional()) {
                     $v = $param->getDefaultValue();
-                }
+                }                
                 $args[] = $v;
             }
         }
@@ -353,6 +354,9 @@ class view {
                     'view' => $view
                 )
             ));
+        }
+        else if ($view->getWrap() === -1) {
+            $view->setWrap('{child}');
         }
 
         // figure out of there's any wrap

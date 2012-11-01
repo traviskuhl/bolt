@@ -132,8 +132,16 @@ class render extends plugin {
         // get module
         $v = $this->getModule($name, $args);
 
+        // figureo ut if params is a bucket or array
+        if (is_object($params) AND is_a($params, '\bolt\bucket')) {
+          $v->setParams($params);
+        }
+        else if (is_array($params)) {
+          $v->setParam($params);
+        }
+
         // now render the output as a string
-        return $v->setParam($params)->execute('module')->getContent();
+        return $v->execute('module')->getContent();
     
     }
 
