@@ -46,6 +46,7 @@ class response extends \bolt\plugin {
 
 	public function respond() {
 
+		
 		// execute our view
 		$this->_view = $this->_view->execute();
 

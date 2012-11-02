@@ -243,7 +243,6 @@ class view {
         // if our accept header says it's ajax
         else if (in_array('text/javascript;text/ajax', $accept) AND method_exists($view, 'ajax')) {
             $func = 'ajax';
-
             // $resp = call_user_func_array(array($view, 'ajax'), $params);
         }                    
 
@@ -295,11 +294,10 @@ class view {
 
         // go ahead an execute
         $resp = call_user_func_array(array($view, $func), $args);
-        
+
         // we've executed, just in case they
         // try returning the same view
         $view->hasExecuted(true);
-
 
         // see if they want to forward to a different view
         if ($resp AND is_string($resp) AND class_exists($resp)) {
