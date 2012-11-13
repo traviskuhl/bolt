@@ -18,7 +18,7 @@ class webservice extends \bolt\plugin\factory {
         'method'    => 'curl',
         'auth'      => array(),
         'curlOpts'  => array(),
-        'timeout'   => 10
+        'timeout'   => 15
     );
 
     // oauth

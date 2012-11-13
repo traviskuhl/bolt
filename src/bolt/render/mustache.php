@@ -24,7 +24,7 @@ class mustache extends \bolt\plugin\singleton {
 					return htmlentities($value, ENT_QUOTES, 'UTF-8', false);
 				},                
         'helpers' => array(
-            'boltJsEscape' => function($text) {              
+            'boltJsEscape' => function($text) {                    
                 return ($text ? '__:'.base64_encode($text).':__' : $text);
             }
           )
