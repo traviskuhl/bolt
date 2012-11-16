@@ -46,7 +46,7 @@ class response extends \bolt\plugin {
 
 	public function respond() {
 
-		
+
 		// execute our view
 		$this->_view = $this->_view->execute();
 
@@ -62,42 +62,42 @@ class response extends \bolt\plugin {
 
 		// what do we want to accept
 		$req = b::request();
-                       
+
         // accept
         $map = array();
-        
-        // loop through all our plugins 
-        // to figure out which render to use 
-        foreach ($this->getPlugins() as $plug => $class) {        
+
+        // loop through all our plugins
+        // to figure out which render to use
+        foreach ($this->getPlugins() as $plug => $class) {
             foreach ($class::$accept as $weight => $str) {
                 $map[] = array($weight, $str, $plug);
             }
         }
-        
+
         // sort renders by weight
         uasort($map, function($a,$b){
             if ($a[0] == $b[0]) {
                 return 0;
             }
-            return ($a[0] < $b[0]) ? -1 : 1;        
-        }); 
-        
-        // plug
-        $plug = "html"; 
+            return ($a[0] < $b[0]) ? -1 : 1;
+        });
 
-        // loop it 
+        // plug
+        $plug = "html";
+
+        // loop it
         foreach ($map as $item) {
             if (in_array($item[1], $this->_view->getAccept())) {
                 $plug = $item[2]; break;
             }
         }
 
-        // get our 
+        // get our
         $p = $this->call($plug);
 
         // print a content type
-        $this->_headers->set('Content-Type', $p->contentType);
-    
+        header("Content-Type: {$p->contentType}", true, $this->getStatus());
+
     	// print all headers
         $this->_headers->map(function($name, $value){
         	header("$name: $value");
