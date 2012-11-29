@@ -41,7 +41,7 @@ class bucket extends \bolt\plugin\factory implements \Iterator, \ArrayAccess {
 		return new bucket\item($name, $this->_data[$name], $this);
 	}
 
-	public function getValue($name, $default=false) {	
+	public function getValue($name, $default=false) {
 		return ($this->exists($name) ? $this->_data[$name] : $default);
 	}
 
@@ -96,7 +96,7 @@ class bucket extends \bolt\plugin\factory implements \Iterator, \ArrayAccess {
 		return (array_key_exists($name, $this->_data));
 	}
 
-	public function __isset($name) {	var_dump($name); die;
+	public function __isset($name) {
 		return $this->exists($name);
 	}
 
@@ -127,7 +127,7 @@ class bucket extends \bolt\plugin\factory implements \Iterator, \ArrayAccess {
     public function offsetGet($offset) {
         return isset($this->_data[$offset]) ? $this->_data[$offset] : null;
     }
-    function rewind() {       
+    function rewind() {
         reset($this->_data);
     }
 
@@ -142,7 +142,7 @@ class bucket extends \bolt\plugin\factory implements \Iterator, \ArrayAccess {
     }
 
     function next() {
-        $var = next($this->_data);    
+        $var = next($this->_data);
         return $var;
     }
 
@@ -167,7 +167,7 @@ class item {
 		return ($this->value ?: $default);
 	}
 	public function push($value) {
-		if ($this->value AND !is_array($this->value)) { $this->value = array(); }		
+		if ($this->value AND !is_array($this->value)) { $this->value = array(); }
 		$this->value[] = $value;
 
 		$this->set($this->value);
@@ -177,12 +177,12 @@ class item {
 		$this->value = $value;
 		$this->_parent->set($this->key, $value);
 		return $this;
-	}	
+	}
 	public function __isset($name) {
 		if (is_object($this->value) AND method_exists($this, '__isset')) {
 			return $this->value->__isset($name);
 		}
-		return true;		
+		return true;
 	}
 	public function __get($name) {
 		if (is_object($this->value) AND method_exists($this, '__get')) {

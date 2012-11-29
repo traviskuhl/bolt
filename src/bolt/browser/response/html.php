@@ -12,28 +12,26 @@ class html extends \bolt\plugin\singleton {
     public static $accept = array(
         100 => 'text/html'
     );
-    
+
     // content type
     public $contentType = "text/html";
-    
+
     //
     public function getContent($view) {
-        
-        // give it up
-        $html = $view->getContent();
 
-        echo $html; die;
-        
+        // give it up
+        $html = $view->getContent(true);
+
         // is html really an array
         if (is_array($html)) {
             if (isset($html['redirect'])) {
                 exit(call_user_func(array('b', 'location'), $html['redirect']));
             }
-        }            
-            
+        }
+
         // html
         return $html;
-            
+
     }
 
 }

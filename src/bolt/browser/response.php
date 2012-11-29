@@ -53,12 +53,6 @@ class response extends \bolt\plugin {
 		// rendere
 		$r = b::render();
 
-		// allow the renderers to finalize
-		foreach ($r->getPlugins() as $plug => $class) {
-			if (method_exists($r->call($plug), 'finalize')) {
-				$this->_view->setContent($r->call($plug)->finalize($this->_view->getContent()));
-			}
-		}
 
 		// what do we want to accept
 		$req = b::request();
@@ -103,8 +97,20 @@ class response extends \bolt\plugin {
         	header("$name: $value");
         });
 
+        // resp
+        $resp = $p->getContent($this->_view);
+
+        // allow the renderers to finalize
+        if (is_string($resp)) {
+            foreach ($r->getPlugins() as $plug => $class) {
+                if (method_exists($r->call($plug), 'finalize')) {
+                    $resp = $r->call($plug)->finalize($resp);
+                }
+            }
+        }
+
         // respond
-        exit($p->getContent($this->_view));
+        exit($resp);
 
 	}
 
