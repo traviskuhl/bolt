@@ -15,10 +15,10 @@ class mongo extends \bolt\plugin\singleton {
 
     private $instance = false;
 
-    public function __construct($args=array()) {  
+    public function __construct($args=array()) {
         $this->instance = b::source()->mongo(b::config()->mongo);
     }
-    
+
     // call it
     public function __call($name, $args) {
         return call_user_func_array(array($this->instance, $name), $args);
@@ -31,13 +31,13 @@ class mongoi extends \bolt\plugin\factory {
 
 	// dbh
 	private $dbh = false;
-	
+
 	private $_db = false;
 	private $config = array();
 	private $grid = false;
 
-	public function __construct($config) {	 
-		$this->config = $config;		
+	public function __construct($config) {
+		$this->config = $config;
 	}
 
 	private function _connect() {
@@ -53,11 +53,11 @@ class mongoi extends \bolt\plugin\factory {
 		$this->_pass = p('pass', false, $this->config);
 
 		// try to connect
-		try { 
+		try {
 
 			// set dbh
 			if ( $this->_user != false AND $this->_pass != false ) {
-				$this->dbh = new \Mongo("mongodb://{$this->_user}:{$this->_pass}@{$this->_host}:{$this->_port}");		
+				$this->dbh = new \Mongo("mongodb://{$this->_user}:{$this->_pass}@{$this->_host}:{$this->_port}");
 			}
 			else {
 				$this->dbh = new \Mongo("mongodb://{$this->_host}:{$this->_port}");
@@ -75,8 +75,8 @@ class mongoi extends \bolt\plugin\factory {
     public function __get($name) {
         return $this->getHandle()->{$this->_db}->{$name};
     }
-    
-	public function setDb($name) {		
+
+	public function setDb($name) {
 		$this->config += array('db'=>$name);
 		$this->_db = $name;
 		if ($this->dbh) {
@@ -84,28 +84,28 @@ class mongoi extends \bolt\plugin\factory {
 		}
 	}
 
-	public function getDb() {	
+	public function getDb() {
 		return $this->_db;
 	}
 
-	public function getHandle() {	
+	public function getHandle() {
         $this->_connect();
 		return $this->dbh;
 	}
-	
+
     public function getGridFS($db='fs', $prefix="fs") {
         if ($this->grid) {
             return $this->grid;
         }
-        
+
         $this->_connect();
 
-        // grid 
-        $this->grid = new \MongoGridFS($this->dbh->selectDB($db), $prefix);        
+        // grid
+        $this->grid = new \MongoGridFS($this->dbh->selectDB($db), $prefix);
         return $this->grid;
-        
+
     }
-	
+
 	public function query($collection, $query, $args=array()) {
 
 		// try connecting
@@ -119,13 +119,13 @@ class mongoi extends \bolt\plugin\factory {
 
 		// sth
 		$col = $db->{$collection};
-		
+
 		// id => _id
 		if ( isset($query['id']) ) {
-		
+
 			// query _id
 			$query['_id'] = $query['id'];
-			
+
 			// unset
 			unset($query['id']);
 
@@ -171,17 +171,17 @@ class mongoi extends \bolt\plugin\factory {
 
 	public function count($collection,$query=array(),$args=array()) {
 
-		// do it 
+		// do it
 		$this->_connect();
-		
+
 		// different db
-		$_db = (isset($args['db']) ? $args['db'] : $this->_db);		
+		$_db = (isset($args['db']) ? $args['db'] : $this->_db);
 
 		// sth
 		$db = $this->dbh->{$_db};
 
 		// sth
-		$sth = $db->{$collection};		
+		$sth = $db->{$collection};
 
 		// reutrn it
 		return $sth->count($query);
@@ -191,7 +191,7 @@ class mongoi extends \bolt\plugin\factory {
 	public function row($collection,$query,$args=array()) {
 
 		// try connecting
-		$this->_connect();		
+		$this->_connect();
 
 		// send to query
 		$args['per'] = 1;
@@ -207,32 +207,8 @@ class mongoi extends \bolt\plugin\factory {
 	public function insert($collection, $data, $safe=false, $args=array()) {
 
 		// try connecting
-		$this->_connect();	
-		
-		// different db
-		$_db = (isset($args['db']) ? $args['db'] : $this->_db);		
+		$this->_connect();
 
-		// sth
-		$db = $this->dbh->{$_db};
-
-		// sth
-		$sth = $db->{$collection};		
-
-		// insert
-		try { 
-			$resp = $sth->insert($data,$safe);
-		}
-		catch(\MongoCursorException $e) {
-			throw $e; return;
-		}
-		
-	} 
-
-	public function update($collection, $query, $data, $opts=array(), $args=array()) {
-
-		// try connecting
-		$this->_connect();	
-		
 		// different db
 		$_db = (isset($args['db']) ? $args['db'] : $this->_db);
 
@@ -240,11 +216,35 @@ class mongoi extends \bolt\plugin\factory {
 		$db = $this->dbh->{$_db};
 
 		// sth
-		$sth = $db->{$collection};			
+		$sth = $db->{$collection};
+
+		// insert
+		try {
+			$resp = $sth->insert($data,$safe);
+		}
+		catch(\MongoCursorException $e) {
+			throw $e; return;
+		}
+
+	}
+
+	public function update($collection, $query, $data, $opts=array(), $args=array()) {
+
+		// try connecting
+		$this->_connect();
+
+		// different db
+		$_db = (isset($args['db']) ? $args['db'] : $this->_db);
+
+		// sth
+		$db = $this->dbh->{$_db};
+
+		// sth
+		$sth = $db->{$collection};
 
 		// run it
 		$r = $sth->update($query, $data, $opts);
-		
+
 		// return
 		return $r;
 
@@ -253,7 +253,7 @@ class mongoi extends \bolt\plugin\factory {
 	public function delete($collection,$query,$opts=array(),$args=array()) {
 
 		// try connecting
-		$this->_connect();	
+		$this->_connect();
 
 		// different db
 		$_db = (isset($args['db']) ? $args['db'] : $this->_db);
@@ -262,11 +262,11 @@ class mongoi extends \bolt\plugin\factory {
 		$db = $this->dbh->{$_db};
 
 		// sth
-		$sth = $db->{$collection};			
+		$sth = $db->{$collection};
 
 		// run it
-		return $sth->remove($query,$opts);	
+		return $sth->remove($query,$opts);
 
-	}	    
+	}
 
 }

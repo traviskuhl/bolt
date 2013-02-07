@@ -37,6 +37,7 @@ class Mustache_Engine
     private $helpers;
     private $escape;
     private $charset = 'UTF-8';
+    private $delimiter = '{{ }}';
 
     /**
      * Mustache class constructor.
@@ -115,6 +116,11 @@ class Mustache_Engine
         if (isset($options['charset'])) {
             $this->charset = $options['charset'];
         }
+
+        if (isset($options['delimiter'])) {
+            $this->delimiter = $options['delimiter'];
+        }
+
     }
 
     /**
@@ -511,7 +517,7 @@ class Mustache_Engine
      */
     private function tokenize($source)
     {
-        return $this->getTokenizer()->scan($source);
+        return $this->getTokenizer()->scan($source, $this->delimiter);
     }
 
     /**

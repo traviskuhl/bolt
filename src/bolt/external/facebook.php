@@ -7,7 +7,7 @@ use \b as b;
 b::external()->plug('facebook', '\bolt\external\facebook');
 
 // include our facebook
-include(bRoot."/bolt/external/facebook/base_facebook.php");
+include(bRoot."/vendor/facebook/base_facebook.php");
 
 // our localfacebook
 class bFacebook extends \BaseFacebook {

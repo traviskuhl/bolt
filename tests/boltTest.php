@@ -1,44 +1,83 @@
 <?php
 
 class boltTest extends bolt_test {
-    
-    // setup
-    public function testInit() {
-            
-        // a
-        $a = array(
+
+    private $_initSettings = false;
+
+    public function setUp() {
+        $this->_initSettings = array(
             'config' => array(
                 'test' => true
             ),
             'load' => array(
-                dirname(__FILE__).'/_blank'
+                dirname(__FILE__).'/include/blankClass.php'
             )
-        );                    
-            
+        );
+
         // call init with some test stuff
-        b::init($a);            
-    
+        b::init($this->_initSettings);
+
+    }
+
+    // setup
+    public function testInit() {
+
         // get our bolt instance
         $b = b::bolt();
-        
+
         // test get bolt
-        $this->assertInstanceOf('bolt', $b);        
-        
-        // loaded
-        $this->assertEquals($a['load'], b::getLoaded());
-        
+        $this->assertInstanceOf('bolt', $b);
+
+    }
+
+    public function testLoad() {
+
+        // test load on init
+        $this->assertTrue(in_array($this->_initSettings['load'][0], b::getLoaded()));
+
+        $this->assertTrue(class_exists("blankClass"));
+
+        $file = dirname(__FILE__).'/include/blankClass2.php';
+
+        // load array
+        b::load(array($file));
+
+        // load
+        $this->assertTrue(in_array($file, b::getLoaded()));
+
+        $this->assertTrue(class_exists("blankClass2"));
+
+    }
+
+    public function testAutoload() {
+
+        $folder = dirname(__FILE__).'/include/';
+
+        // add to autoload
+        b::$autoload[] = $folder;
+
+        // assert true
+        $this->assertTrue(in_array($folder, b::$autoload));
+
+        // does the class exists
+        $this->assertTrue(class_exists("blankClass3", true));
+
+    }
+
+    public function testConfig() {
+
         // config was set
-        $this->assertTrue(b::config()->test);        
-        
+        $this->assertTrue(b::config()->test);
+
         // config
         $this->assertTrue(b::_("test"));
 
         // config
         $this->assertInstanceOf('bolt\config', b::_("test2", true));
-        
+
         // param
         $this->assertTrue(b::_("test2"));
-                    
+
     }
 
 }

@@ -7,7 +7,7 @@ abstract class mongo extends \bolt\dao\item {
 
     // collection
     protected $table = false;
-    
+
     // enableCaching
     protected $cache = array('enable' => true, 'handler' => 'memcache', 'ttl' => 0);
 
@@ -22,87 +22,96 @@ abstract class mongo extends \bolt\dao\item {
 
     // get
     public function get() {
-    
+
         // args
         $args = func_get_args();
-        
+
         // morph
         if (is_array(func_get_arg(0))) {
-            return call_user_func_array(array($this, 'query'), $args);        
+            return call_user_func_array(array($this, 'query'), $args);
         }
         else {
             return call_user_func_array(array($this, 'row'), $args);
-        }        
-        
+        }
+
     }
-    
+
+    public function count($query, $args=array()) {
+        return b::mongo()->count($this->table, $query, $args);
+    }
+
     public function row($field, $val=array()) {
-    
+
         // start off with no resp
         $resp = false;
-    
+
         // if field is id and cache is enabled
         // we should check the cache
-        if ($this->cache['enable'] == true AND $field == 'id' AND $val) {        
+        if ($this->cache['enable'] == true AND $field == 'id' AND $val) {
             $cid = "{$this->table}:{$val}";
-            $resp = call_user_func(array($this->getCacheHandler(), 'get'), $cid);                        
+            $resp = call_user_func(array($this->getCacheHandler(), 'get'), $cid);
         }
-    
+
         // no resp
         if (!$resp) {
-        
+
             // query that shit up
             $resp = \b::mongo()->row($this->table, array($field => $val));
-            
+
             // if field is id and cache is enabled
             // we should check the cache
             if ($this->cache['enable'] == true AND $field == 'id' AND $resp) {
                 $cid = "{$this->table}:{$val}";
-                $resp['id'] = $val;                
+                $resp['id'] = $val;
                 call_user_func(array($this->getCacheHandler(), 'set'), $cid, $resp, $this->cache['ttl']);
             }
-            
+
         }
-                        
+
         // what up
-        if ($resp) { 
+        if ($resp) {
             $this->set($resp);
         }
-        
+
         // this
         return $this;
 
     }
-    
+
     public function query($query, $args=array()) {
-        
+
         // get the called class
         $lsb = get_called_class();
-        
+
         // no fields lets set to get just
         // an id
         if (!array_key_exists('fields', $args)) {
             $args['fields'] = array('_id' => 1);
         }
-    
+
         // run our query
         $sth = \b::mongo()->query($this->table, $query, $args);
-            
+
         // stack
-        $stack = new \bolt\dao\stack($lsb);            
-            
+        $stack = new \bolt\dao\stack($lsb);
+
         // loop it up
         foreach ($sth as $item) {
             $stack->push(b::dao($lsb)->get('id', $item['_id']), $item['_id']);
         }
-        
+
         // give me this
         return $stack;
-    
+
     }
-    
-    public function save() {
-    
+
+    public function save($data=false) {
+
+        // set data
+        if ($data AND is_array($data)) {
+            $this->set($data);
+        }
+
 		// edit?
 		$edit = $this->id;
 
@@ -113,11 +122,11 @@ abstract class mongo extends \bolt\dao\item {
 		$id = (isset($data['_id']) ? $data['_id'] : $data['id']);
 
 		// unset
-		unset($data['id'], $data['_id']);	
+		unset($data['id'], $data['_id']);
 
-		// save it 
+		// save it
 		try {
-			$r = \b::mongo()->update($this->table, array('_id' => $id), array('$set' => $data), array('upsert'=>true, 'safe'=>true));		
+			$r = \b::mongo()->update($this->table, array('_id' => $id), array('$set' => $data), array('upsert'=>true, 'safe'=>true));
 		}
 		catch (MongoCursorException $e) {
 			return false;
@@ -130,18 +139,18 @@ abstract class mongo extends \bolt\dao\item {
             call_user_func(array($this->getCacheHandler(), 'set'), $cid, $data, $this->cache['ttl']);
         }
 
-		// save id 
+		// save id
 		$this->id = $id;
 
 		// give back
-		return $id;	
-        
+		return $id;
+
     }
-    
+
     public function delete() {
         return b::mongo()->delete($this->table, array('_id' => $this->id));
     }
-    
+
     public function getGridFS() {
         return call_user_func_array(array(b::mongo(), 'getGridFS'), func_get_args());
     }

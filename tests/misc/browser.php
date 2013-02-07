@@ -2,7 +2,7 @@
 <?php
 
 // bolt
-include("../src/bolt.php");
+include("../../src/bolt.php");
 
 // init bolt
 b::init(array(
@@ -22,10 +22,20 @@ b::init(array(
     )
 ));
 
-// route
-b::route("(?P<say>[^/]+)/(?P<place>[^/]+)", function($place, $say){
-    return "poop";
-});
+// // route
+// b::route("(?P<say>[^/]+)/(?P<place>[^/]+)", function($place, $say){
+//     return "poop";
+// });
+
+b::route(
+        b::route('regex', '^(hello)>say/(world)>place/?$', 'GET'),
+        function($say, $place) {
+            return 'fuck';
+
+        }
+    );
+
+
 
 b::run(array(
     'path' => "hello/world",
