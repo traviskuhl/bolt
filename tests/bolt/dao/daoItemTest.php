@@ -15,15 +15,16 @@ class daoItemTest extends bolt_test {
         ));
 
         // object
-        $this->item = b::dao('daoTestClass');
+        $this->item = b::dao('daoItemTestClass');
 
     }
 
+    // getters
     public function testInst() {
-        $this->assertTrue(is_a($this->item, 'daoTestClass'));
+        $this->assertTrue(is_a($this->item, 'daoItemTestClass'));
     }
-    public function testValue() {
-        $this->assertEquals($this->item->value('test'), 'test');
+    public function testGetValue() {
+        $this->assertEquals($this->item->getValue('test'), 'test');
     }
     public function testGetFunction() {
         $this->assertEquals($this->item->test, 'test');
@@ -41,20 +42,85 @@ class daoItemTest extends bolt_test {
         $this->assertEquals($this->item->float->value, $fl);
     }
 
-    /// traits
-    public function testAddTrait() {
-        $this->item->addTrait('\daoTestTraitClass2');
-        $this->asserTrue(in_array('\daoTestTraitClass2', $this->item->getTraits()));
-
+    /// setters
+    public function testSetValue() {
+        $this->item->setValue('string', true);
+        $this->assertEquals("", $this->item->string);
+    }
+    public function testSet() {
+        $this->item->set(array('string' => true, 'bool' => true));
+        $this->assertEquals("", $this->item->string);
+        $this->assertTrue($this->item->bool->value);
+    }
+    public function testMagicSet() {
+        $this->item->string = true;
+        $this->assertEquals("", $this->item->string);
     }
 
+    /// traits
+    public function testConstructTrait() {
+        $this->assertTrue(array_key_exists('gettraittest', $this->item->getTraits()));
+        $this->assertTrue(array_key_exists('daoTestTraitClass', $this->item->getTraitInstances()));
+    }
+    public function testAddTrait() {
+        $this->item->addTrait('\daoTestTraitClass2');
+        $this->assertTrue(array_key_exists('gettraittest2', $this->item->getTraits()));
+        $this->assertTrue(array_key_exists('\daoTestTraitClass2', $this->item->getTraitInstances()));
+    }
+    public function testCallTraitClass() {
+        $this->assertEquals('testt', $this->item->callTrait('getTraitTest'));
+        $this->assertEquals('testt', $this->item->callTrait('gettraittest'));
+    }
+    public function testCallTraitClosure() {
+        $this->item->addTrait(
+            'getClosureTrait',
+            function(){
+                return func_get_args();
+            },
+            array('static', '$key1')
+        );
+        $this->assertEquals(array('static','poop'), $this->item->callTrait('getClosureTrait'));
+        $this->assertEquals(array('static','poop'), $this->item->callTrait('getclosuretrait'));
+    }
 
+    // normalize
+    public function testNormalize() {
+        $expect = array(
+            'string' => "",
+            'bool' => false,
+            'key1' => 'poop',
+            'class' => array('static', 'poop')
+        );
+        $actual = $this->item->normalize();
+        foreach ($expect as $key => $value) {
+            $this->assertEquals($value, $actual[$key]);
+        }
+    }
+    public function testNormalizeTraitClosure() {
+        $this->item->addTrait(
+            'normalizeKey1',
+            function($param) {
+                return 'normalized';
+            },
+            array('$key1')
+        );
+        $expect = array(
+            'string' => "",
+            'bool' => false,
+            'key1' => 'normalized',
+            'class' => array('static', 'poop')
+        );
+        $actual = $this->item->normalize();
+        foreach ($expect as $key => $value) {
+            $this->assertEquals($value, $actual[$key]);
+        }
+    }
 
 }
 
 
 
-class daoTestClass extends \bolt\dao\item {
+class daoItemTestClass extends \bolt\dao\item {
 
     // traits
     public $traits = array('daoTestTraitClass');
@@ -62,8 +128,7 @@ class daoTestClass extends \bolt\dao\item {
     // struct
     public function getStruct() {
         return array(
-            'uid' => array('type' => "uid"),
-            'id' => array('type' => "uuid", 'cast' => 'string'),
+            'string' => array('cast' => 'string'),
             'bool' => array('cast' => 'bool'),
             'key1' => array('default' => 'poop'),
             'float' => array('cast' => 'float', 'default' => 'a'),
@@ -75,7 +140,19 @@ class daoTestClass extends \bolt\dao\item {
         );
     }
 
+    public function getString() {
+        return "";
+    }
+
+    public function setString($value) {
+        return (string)$value;
+    }
+
     public function getTest() {
+        return 'test';
+    }
+
+    public function setTest() {
         return 'test';
     }
 
@@ -91,7 +168,7 @@ class daoTestTraitClass {
 
 class daoTestTraitClass2 {
 
-    public function getTraitTest() {
+    public function getTraitTest2() {
         return 'testt22';
     }
 

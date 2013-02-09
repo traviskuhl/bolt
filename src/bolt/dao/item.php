@@ -15,6 +15,7 @@ abstract class item extends \bolt\bucket {
     protected $traits = array();
 
     ////////////////////////////////////////////////////////////////////
+    /// @abstract
     /// @brief get the struct of the item
     ///
     /// @return array of struct
@@ -59,11 +60,23 @@ abstract class item extends \bolt\bucket {
     /// @brief MAGIC get a value
     ///
     /// @param $name name of value
-    /// @see value()
+    /// @see getValue()
     /// @return array of traits
     ////////////////////////////////////////////////////////////////////
     public function __get($name) {
-        return $this->value($name);
+        return $this->getValue($name);
+    }
+
+    ////////////////////////////////////////////////////////////////////
+    /// @brief MAGIC set a value
+    ///
+    /// @param $name name of value
+    /// @param $value value
+    /// @see setValue()
+    /// @return self
+    ////////////////////////////////////////////////////////////////////
+    public function __set($name, $value) {
+        return $this->setValue($name, $value);
     }
 
     ////////////////////////////////////////////////////////////////////
@@ -73,7 +86,7 @@ abstract class item extends \bolt\bucket {
     ////////////////////////////////////////////////////////////////////
     public function __call($name, $args) {
         if (method_exists($this, $name)) {
-            return call_user_func(array($this, $name));
+            return call_user_func_array(array($this, $name), $args);
         }
         else if (array_key_exists(strtolower($name), $this->_traits)) {
             return $this->callTrait($name, $args);
@@ -81,6 +94,41 @@ abstract class item extends \bolt\bucket {
         return false;
     }
 
+    ////////////////////////////////////////////////////////////////////
+    /// @brief returns a dao results array
+    ///
+    /// @return self
+    ////////////////////////////////////////////////////////////////////
+    public function result($items, $key=null) {
+        $class = get_class($this);
+        foreach ($items as $i => $item){
+            $items[$i] = new $class($item);
+        }
+        return new result($items, $key);
+    }
+
+    ////////////////////////////////////////////////////////////////////
+    /// @brief handle getting the values
+    ///
+    /// @return self
+    ////////////////////////////////////////////////////////////////////
+    public function get() {
+        return $this;
+    }
+
+    ////////////////////////////////////////////////////////////////////
+    /// @brief set an array of data
+    ///
+    /// @param $values array of values
+    /// @see setValue
+    /// @return self
+    ////////////////////////////////////////////////////////////////////
+    public function set($values) {
+        foreach ($values as $name => $value) {
+            $this->setValue($name, $value);
+        }
+        return $this;
+    }
 
     ////////////////////////////////////////////////////////////////////
     /// @brief return a value
@@ -90,7 +138,7 @@ abstract class item extends \bolt\bucket {
     /// @see bucket::get()
     /// @return value
     ////////////////////////////////////////////////////////////////////
-    public function value($name, $default=false) {
+    public function getValue($name, $default=false) {
         $getName = "get{$name}"; $value = false;
 
         // default value
@@ -117,12 +165,46 @@ abstract class item extends \bolt\bucket {
                 $value = $value->cast($this->_struct[$name]['cast']);
             }
             else {
-                $value = settype($value, $this->_struct[$name]['cast']);
+                settype($value, $this->_struct[$name]['cast']);
             }
         }
         return $value;
     }
 
+    ////////////////////////////////////////////////////////////////////
+    /// @brief set a value
+    ///
+    /// @param $name name of value
+    /// @param $default default return if value undefined
+    /// @see bucket::set()
+    /// @return sefl
+    ////////////////////////////////////////////////////////////////////
+    public function setValue($name, $value=false) {
+        $setName = "get{$name}";
+
+        // cast as something special
+        if (array_key_exists($name, $this->_struct) AND isset($this->_struct[$name]['cast'])) {
+            if (is_a($value, '\bolt\bucket\bString')) {
+                $value = $value->cast($this->_struct[$name]['cast']);
+            }
+            else {
+                settype($value, $this->_struct[$name]['cast']);
+            }
+        }
+
+        // find it
+        if (method_exists($this, $setName)) {
+            $value = call_user_func(array($this, $setName), $value);
+        }
+        else if (array_key_exists(strtolower($setName), $this->_traits)) {
+            $value = $this->callTrait($setName, array($value));
+        }
+        else {
+            $value = parent::set($name, $value);
+        }
+
+        return $this;
+    }
 
 
     ////////////////////////////////////////////////////////////////////
@@ -131,23 +213,73 @@ abstract class item extends \bolt\bucket {
     /// @return array of values
     ////////////////////////////////////////////////////////////////////
     public function normalize() {
+        $data = $this->getData();
+
+        // loop through the struct
+        // and try to normalize the data
+        foreach ($this->_struct as $key => $info) {
+            if (!array_key_exists($key, $data)) {
+                $data[$key] = $this->getValue($key);
+            }
+
+            // name of normalize function
+            $name = strtolower("normalize{$key}");
+
+            // check to see if we have a normalization trai
+            if (array_key_exists($name, $this->_traits)) {
+                $data[$key] = $this->callTrait($name);
+            }
+
+            // if we have a bucket or bstring convert
+            if (is_a($data[$key], '\bolt\bucket')) {
+                $data[$key] = $data[$key]->asArray();
+            }
 
 
+            if (is_a($data[$key], '\bolt\bucket\bString')) {
+                $data[$key] = $data[$key]->value;
+            }
+
+
+            // make sure the tair conforms to any cast
+            if (isset($info['cast'])) {
+                settype($data[$key], $info['cast']);
+            }
+
+            // default value
+            if (!$data[$key] AND isset($info['default'])) {
+                $data[$key] = $info['default'];
+            }
+
+        }
+
+        // return our normalize array
+        return $data;
 
     }
 
     ////////////////////////////////////////////////////////////////////
-    /// @brief add traits
+    /// @brief add trait
     ///
-    /// @param $classes string|array of trait classes
+    /// @param $class class name or method name
+    /// @param $closure callback
+    /// @param $args arguments to pass to callback
     /// @return self
     ////////////////////////////////////////////////////////////////////
-    protected function addTrait($classes) {
-        if (!is_array($classes)) {$classes = array($classes); }
-        foreach ($classes as $class) {
-            $this->_traitInstance[$class] = false;
-            foreach (get_class_methods($class) as $method) {
-                $this->_traits[strtolower($method)] = array($class, $method);
+    protected function addTrait($class, $cb=false, $args=array()) {
+        if ($cb AND is_a($cb, 'Closure')) {
+            $this->_traits[strtolower($class)] = array(
+                    $cb,
+                    $args
+                );
+        }
+        else {
+            $classes = (is_array($class) ? $class : array($class));
+            foreach ($classes as $class) {
+                $this->_traitInstance[$class] = false;
+                foreach (get_class_methods($class) as $method) {
+                    $this->_traits[strtolower($method)] = array($class, $method);
+                }
             }
         }
         return $this;
@@ -158,7 +290,7 @@ abstract class item extends \bolt\bucket {
     ///
     /// @return array of traits
     ////////////////////////////////////////////////////////////////////
-    protected function getTraits() {
+    public function getTraits() {
         return $this->_traits;
     }
 
@@ -167,7 +299,7 @@ abstract class item extends \bolt\bucket {
     ///
     /// @return array of traits instances
     ////////////////////////////////////////////////////////////////////
-    protected function getTraitInstances() {
+    public function getTraitInstances() {
         return $this->_traitInstance;
     }
 
@@ -176,7 +308,7 @@ abstract class item extends \bolt\bucket {
     ///
     /// @return array of traits
     ////////////////////////////////////////////////////////////////////
-    public function callTrait($name, $args=array()) {
+    protected function callTrait($name, $args=array()) {
         $t = $this->_traits[strtolower($name)];
         $func = false; $_args = array();
 
@@ -185,7 +317,7 @@ abstract class item extends \bolt\bucket {
             if (isset($t[1])) {
                 foreach ($t[1] as $key) {
                     if ($key{0} == '$') {
-                        $_args[] = $this->get(substr($key, 1));
+                        $_args[] = $this->getValue(substr($key, 1));
                     }
                     else {
                         $_args[] = $key;
@@ -210,7 +342,7 @@ abstract class item extends \bolt\bucket {
                 if (!$i->hasInstance($name)) {
                     foreach ($t[3] as $key) {
                         if ($key{0} == '$') {
-                            $_args[] = $this->value(substr($key, 1));
+                            $_args[] = $this->getValue(substr($key, 1));
                         }
                         else {
                             $_args[] = $key;
@@ -235,7 +367,7 @@ abstract class item extends \bolt\bucket {
                 // loop
                 if (count($params) > 0) {
                     foreach ($params as $parm) {
-                        $_args[] = $this->value($param->name, $param->getDefaultValue());
+                        $_args[] = $this->getValue($param->name, $param->getDefaultValue());
                     }
                 }
 

@@ -192,8 +192,13 @@ class bucket extends \bolt\plugin\factory implements \Iterator, \ArrayAccess {
     /// @param $value value to push
     /// @return self
     ////////////////////////////////////////////////////////////////////
-	public function push($value) {
-		$this->_data[] = $value;
+	public function push($value, $key=null) {
+		if ($key !== null) {
+            $this->_data[$key] = $value;
+        }
+        else {
+            $this->_data[] = $value;
+        }
 		if ($this->_parent) {
 			$this->_parent->setValue($this->_root, $this->_data);
 		}
@@ -475,7 +480,10 @@ class bString {
     /// @return self
     ////////////////////////////////////////////////////////////////////
     public function __get($name) {
-        if (in_array($name, $this->_modifiers)) {
+        if ($name == 'value') {
+            return $this->_value;
+        }
+        else if (in_array($name, $this->_modifiers)) {
             return call_user_func(array($this, $name));
         }
         return $this->get();
