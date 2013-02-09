@@ -12,6 +12,9 @@ namespace bolt;
 ////////////////////////////////////////////////////////////
 class dao extends plugin\factory {
 
+    static $_shortcuts = array();
+    static $_traits = array();
+
     ////////////////////////////////////////////////////////////
     /// @brief factory
     ////////////////////////////////////////////////////////////
@@ -24,6 +27,11 @@ class dao extends plugin\factory {
         // the class name
         $class = array_shift($args);
 
+        // see if it's in a short
+        if (array_key_exists($class, self::$_shortcuts)) {
+            $class = self::$_shortcuts[$class];
+        }
+
         // try to load this class
         if (class_exists($class, true)) {
 
@@ -34,8 +42,15 @@ class dao extends plugin\factory {
         }
 
         // return a default object
-        return new dao\item();
+        return new bucket();
 
+    }
+
+    public static function shortcut($name, $class) {
+        self::$_shortcuts[$name] = $class;
+    }
+    public static function trait($class) {
+        self::$_traits[] = $class;
     }
 
 }

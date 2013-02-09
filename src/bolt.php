@@ -73,12 +73,6 @@ final class b {
         'source'    => "./bolt/source.php",
         'cache'     => "./bolt/cache.php",
         'bucket'    => "./bolt/bucket.php",
-        'external'  => "./bolt/external.php",
-
-        // routers
-        'route'         => "./bolt/route.php",
-        'route-regex'   => "./bolt/route/regex.php",
-        'route-token'   => "./bolt/route/token.php",
 
         // template renders
         'render-mustache' => "./bolt/render/mustache.php",
@@ -87,7 +81,6 @@ final class b {
         // source
         'source-mongo'      => "./bolt/source/mongo.php",
         'source-webservice' => "./bolt/source/webservice.php",
-        'source-s3'         => "./bolt/source/s3.php",
         'source-pdo'        => "./bolt/source/pdo.php",
 
         // cache modules
@@ -222,6 +215,11 @@ final class b {
                 "./bolt/browser/request.php",
                 "./bolt/browser/response.php",
                 "./bolt/browser/cookie.php",
+
+                // routers
+                "./bolt/browser/route.php",
+                "./bolt/browser/route/regex.php",
+                "./bolt/browser/route/token.php",
 
                 // renders
                 "./bolt/browser/response/json.php",
