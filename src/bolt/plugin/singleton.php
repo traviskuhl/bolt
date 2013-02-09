@@ -11,6 +11,6 @@ class singleton {
     public function __call($name, $args) {
         return $this;
     }
-    
+
 
 }

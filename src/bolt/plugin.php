@@ -1,6 +1,7 @@
 <?php
 
 namespace bolt;
+use \b;
 
 abstract class plugin {
 
@@ -42,6 +43,8 @@ abstract class plugin {
     ////////////////////////////////////////////////////////////
     public function call($name, $args=array()) {
 
+        b::log("b::plugin::call with name '%s'", array($name));
+
         // func
         $method = false;
 
@@ -57,9 +60,11 @@ abstract class plugin {
 
             // set the rest of parts as $args
             if (array_key_exists($name, $this->_plugin)) {
+                b::log("b::plugin::call sent to plugin '%s'::call", array($name));
                 return call_user_func(array($this->_plugin[$name], 'call'), array_merge(array(implode('.', $parts)), $args));
             }
             else {
+                b::log("b::plugin::call unknown namespaced plugin %s", array($name));
                 return false;
             }
 
@@ -71,14 +76,20 @@ abstract class plugin {
             // loop through our fallbacks
             foreach ($this->_fallback as $class) {
                 if (method_exists($class, $name)) {
+                    b::log("b::plugin::call sent to fallback '%s::%s'", array($class, $name));
                     return call_user_func_array(array($class, $name), $args);
                 }
             }
+
+            // no fallback
+            b::log("b::plugin::call unknown plugin '%s' (no fallback)", array($name));
 
             // we go nothing
             return false;
 
         }
+
+        b::log("b::plugin::call found plugin '%s'", array($name));
 
         // get it
         $plug = $this->_plugin[$name];
@@ -96,11 +107,13 @@ abstract class plugin {
 
         // is plug callable
         if (is_callable($plug)) {
+            b::log("b::plugin::call - plugin is callable", array($name));
             return call_user_func_array($plug, $args);
         }
 
         // ask the class what it is
         if ($plug::$TYPE == 'factory') {
+            b::log("b::plugin::call - plugin is a factory. sending to '%s::factory'", array($name));
             return call_user_func_array(array($plug, "factory"), $args);
         }
 
@@ -118,20 +131,25 @@ abstract class plugin {
             // if instance is another plugin
             // we can chain our call method
             if (get_parent_class($i) == 'bolt\plugin' AND isset($args[0]) AND is_string($args[0])) {
-                return $i->call(array_shift($args), $args);
+                b::log("b::plugin::call - sent to plugin '%s::call'", array($name));
+                return call_user_func_array(array($i, 'call'), $args);
             }
 
             // is it a string
-            if ($method) {
+            if ($method AND method_exists($i, $method)) {
+                b::log("b::plugin::call - sent to plugin '%s::%s'", array($name, $method));
                 return call_user_func_array(array($i, $method), $args);
             }
             else if (isset($args[0]) AND is_string($args[0]) AND method_exists($i, $args[0]) ){
+                b::log("b::plugin::call - sent to plugin '%s::%s", array($name, $args[0]));
                 return call_user_func_array(array($i, array_shift($args)), $args);
             }
             else if (method_exists($i, "_default")) {
+                b::log("b::plugin::call - sent to plugin '%s::_default'", array($name));
                 return call_user_func_array(array($i, "_default"), $args);
             }
             else {
+                b::log("b::plugin::call - unknown method. returned instance", array($name));
                 return $i;
             }
 

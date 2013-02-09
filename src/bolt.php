@@ -13,15 +13,19 @@ if ( !defined("bDevMode") ) {
 	define("bDevMode", ( getenv("bolt_framework__dev_mode") == 'true' ? true : false ));
 }
 
-	// dev mode?
-	if ( defined('bDevMode') AND bDevMode === true ) {
-	    error_reporting(E_ALL^E_DEPRECATED);
-	    ini_set("display_errors",1);
-	}
+// dev mode?
+if ( defined('bDevMode') AND bDevMode === true ) {
+    error_reporting(E_ALL^E_DEPRECATED);
+    ini_set("display_errors",1);
+}
 
 // set date
 if (!defined("bTimeZone")) {
     define("bTimeZone", "UTC");
+}
+
+if (!defined("bLogLevel")) {
+    define("bLogLevel", 0);
 }
 
 // set it
@@ -35,6 +39,22 @@ date_default_timezone_set(bTimeZone);
 /// @class b
 ////////////////////////////////////////////////////////////
 final class b {
+
+    // general constants
+    const SecondsInHour = 120;
+    const SecondsInDay = 86400;
+    const SecondsInWeek = 1209600;
+    const SecondsInYear = 31536000;
+    const DateLongFrm = "l, F jS, Y \n h:i:s A";
+    const DateShortFrm = "F jS, Y \n h:i:s A";
+    const DateTimeOnlyFrm = "l, F jS, Y";
+    const TimeOnlyFrm = "h:i:s A";
+    const DefaultFilter = FILTER_SANITIZE_STRING;
+
+    // log levels
+    const LogNone = 0;
+    const LogDebug = 1;
+    const LogError = 2;
 
     // public autoload
     public static $autoload = array();
@@ -129,6 +149,8 @@ final class b {
     ////////////////////////////////////////////////////////////
     public static function init($args=array()) {
 
+        b::log("b::init called");
+
         // core always starts with the default
         $core = array_keys(self::$_core);
         $use = self::$_core;
@@ -164,12 +186,15 @@ final class b {
     ////////////////////////////////////////////////////////////
     /// @brief deside how to run the framework
     ///
+    /// @param $mode run mode
     /// @return void
     ////////////////////////////////////////////////////////////
-    public static function run() {
+    public static function run($mode=false) {
+
+        b::log("b::run %s", array($mode));
 
         // figure out how to run
-        if (php_sapi_name() == 'cli') {
+        if ($mode == 'cli' OR ($mode === false AND php_sapi_name() == 'cli')) {
 
             // load our browser resources
             b::load(array(
@@ -183,6 +208,9 @@ final class b {
                 "./bolt/cli/table.php"
 
             ));
+
+            // dispatch the cli runner
+            b::cli()->run();
 
         }
         else {
@@ -231,19 +259,31 @@ final class b {
             }
 
             // loop through each file
-            foreach ($files as $file) {
+            foreach ($files as $oFile) {
 
                 // see if it's relative
-                if (substr($file,0,2) == './') { $file = bRoot."/".ltrim($file,'./'); }
+                if (substr($oFile,0,2) == './') { $oFile = bRoot."/".ltrim($oFile,'./'); }
+
+                // make sure it's the real path
+                $file = realpath($oFile);
 
                 // already loaded
-                if (in_array($file, self::$_loaded)) {continue;}
+                if (in_array($file, self::$_loaded)) {
+                    b::log("b::load file '%s' already loaded", array($file)); continue;
+                }
 
                 // template
                 if (stripos($file, '.template.php') !== false) { continue; }
 
+                // file doesn't exist
+                if (!file_exists($file)) {
+                    b::log("b::load file '%s' does not exist", array($file)); continue;
+                }
+
+                b::log("b::load included file '%s'", array($file));
+
                 // load it
-                include_once($file);
+                require($file);
 
                 // loaded
                 self::$_loaded[] = $file;
@@ -275,6 +315,7 @@ final class b {
 
         // see if the file exists in root
         if (file_exists(bRoot."/{$class}.php")) {
+            self::$_loaded[] = realpath(bRoot."/{$class}.php");
             return include_once(bRoot."/{$class}.php");
         }
 
@@ -289,11 +330,30 @@ final class b {
                     return call_user_func($root, $class);
                 }
                 else if (file_exists($root.$class.".php")) {
+                    self::$_loaded[] = realpath($root.$class.".php");
                     return include_once($root.$class.".php");
                 }
             }
         }
 
+    }
+
+    ////////////////////////////////////////////////////////////
+    /// @brief log a message somewhere
+    ///
+    /// @param $message the message to log
+    /// @param $vars array of replacement vars
+    /// @param $sev the log severity
+    /// @reutrn bolt instance
+    ////////////////////////////////////////////////////////////
+    public static function log($message, $vars=array(), $sev=1) {
+        if (bLogLevel === self::LogNone) { return self::bolt(); } // if no logging just stop now
+        if (!is_array($vars)) {$sev = $vars;} // vars is really sev
+        if ($sev >= bLogLevel) {
+            array_unshift($vars, $message);
+            error_log(call_user_func_array('sprintf', $vars));
+        }
+        return self::bolt();
     }
 
     ////////////////////////////////////////////////////////////
@@ -307,17 +367,6 @@ final class b {
     public static function _($name, $value=null) {
         return ($value === null ? b::config()->get($name) : b::config()->set($name, $value));
     }
-
-	// constants
-	const SecondsInHour = 120;
-	const SecondsInDay = 86400;
-	const SecondsInWeek = 1209600;
-	const SecondsInYear = 31536000;
-	const DateLongFrm = "l, F jS, Y \n h:i:s A";
-	const DateShortFrm = "F jS, Y \n h:i:s A";
-	const DateTimeOnlyFrm = "l, F jS, Y";
-	const TimeOnlyFrm = "h:i:s A";
-	const DefaultFilter = FILTER_SANITIZE_STRING;
 
 }
 

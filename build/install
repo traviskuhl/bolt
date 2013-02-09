@@ -1,0 +1,192 @@
+<?php
+
+// no version global means this version
+// of php is super old
+if (!defined('PHP_VERSION')) {
+    exit("You version of PHP is super old. Like really, really, really, really old.\n");
+}
+
+// make sure our version is good
+if (version_compare(PHP_VERSION, 5.3) === -1) {
+    exit("Your version of PHP (".PHP_VERSION.") is not compatable with bolt.php\n");
+}
+
+// try to include Archive/Tar.php
+if ((include "Archive/Tar.php") === false) {
+    exit("You don't seem to have Archive_Tar available in your include_dir. Try installing with `pear install Archive_Tar`\n");
+}
+
+// local
+if (isset($argv[1]) AND $argv[1] === 'local') {
+    $resp = file_get_contents("bolt-latest.tar.gz");
+}
+
+// symlink
+else if (isset($argv[1]) AND $argv[1] === 'symlink') {
+
+    // dest
+    $dest = (isset($argv[2]) ? rtrim($argv[2], '/') : "/usr/share/pear");
+
+        // no a location
+        if (!file_exists($dest)) {
+            exit("Symlink destination '$dest' doesn't exist.\n");
+        }
+
+    // loop through source and slinkink everything
+    $dir = new RecursiveDirectoryIterator('../src/');
+    $it = new RecursiveIteratorIterator($dir);
+    $regex = new RegexIterator($it, '/^.+\.php$/i', RecursiveRegexIterator::GET_MATCH);
+
+    // add our files
+    foreach ($regex as $file) {
+
+        // get the path
+        $path = $dest . str_replace("../src", "", $file[0]);
+
+        // if the file already exists
+        // unlink it
+        if (file_exists($path)) {
+            unlink($path);
+        }
+
+        // make sure the base dir exists
+        if (!file_exists(dirname($path))) {
+            mkdir(dirname($path), 0777, true);
+        }
+
+        // symlink the file
+        symlink(realpath($file[0]), $path);
+
+    }
+
+    // bin
+    $bin = "/usr/local/bin/bolt";
+
+    // now symlink the bin file
+    if (file_exists($bin)) {
+        unlink($bin);
+    }
+    symlink(realpath("../bin/bolt"), $bin);
+
+    // done
+    exit("Bolt symlink installed!\n");
+
+}
+
+// get from remote
+else {
+
+    // pull down the latest version
+    $latest = "https://github.com/traviskuhl/bolt/raw/master/build/bolt-latest.tar.gz";
+
+    // get it
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $latest);
+    curl_setopt($ch, CURLOPT_HEADER, 0);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+    $resp = curl_exec($ch);
+    curl_close($ch);
+
+}
+
+// nope
+if (!$resp) {
+    exit("Unable to retrieve the source tar at '$latest'.\n");
+}
+
+// write tar to tmp
+$tmp = tempnam(sys_get_temp_dir(), 'bolt');
+file_put_contents($tmp, $resp);
+
+// open it
+$tar = new Archive_Tar($tmp, 'gz');
+
+// get the phar
+$phar = $tar->extractInString('bolt.phar');
+
+// no lib dir
+if (!file_exists("/usr/local/lib/bolt")) {
+    mkdir("/usr/local/lib/bolt", 0755);
+}
+
+// where the lib is going to go
+$lib = "/usr/local/lib/bolt/bolt.phar";
+$bin = "/usr/local/bin/bolt";
+$share = "/usr/share/pear/bolt.php";
+
+// make our stub
+$stub = stub($lib);
+
+// share already exists
+if (file_exists($lib)) {
+    @unlink($lib);
+    @unlink($bin);
+    @unlink($share);
+}
+
+// now place it. swallow the error
+// and then check
+@file_put_contents($lib, $phar);
+
+    // nope
+    if (!file_exists($lib)) {
+        exit("Looks like you don't have permission to write to '$bin' or '$share'.\n");
+    }
+
+// no place bin
+@file_put_contents($bin, $stub); chmod($bin, 0755);
+
+// symlink to share
+symlink($lib, $share);
+
+// tell them we're done
+exit("bolt has been installed. Enjoy!\n");
+
+
+/// stub
+function stub($lib) {
+
+// bin stub
+$str = '#!/usr/bin/env php
+<?php
+///////////////////////////////////////////////////////////////////////
+/// (c) the.kuhl.co 2012 - author: travis kuhl (travis@kuhl.co)
+///
+/// Licensed under the Apache License, Version 2.0 (the "License");
+/// you may not use this work except in  compliance with the License.
+/// You may obtain a copy of the License in the LICENSE file, or at:
+///
+/// http://www.apache.org/licenses/LICENSE-2.0
+///
+/// Unless required by applicable law or agreed to in writing,
+/// software distributed under the License is distributed on an "AS IS"
+/// BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+/// express or implied. See the License for the specific language
+/// governing permissions and limitations under the License.
+///////////////////////////////////////////////////////////////////////
+
+// include the lib
+require_once("'.$lib.'");
+
+';
+$str .= <<<'END'
+
+// if we're in cli, load it
+// otherwise we're just including the phar
+if ('cli' === php_sapi_name()) {
+
+    // init
+    bolt::init();
+
+    // run cli
+    bolt::cli();
+
+}
+else {
+    exit("Unable to run!");
+}
+
+END;
+return $str;
+}
