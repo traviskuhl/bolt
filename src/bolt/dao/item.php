@@ -21,20 +21,6 @@ abstract class item extends \bolt\bucket {
     ////////////////////////////////////////////////////////////////////
     abstract public function getStruct();
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief add traits
-    ///
-    /// @return self
-    ////////////////////////////////////////////////////////////////////
-    protected function addTrait($classes) {
-        if (!is_array($classes)) {$classes = array($classes); }
-        foreach ($classes as $class) {
-            $this->_traitInstance[$class] = false;
-            foreach (get_class_methods($class) as $method) {
-                $this->_traits[strtolower($method)] = array($class, $method);
-            }
-        }
-    }
 
     ////////////////////////////////////////////////////////////////////
     /// @brief constrcut a dao item
@@ -69,10 +55,41 @@ abstract class item extends \bolt\bucket {
 
     }
 
+    ////////////////////////////////////////////////////////////////////
+    /// @brief MAGIC get a value
+    ///
+    /// @param $name name of value
+    /// @see value()
+    /// @return array of traits
+    ////////////////////////////////////////////////////////////////////
     public function __get($name) {
         return $this->value($name);
     }
 
+    ////////////////////////////////////////////////////////////////////
+    /// @brief MAGIC
+    ///
+    /// @return array of traits
+    ////////////////////////////////////////////////////////////////////
+    public function __call($name, $args) {
+        if (method_exists($this, $name)) {
+            return call_user_func(array($this, $name));
+        }
+        else if (array_key_exists(strtolower($name), $this->_traits)) {
+            return $this->callTrait($name, $args);
+        }
+        return false;
+    }
+
+
+    ////////////////////////////////////////////////////////////////////
+    /// @brief return a value
+    ///
+    /// @param $name name of value
+    /// @param $default default return if value undefined
+    /// @see bucket::get()
+    /// @return value
+    ////////////////////////////////////////////////////////////////////
     public function value($name, $default=false) {
         $getName = "get{$name}"; $value = false;
 
@@ -108,23 +125,57 @@ abstract class item extends \bolt\bucket {
 
 
 
-    public function __call($name, $args) {
-        if (method_exists($this, $name)) {
-            return call_user_func(array($this, $name));
-        }
-        else if (array_key_exists(strtolower($name), $this->_traits)) {
-            return $this->callTrait($name, $args);
-        }
-        return false;
-    }
-
+    ////////////////////////////////////////////////////////////////////
+    /// @brief noramize the data array with struct
+    ///
+    /// @return array of values
+    ////////////////////////////////////////////////////////////////////
     public function normalize() {
 
 
 
     }
 
+    ////////////////////////////////////////////////////////////////////
+    /// @brief add traits
+    ///
+    /// @param $classes string|array of trait classes
+    /// @return self
+    ////////////////////////////////////////////////////////////////////
+    protected function addTrait($classes) {
+        if (!is_array($classes)) {$classes = array($classes); }
+        foreach ($classes as $class) {
+            $this->_traitInstance[$class] = false;
+            foreach (get_class_methods($class) as $method) {
+                $this->_traits[strtolower($method)] = array($class, $method);
+            }
+        }
+        return $this;
+    }
 
+    ////////////////////////////////////////////////////////////////////
+    /// @brief return the current traits
+    ///
+    /// @return array of traits
+    ////////////////////////////////////////////////////////////////////
+    protected function getTraits() {
+        return $this->_traits;
+    }
+
+    ////////////////////////////////////////////////////////////////////
+    /// @brief return an array of trait instances
+    ///
+    /// @return array of traits instances
+    ////////////////////////////////////////////////////////////////////
+    protected function getTraitInstances() {
+        return $this->_traitInstance;
+    }
+
+    ////////////////////////////////////////////////////////////////////
+    /// @brief return the current traits
+    ///
+    /// @return array of traits
+    ////////////////////////////////////////////////////////////////////
     public function callTrait($name, $args=array()) {
         $t = $this->_traits[strtolower($name)];
         $func = false; $_args = array();

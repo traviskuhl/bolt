@@ -22,6 +22,9 @@ class daoItemTest extends bolt_test {
     public function testInst() {
         $this->assertTrue(is_a($this->item, 'daoTestClass'));
     }
+    public function testValue() {
+        $this->assertEquals($this->item->value('test'), 'test');
+    }
     public function testGetFunction() {
         $this->assertEquals($this->item->test, 'test');
         $this->assertEquals($this->item->getTest(), 'test');
@@ -37,6 +40,15 @@ class daoItemTest extends bolt_test {
         $fl = 'a'; settype($fl, 'float');
         $this->assertEquals($this->item->float->value, $fl);
     }
+
+    /// traits
+    public function testAddTrait() {
+        $this->item->addTrait('\daoTestTraitClass2');
+        $this->asserTrue(in_array('\daoTestTraitClass2', $this->item->getTraits()));
+
+    }
+
+
 
 }
 
@@ -73,6 +85,14 @@ class daoTestTraitClass {
 
     public function getTraitTest() {
         return 'testt';
+    }
+
+}
+
+class daoTestTraitClass2 {
+
+    public function getTraitTest() {
+        return 'testt22';
     }
 
 }
