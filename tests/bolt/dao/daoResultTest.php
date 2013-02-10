@@ -15,19 +15,60 @@ class daoResultTest extends bolt_test {
         ));
 
         // object
-        $this->result = b::dao('daoResultTestClass');
+        $this->result = \bolt\dao\result::create(
+            'daoResultTestClass',
+            array(
+                array(
+                    'id' => 'item1',
+                    'string' => 'pooper'
+                ),
+                array(
+                    'id' => 'item2',
+                    'bool' => true
+                )
+            ),
+            'id'
+        );
 
     }
 
     public function testInit() {
-        $this->assertTrue(is_a($this->result, 'daoResultTestClass'));
+        $this->assertTrue(is_a($this->result, '\bolt\dao\result'));
     }
-    public function testGet() {
-        $result = $this->result->get();
-        $this->assertTrue(is_a($result, '\bolt\dao\result'));
+    public function testLoaded() {
+        $this->assertTrue($this->result->loaded());
     }
-
-
+    public function testMetaSetAndGet() {
+        $item = new daoResultTestClass(array('test'=>'poop'));
+        $this->result->setMeta($item);
+        $this->assertTrue(is_a($this->result->getMeta(), 'daoResultTestClass'));
+    }
+    public function testMetaMagicGet() {
+        $item = new daoResultTestClass(array('test'=>'poop'));
+        $this->result->setMeta($item);
+        $this->assertEquals($this->result->test, 'poop');
+    }
+    public function testMetaMagicSet() {
+        $item = new daoResultTestClass(array('test'=>'poop'));
+        $this->result->setMeta($item);
+        $this->result->poop = 'test';
+        $this->assertEquals($this->result->poop, 'test');
+    }
+    public function testGetSetTotal() {
+        $t = 10;
+        $this->assertTrue(is_a($this->result->setTotal($t), '\bolt\dao\result'));
+        $this->assertEquals($t, $this->result->getTotal());
+    }
+    public function testGetSetLimit() {
+        $t = 10;
+        $this->assertTrue(is_a($this->result->setLimit($t), '\bolt\dao\result'));
+        $this->assertEquals($t, $this->result->getLimit());
+    }
+    public function testGetSetOffset() {
+        $t = 10;
+        $this->assertTrue(is_a($this->result->setOffset($t), '\bolt\dao\result'));
+        $this->assertEquals($t, $this->result->getOffset());
+    }
 }
 
 class daoResultTestClass extends \bolt\dao\item {
@@ -46,19 +87,6 @@ class daoResultTestClass extends \bolt\dao\item {
                     'args' => array('static', '$key1')
                 )
         );
-    }
-
-    public function get() {
-        return $this->result(array(
-                array(
-                    'id' => 'item1',
-                    'string' => 'pooper'
-                ),
-                array(
-                    'id' => 'item2',
-                    'bool' => true
-                )
-            ));
     }
 
 }

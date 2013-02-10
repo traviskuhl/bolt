@@ -19,6 +19,13 @@ class daoItemTest extends bolt_test {
 
     }
 
+    // general
+    public function testLoaded() {
+        $this->assertFalse($this->item->loaded());
+        $this->item->poop = true;
+        $this->assertTrue($this->item->loaded());
+    }
+
     // getters
     public function testInst() {
         $this->assertTrue(is_a($this->item, 'daoItemTestClass'));

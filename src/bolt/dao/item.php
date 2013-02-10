@@ -3,10 +3,13 @@
 namespace bolt\dao;
 use \b;
 
+
+
 abstract class item extends \bolt\bucket {
 
     // private
     private $_guid; /// guid for unique objects
+    private $_loaded = false; // has data been loaded
     private $_struct = array(); /// item struct
     private $_traits = array(); /// traits
     private $_traitInstance = array('\bolt\dao\traitStorage' => false);
@@ -15,7 +18,6 @@ abstract class item extends \bolt\bucket {
     protected $traits = array();
 
     ////////////////////////////////////////////////////////////////////
-    /// @abstract
     /// @brief get the struct of the item
     ///
     /// @return array of struct
@@ -48,12 +50,21 @@ abstract class item extends \bolt\bucket {
                 $this->_traits["get{$key}"] = array(
                     '\bolt\dao\traitStorage',
                     $info['class'],
-                    p('method', 'get', $info),
-                    p_raw('args', array(), $info)
+                    (array_key_exists('method', $info) ? $info['method'] : 'get'),
+                    (array_key_exists('args', $info) ? $info['args'] : array()),
                 );
             }
         }
 
+    }
+
+    ////////////////////////////////////////////////////////////////////
+    /// @brief has this item been loaded
+    ///
+    /// @return bool if item is loaded
+    ////////////////////////////////////////////////////////////////////
+    public function loaded() {
+        return $this->_loaded;
     }
 
     ////////////////////////////////////////////////////////////////////
@@ -127,6 +138,7 @@ abstract class item extends \bolt\bucket {
         foreach ($values as $name => $value) {
             $this->setValue($name, $value);
         }
+        $this->_loaded = true;
         return $this;
     }
 
@@ -203,6 +215,7 @@ abstract class item extends \bolt\bucket {
             $value = parent::set($name, $value);
         }
 
+        $this->_loaded = true;
         return $this;
     }
 
