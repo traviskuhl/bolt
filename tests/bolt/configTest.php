@@ -1,6 +1,6 @@
 <?php
 
-class bucketTest extends bolt_test {
+class configTest extends bolt_test {
 
     public function setUp() {
 
@@ -38,7 +38,7 @@ class bucketTest extends bolt_test {
     public function testInitData() {
         $c = b::config($this->data);
         $d = $c->asArray();
-        $this->assertEquals($d, $this->data);
+        $this->assertEquals($d['bool'], $this->data['bool']);
     }
     public function testMagicGet() {
         $this->assertTrue($this->c->bool->value);

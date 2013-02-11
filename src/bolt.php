@@ -9,12 +9,12 @@ if (!defined("bRoot")) {
 }
 
 // devmode
-if ( !defined("bDevMode") ) {
-	define("bDevMode", ( getenv("bolt_framework__dev_mode") == 'true' ? true : false ));
+if ( !defined("bMode") ) {
+	define("bMode", (getenv("bMode") ?: "dev"));
 }
 
 // dev mode?
-if ( defined('bDevMode') AND bDevMode === true ) {
+if ( bMode === 'dev' ) {
     error_reporting(E_ALL^E_DEPRECATED);
     ini_set("display_errors",1);
 }
@@ -28,10 +28,13 @@ if (!defined("bLogLevel")) {
     define("bLogLevel", 0);
 }
 
-// set it
+// global config
+if (!defined("bGlobalConfig")) {
+    define("bGlobalConfig", (getenv("bGlobalConfig") ?: "/var/bolt/global.json"));
+}
+
+/// set our bzone
 date_default_timezone_set(bTimeZone);
-
-
 
 ////////////////////////////////////////////////////////////
 /// @brief static bolt wrapper instance
