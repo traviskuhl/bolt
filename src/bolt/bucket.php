@@ -130,6 +130,22 @@ class bucket extends \bolt\plugin\factory implements \Iterator, \ArrayAccess {
 	public function get($name, $default=false) {
 		if (!array_key_exists($name, $this->_data)) { $this->_data[$name] = $default; }
 
+        // does default have any .
+        if (stripos($name, '.') !== false) {
+            $parts = explode('.', $name);
+            $name = array_pop($parts);
+            $var = $this;
+            foreach ($parts as $part) {
+                $var = $var->get($part);
+            }
+            if (is_a($var, '\bolt\bucket')) {
+                return $var->get($name, $default);
+            }
+            else {
+                return $default;
+            }
+        }
+
 		// figureo ut if it's an object
 		if (is_a($this->_data[$name], '\bolt\bucket') OR is_a($this->_data[$name], '\bolt\bucket\bString')) {
 			return $this->_data[$name];

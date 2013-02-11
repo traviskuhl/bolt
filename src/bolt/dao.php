@@ -7,16 +7,16 @@ namespace bolt;
 \b::plug('dao', '\bolt\dao');
 
 
-////////////////////////////////////////////////////////////
-/// @brief dao implentation
-////////////////////////////////////////////////////////////
 class dao extends plugin\factory {
 
     static $_shortcuts = array();
     static $_traits = array();
 
     ////////////////////////////////////////////////////////////
-    /// @brief factory
+    /// @brief factory class for dao
+    ///
+    /// @params $args arguments passed to __construct
+    /// @return new dao
     ////////////////////////////////////////////////////////////
     public static function factory($args = array()) {
 
@@ -35,22 +35,59 @@ class dao extends plugin\factory {
         // try to load this class
         if (class_exists($class, true)) {
 
-            // we've got the class
-            // let's create an object
-            return new $class($args);
+            if (count($args) > 0) {
+                $ref = new \ReflectionClass($class);
+                return $ref->newInstanceArgs($args[0]);
+            }
+            else {
+                return new $class();
+            }
+
 
         }
 
         // return a default object
-        return new bucket();
+        return false;
 
     }
 
+    ////////////////////////////////////////////////////////////
+    /// @brief add a shortcut
+    ///
+    /// @param $name name of shortcut
+    /// @param $class dao class
+    /// @return void
+    ////////////////////////////////////////////////////////////
     public static function shortcut($name, $class) {
         self::$_shortcuts[$name] = $class;
     }
+
+    ////////////////////////////////////////////////////////////
+    /// @brief  add a gobal trait
+    ///
+    /// @param $class trait class
+    /// @return void
+    ////////////////////////////////////////////////////////////
     public static function trait($class) {
         self::$_traits[] = $class;
+    }
+
+    ////////////////////////////////////////////////////////////
+    /// @brief return a list of shortcust
+    ///
+    /// @return array of shortcuts
+    ////////////////////////////////////////////////////////////
+    public static function getShortcuts() {
+        return self::$_shortcuts;
+    }
+
+    ////////////////////////////////////////////////////////////
+    /// @brief return a list of traits
+    ///
+    /// @return array of traits
+    ////////////////////////////////////////////////////////////
+    public static function getTraits() {
+        return self::$_traits;
     }
 
 }

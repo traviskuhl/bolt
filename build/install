@@ -3,7 +3,7 @@
 // no version global means this version
 // of php is super old
 if (!defined('PHP_VERSION')) {
-    exit("You version of PHP is super old. Like really, really, really, really old.\n");
+    exit("Your version of PHP is super old. Like really, really, really, really old.\n");
 }
 
 // make sure our version is good

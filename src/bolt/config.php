@@ -2,21 +2,27 @@
 
 // bolt namespace
 namespace bolt;
+use \b;
 
 // plugin to b
-\b::plug('config', "\bolt\config");
+b::plug('config', "\bolt\config");
 
 // our config is singleton
 class config extends plugin\singleton {
 
     // data
-    private $_data = array();
+    private $_bucket;
+
+    public function __construct() {
+        $this->_bucket = b::bucket();
+    }
 
     // default
-    public function _default() {
-
-        // forward it to call
-        return call_user_func_array(array($this, 'merge'), func_get_args());
+    public function _default($data=array()) {
+        if ($data) {
+            $this->_bucket->set($data);
+        }
+        return $this;
     }
 
     // __get
@@ -29,58 +35,66 @@ class config extends plugin\singleton {
         return $this->set($name, $value);
     }
 
-    public function getData() {
-        return $this->_data;
+    public function __call($name, $args) {
+        return call_user_func_array(array($this->_bucket, $name), $args);
     }
 
-    // get
-    public function get($name, $default=false) {
-
-        // see if we have a . in the name
-        if (stripos($name, '.') !== false) {
-
-            // get the parts
-            $parts = explode('.', $name);
-            $a = $this->_data;
-
-            // loop through and see if we have this
-            foreach ($parts as $p) {
-                if (array_key_exists($p, $a)) {
-                    $a = $a[$p];
-                }
-                else {
-                    return $default;
-                }
+    ////////////////////////////////////////////////////////////////////
+    /// @brief import from a jason string or file
+    ///
+    /// @param $from string or file to get from
+    /// @return self
+    ////////////////////////////////////////////////////////////////////
+    public function fromJson($from) {
+        if (is_resource($from)) {
+            $str = $buffer = false;
+            while (($buffer = fgets($from, 4096)) !== false) {
+                $str .= $buffer;
             }
-
-            // return it
-            return $a;
-
+            fclose($from);
+            $this->set(json_decode($str, true));
         }
-        else {
-            return (array_key_exists($name, $this->_data) ? $this->_data[$name] : $default);
+        else if ($from{0} == '{' OR $from{0} == '[') {
+            $this->set(json_decode($from, true));
         }
-    }
-
-    // set
-    public function set($name, $value=false) {
-        if (is_array($name) AND is_array($name[key($name)])) {
-            foreach ($name as $key => $val) {
-                $this->set($key, $val);
-            }
-        }
-        else {
-            $this->_data[$name] = $value;
+        else if (file_exists($from)) {
+            $this->set(json_decode(file_get_contents($from), true));
         }
         return $this;
     }
 
-    // merge
-    public function merge() {
-        foreach (func_get_args() as $array) {
-            foreach ($array as $key => $value) {
-                $this->set($key, $value);
+    ////////////////////////////////////////////////////////////////////
+    /// @brief import from a yaml file
+    ///
+    /// @param $from file to get from
+    /// @return self
+    ////////////////////////////////////////////////////////////////////
+    public function fromYamlFile($from) {
+        if (function_exists('yaml_parse_file')) {
+            if (is_resource($from)) {
+                $str = $buffer = false;
+                while (($buffer = fgets($from, 4096)) !== false) {
+                    $str .= $buffer;
+                }
+                fclose($from);
+                $this->set(yaml_parse($str));
             }
+            else {
+                $this->set(yaml_parse_file($from));
+            }
+        }
+        return $this;
+    }
+
+    ////////////////////////////////////////////////////////////////////
+    /// @brief import from a yaml string
+    ///
+    /// @param $from string
+    /// @return self
+    ////////////////////////////////////////////////////////////////////
+    public function fromYamlString($from) {
+        if (function_exists('yaml_parse')) {
+            $this->set(yaml_parse($from));
         }
         return $this;
     }

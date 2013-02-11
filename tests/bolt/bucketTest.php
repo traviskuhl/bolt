@@ -52,6 +52,16 @@ class bucketTest extends bolt_test {
         $this->assertEquals(serialize($this->data), $this->bucket->asSerialized());
     }
 
+    // dot notation get
+    public function testDotNotationGet() {
+        $this->assertEquals('nest key value 1', $this->bucket->get('array.nested.key1'));
+    }
+    public function testDotNotationGetFail() {
+        $this->assertFalse($this->bucket->get('array.nested.key1.nothing'));
+    }
+    public function testDotNotationGetFailDefault() {
+        $this->assertTrue($this->bucket->get('array.nested.key1.nothing', true));
+    }
 
     // magic methods
     public function testMangicToString() {
