@@ -66,7 +66,7 @@ class webservice extends \bolt\plugin\factory {
         $args = func_get_args();
 
         // url
-        $args[0] = "{$this->protocol}://{$this->host}".($this->port!=80?":{$this->port}":"")."/".ltrim($args[0],'/');
+        $args[0] = (substr($args[0],0,4) === 'http' ? $args[0] : "{$this->protocol}://{$this->host}".($this->port!=80?":{$this->port}":"")."/".ltrim($args[0],'/'));
 
         // route to proper func
         switch($this->method) {
@@ -96,7 +96,7 @@ class webservice extends \bolt\plugin\factory {
 		$headers = array_merge($this->headers, $headers);
 
         // add our params
-        if ( $method == 'GET' ) {
+        if ($method == 'GET' AND count($params) > 0) {
             $url = b::addUrlParams($url, $params);
         }
 
@@ -299,7 +299,9 @@ class webserviceResponse {
             case 'getError':
                 return $this->_error;
 
-            // code
+            // status code
+            case 'status':
+            case 'getStatus':
             case 'code':
             case 'getCode':
                 return $this->_code;

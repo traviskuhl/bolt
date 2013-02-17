@@ -35,11 +35,11 @@ class request extends \bolt\plugin\singleton {
 
 	}
 
-	public function execute() {
+	public function run() {
 
 		// fire lets run our router to figure out what
 		// route we need to take
-		$route = b::route('match', ltrim($_SERVER['PATH_INFO'],'/'));
+		$route = b::route()->match(ltrim($_SERVER['PATH_INFO'],'/'));
 
 			// no route just die right now
 			if (!$route) {
@@ -79,8 +79,9 @@ class request extends \bolt\plugin\singleton {
 
             // resp is a string not a view
             if (is_string($view)) {
-            	$view = new \bolt\view();
-            	$vite->setContent($view);
+            	$_view = new \bolt\view();
+            	$_view->setContent($view)->hasExecuted(true);
+                $view = $_view;
             }
 
 		}

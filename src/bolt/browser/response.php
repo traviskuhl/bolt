@@ -46,13 +46,13 @@ class response extends \bolt\plugin {
 
 	public function respond() {
 
-
 		// execute our view
-		$this->_view = $this->_view->execute();
+        if (!$this->_view->hasExecuted()) {
+		  $this->_view = $this->_view->execute();
+        }
 
 		// rendere
 		$r = b::render();
-
 
 		// what do we want to accept
 		$req = b::request();

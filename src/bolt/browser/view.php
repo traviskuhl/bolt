@@ -33,9 +33,13 @@ class viewFactory extends plugin {
 
 }
 
+interface view {
+
+}
+
 
 // the view
-class view {
+class view implements view {
 
     // some things we're going to need
     private $_content = false;
@@ -106,17 +110,17 @@ class view {
 
             // set
             case 'setContent':
-                return ($this->_content = $args[0]);
+                $this->_content = $args[0]; break;
             case 'setData':
-                return ($this->_data = $args[0]);
+                $this->_data = $args[0]; break;
             case 'setHeaders':
-                return ($this->response->headers->add($args[0]));
+                $this->response->headers->add($args[0]); break;
             case 'setStatus':
-                return ($this->response->setStatus($args[0]));
+                $this->response->setStatus($args[0]); break;
             case 'setWrap':
-                return ($this->_wrap = $args[0]);
+                $this->_wrap = $args[0]; break;
             case 'setAccept':
-                return ($this->accept = $args[0]);
+                $this->accept = $args[0]; break;
 
             // add
             case 'setHeader':
@@ -150,17 +154,13 @@ class view {
                     )
                 ));
             }
-            else if ($this->getWrap() === -1) {
-                $this->setWrap('{child}');
-            }
 
             // figure out of there's any wrap
-            if ($this->getWrap()) {
+            if ($this->getWrap() !== -1) {
                 $this->setContent(str_replace("{child}", $this->getContent(), $this->getWrap()));
             }
 
         }
-
 
         return $this->_content;
 

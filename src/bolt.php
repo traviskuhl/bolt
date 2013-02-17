@@ -9,12 +9,12 @@ if (!defined("bRoot")) {
 }
 
 // devmode
-if ( !defined("bMode") ) {
-	define("bMode", (getenv("bMode") ?: "dev"));
+if ( !defined("bEnv") ) {
+	define("bEnv", (getenv("bEnv") ?: "dev"));
 }
 
 // dev mode?
-if ( bMode === 'dev' ) {
+if ( bEnv === 'dev' ) {
     error_reporting(E_ALL^E_DEPRECATED);
     ini_set("display_errors",1);
 }
@@ -91,6 +91,36 @@ final class b {
 
     );
 
+    public static $_modes = array(
+        'browser' => array(
+            // browser
+            "./bolt/browser/request.php",
+            "./bolt/browser/response.php",
+            "./bolt/browser/cookie.php",
+
+            // routers
+            "./bolt/browser/route.php",
+            "./bolt/browser/route/regex.php",
+            "./bolt/browser/route/token.php",
+
+            // renders
+            "./bolt/browser/response/json.php",
+            "./bolt/browser/response/xhr.php",
+            "./bolt/browser/response/ajax.php",
+            "./bolt/browser/response/html.php",
+            "./bolt/browser/response/xml.php",
+        ),
+        'cli' => array(
+            // cli
+            "./bolt/cli.php",
+
+            // cli plugins
+            "./bolt/cli/arguments.php",
+            "./bolt/cli/menu.php",
+            "./bolt/cli/table.php"
+        )
+    );
+
     ////////////////////////////////////////////////////////////
     /// @brief return bolt instance
     ///
@@ -145,7 +175,7 @@ final class b {
     ////////////////////////////////////////////////////////////
     public static function init($args=array()) {
 
-        b::log("b::init called");
+        b::log("[b::init] called");
 
         // core always starts with the default
         $core = array_keys(self::$_core);
@@ -167,6 +197,11 @@ final class b {
         // plugins
         b::load(array_values($use));
 
+        // mode
+        if (isset($args['mode']) AND array_key_exists($args['mode'], self::$_modes)) {
+            self::load(self::$_modes[$args['mode']]);
+        }
+
         // config
         if (isset($args['config'])) {
             b::config($args['config']);
@@ -176,7 +211,6 @@ final class b {
         if (isset($args['load'])) {
             self::load($args['load']);
         }
-
     }
 
     ////////////////////////////////////////////////////////////
@@ -187,54 +221,25 @@ final class b {
     ////////////////////////////////////////////////////////////
     public static function run($mode=false) {
 
-        b::log("b::run %s", array($mode));
+        b::log("[b::run] %s", array($mode));
 
         // figure out how to run
         if ($mode == 'cli' OR ($mode === false AND php_sapi_name() == 'cli')) {
 
             // load our browser resources
-            b::load(array(
-
-                // cli
-                "./bolt/cli.php",
-
-                // cli plugins
-                "./bolt/cli/arguments.php",
-                "./bolt/cli/menu.php",
-                "./bolt/cli/table.php"
-
-            ));
+            b::load( self::$_modes['cli'] );
 
             // dispatch the cli runner
-            b::cli()->run();
+            return b::cli()->run();
 
         }
         else {
 
             // load our browser resources
-            b::load(array(
-
-                // browser
-                "./bolt/browser/request.php",
-                "./bolt/browser/response.php",
-                "./bolt/browser/cookie.php",
-
-                // routers
-                "./bolt/browser/route.php",
-                "./bolt/browser/route/regex.php",
-                "./bolt/browser/route/token.php",
-
-                // renders
-                "./bolt/browser/response/json.php",
-                "./bolt/browser/response/xhr.php",
-                "./bolt/browser/response/ajax.php",
-                "./bolt/browser/response/html.php",
-                "./bolt/browser/response/xml.php",
-
-            ));
+            b::load( self::$_modes['browser'] );
 
             // browser request
-            return b::request('execute');
+            return b::request()->run();
 
         }
 
@@ -270,7 +275,7 @@ final class b {
 
                 // already loaded
                 if (in_array($file, self::$_loaded)) {
-                    b::log("b::load file '%s' already loaded", array($file)); continue;
+                    b::log("[b::load] file '%s' already loaded", array($file)); continue;
                 }
 
                 // template
@@ -278,10 +283,10 @@ final class b {
 
                 // file doesn't exist
                 if (!file_exists($file)) {
-                    b::log("b::load file '%s' does not exist", array($file)); continue;
+                    b::log("[b::load] file '%s' does not exist", array($file)); continue;
                 }
 
-                b::log("b::load included file '%s'", array($file));
+                b::log("[b::load] included file '%s'", array($file));
 
                 // load it
                 require($file);

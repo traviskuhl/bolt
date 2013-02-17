@@ -1,17 +1,17 @@
 <?php
 
 // namespace me
-namespace bolt {
+namespace bolt\browser {
 use \b;
 
 // plug route
 b::plug(array(
-    'route' => '\bolt\route',
+    'route' => '\bolt\browser\route',
     'url' => 'route::url'
 ));
 
 // route
-class route extends plugin\singleton {
+class route extends \bolt\plugin\singleton {
 
     // type is singleton
     // since this is really a plugin dispatch
@@ -41,82 +41,13 @@ class route extends plugin\singleton {
 
         // if paths is not an object
         if (!is_object($paths)) {
-            $cl = (b::_('router') ?: '\bolt\route\regex');
+            $cl = (b::_('router')->value ?: '\bolt\route\token');
             $paths = new $cl($paths, $view, $method);
         }
 
         // add to routes
         $this->routes[] = $paths;
 
-
-        // // method
-        // $method = "*";
-
-        // // if paths is a string,
-        // // make it an array
-        // if (is_string($paths)) {
-
-        //     // weight
-        //     $w = p('weight', 0, $args);
-
-        //     // add it
-        //     $paths = array($w => $paths);
-
-        // }
-
-        // // figure if class is really a method
-        // if (is_string($class) AND in_array(strtolower($class), array("get","post","put","delete","head"))) {
-        //     $method = strtoupper($class);
-        //     $class = $name;
-        // }
-
-        // // now loop it up
-        // foreach ($paths as $weight => $path) {
-
-        //     // ?
-        //     if(strpos($path, '?P') !== false) {
-        //         $this->routes[$path] = array($weight, $class, array(), $args, $method); continue;
-        //     }
-
-        //     // params
-        //     $params = array();
-
-        //     // does this have name
-        //     if (strpos($path, '<') !== false) {
-
-        //         // name
-        //         list($_name, $path) = explode("<", $path);
-
-        //         // add it to the url
-        //         $this->urls[$_name] = trim($path,'/$');
-
-        //     }
-        //     else if ($name) {
-        //         $this->urls[$name] = trim($path,'/$?');
-        //     }
-
-        //     // if class
-        //     if ($class !== false) {
-
-        //         // matches
-        //         if (preg_match_all("/\>([a-zA-Z]+)/", $path, $match, PREG_SET_ORDER)) {
-        //             foreach ($match as $m) {
-
-        //                 // take it out of the path
-        //                 $path = str_replace($m[0], "", $path);
-
-        //                 // add it to params
-        //                 $params[] = $m[1];
-
-        //             }
-        //         }
-
-        //         // add the routes
-        //         $this->routes[$path] = array($weight, $class, $params, $args, $method);
-
-        //     }
-
-        // }
 
         return $paths;
 
@@ -126,7 +57,7 @@ class route extends plugin\singleton {
     public function match($path=false, $method=false) {
 
         // class
-        $view = b::_("defaultView");
+        $view = b::_("view.default")->value;
         $params = array();
 
         // loop through each route and
@@ -255,6 +186,7 @@ abstract class parser extends \bolt\plugin\factory {
 
     public function validate($name, $regex) {
         $this->_validators[$name] = $regex;
+        return $this;
     }
 
     public function getValidator($name) {
