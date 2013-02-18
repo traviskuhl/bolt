@@ -57,23 +57,32 @@ class route extends \bolt\plugin\singleton {
     public function match($path=false, $method=false) {
 
         // class
-        $view = b::_("view.default")->value;
+        $controller = false;
         $params = array();
 
         // loop through each route and
         // try to match it
         foreach ($this->routes as $route) {
             if ($route->match($path, $method) !== false) {
-                $view = $route->getView();
+                $controller = $route->getController();
                 $params = $route->getParams();
                 break;
             }
         }
 
+        // no view is bad
+        if (!$controller AND $path != '*') {
+            return $this->match('*', $method);
+        }
+
+        if (!$controller) {
+            return false;
+        }
+
         // return what we foudn
         return array(
-            'class' => $view,
-            'args' => $params
+            'class' => $controller,
+            'params' => $params
         );
 
     }
@@ -151,17 +160,17 @@ use \b;
 abstract class parser extends \bolt\plugin\factory {
 
     private $_paths;
-    private $_view;
+    private $_controller;
     private $_method = '*';
     private $_name = false;
     private $_weight = false;
     private $_validators = array();
     private $_params = array();
 
-    final public function __construct($paths, $view, $method='*') {
+    final public function __construct($paths, $controller, $method='*') {
         if (!is_array($paths)) {$paths = array($paths);}
         $this->_paths = $paths;
-        $this->_view = $view;
+        $this->_controller = $controller;
         $this->_method = $method;
     }
 

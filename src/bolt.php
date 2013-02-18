@@ -94,6 +94,8 @@ final class b {
     public static $_modes = array(
         'browser' => array(
             // browser
+            "./bolt/browser/controller.php",
+            "./bolt/browser/view.php",
             "./bolt/browser/request.php",
             "./bolt/browser/response.php",
             "./bolt/browser/cookie.php",

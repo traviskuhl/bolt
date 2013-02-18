@@ -10,18 +10,39 @@ class response extends \bolt\plugin {
 	// we're a singleton
     public static $TYPE = 'singleton';
 
-	private $_view;
-	private $_headers;
-	private $_status = 200;
+	private $_controller;
+    private $_headers;
+    private $_status = 200;
+    private $_accept = false;
+
 
 	public function __construct() {
 		$this->_headers = b::bucket();
 	}
 
+    public function __set($name, $value) {
+        if ($name == 'status') {
+            $this->_status = (int)$value;
+        }
+        else if ($name == 'accept') {
+            $this->_accept = $value;
+        }
+        else if ($name == 'controller') {
+            $this->_controller = $value;
+        }
+        return $this;
+    }
+
 	public function __get($name) {
 		switch($name) {
+            case 'controller':
+                return $this->_controller;
+            case 'accept':
+                return $this->_accept;
 			case 'headers':
 				return $this->getHeaders();
+            case 'status':
+                return $this->_status;
 			default:
 				return false;
 		};
@@ -31,10 +52,7 @@ class response extends \bolt\plugin {
 		return $this->_headers;
 	}
 
-	public function setView(\bolt\view $view) {
-		$this->_view = $view;
-		return $this;
-	}
+
 
 	public function getStatus() {
 		return $this->_status;
@@ -44,21 +62,44 @@ class response extends \bolt\plugin {
 		return $this;
 	}
 
-	public function respond() {
+    public function getAccept() {
+        return $this->_accept;
+    }
+    public function setAccept($accept) {
+        $this->_accet = $accept;
+        return $this;
+    }
 
-		// execute our view
-        if (!$this->_view->hasExecuted()) {
-		  $this->_view = $this->_view->execute();
-        }
+    public function getController() {
+        return $this->_controller;
+    }
+    public function setController($controller) {
+        $this->_controller = $controller;
+        return $this;
+    }
 
-		// rendere
-		$r = b::render();
+    public function getOutputHandler() {
 
-		// what do we want to accept
-		$req = b::request();
+        // our controller
+        $cont = $this->_controller;
 
-        // accept
-        $map = array();
+        // figure out our accept
+        $accept = $this->_accept;
+
+            // does the controller have one
+            if ($accept === false AND $cont->getAccept()) {
+                $accept = $cont->getAccept();
+            }
+
+            // fall back to the request
+            if ($accept === false AND b::request()->getAccept()) {
+                $accept = b::request()->getAccept();
+            }
+
+            // still no we use text/plain
+            if ($accept === false) {
+                $accept = 'text/plain';
+            }
 
         // loop through all our plugins
         // to figure out which render to use
@@ -81,16 +122,23 @@ class response extends \bolt\plugin {
 
         // loop it
         foreach ($map as $item) {
-            if (in_array($item[1], $this->_view->getAccept())) {
+            if ($item[1] == $accept) {
                 $plug = $item[2]; break;
             }
         }
 
         // get our
-        $p = $this->call($plug);
+        return $this->call($plug);
+
+    }
+
+	public function run() {
+
+        // handler
+        $handler = $this->getOutputHandler();
 
         // print a content type
-        header("Content-Type: {$p->contentType}", true, $this->getStatus());
+        header("Content-Type: {$handler->contentType}", true, $this->getStatus());
 
     	// print all headers
         $this->_headers->map(function($name, $value){
@@ -98,16 +146,7 @@ class response extends \bolt\plugin {
         });
 
         // resp
-        $resp = $p->getContent($this->_view);
-
-        // allow the renderers to finalize
-        if (is_string($resp)) {
-            foreach ($r->getPlugins() as $plug => $class) {
-                if (method_exists($r->call($plug), 'finalize')) {
-                    $resp = $r->call($plug)->finalize($resp);
-                }
-            }
-        }
+        $resp = $handler->getContent($this->_controller);
 
         // respond
         exit($resp);

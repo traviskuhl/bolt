@@ -220,6 +220,8 @@ class bucket extends \bolt\plugin\factory implements \Iterator, \ArrayAccess {
 		}
         return $this;
 	}
+        public function add($value) { return $this->push($value); }
+
 
     ////////////////////////////////////////////////////////////////////
     /// @brief map values in an array

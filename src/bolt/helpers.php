@@ -12,6 +12,11 @@ use \b as b;
 // helpers
 class helpers {
 
+    // implemnets
+    public static function isInterfaceOf($obj, $interface) {
+        return (($implements = class_implements($obj)) !== false AND in_array(ltrim($interface,'\\'), $implements));
+    }
+
     ////////////////////////////////////////////////
     /// payload
     ////////////////////////////////////////////////

@@ -17,17 +17,20 @@ class html extends \bolt\plugin\singleton {
     public $contentType = "text/html";
 
     //
-    public function getContent($view) {
+    public function getContent($controller) {
 
-        // give it up
-        $html = $view->getContent(true);
+        // layout
+        $layout = '{child}';
 
-        // is html really an array
-        if (is_array($html)) {
-            if (isset($html['redirect'])) {
-                exit(call_user_func(array('b', 'location'), $html['redirect']));
-            }
+        // see if there's a layout
+        if ($controller->hasLayout()) {
+            $layout = $controller
+                        ->getLayout()
+                            ->render()
+                            ->getContent();
         }
+
+        $html = str_replace('<% child %>', $controller->getContent(), $layout);
 
         // html
         return $html;

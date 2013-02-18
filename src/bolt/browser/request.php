@@ -37,20 +37,26 @@ class request extends \bolt\plugin\singleton {
 
 	public function run() {
 
+        // pathInfo
+        $pathInfo = trim(ltrim(p('PATH_INFO', false, $_SERVER),'/'));
+
 		// fire lets run our router to figure out what
 		// route we need to take
-		$route = b::route()->match(ltrim($_SERVER['PATH_INFO'],'/'));
+		$route = b::route()->match($pathInfo);
 
 			// no route just die right now
 			if (!$route) {
-				die(" YOU SHOULDN'T SEE THIS. EMAIL ME NOW! ");
+				return false;
 			}
+
+        // controller
+        $reps = false;
 
 		// is the route a clouser
 		if (is_a($route['class'], 'Closure')) {
 
 			// args
-			$args = $route['args'];
+			$args = $route['params'];
 
             // reflect our function
             $f = new \ReflectionFunction($route['class']);
@@ -70,30 +76,72 @@ class request extends \bolt\plugin\singleton {
                 }
 
                 // call our function
-                $view = call_user_func_array($route['class'], $_params);
+                $resp = call_user_func_array($route['class'], $_params);
 
             }
             else {
-                $view = $route['class']();
-            }
-
-            // resp is a string not a view
-            if (is_string($view)) {
-            	$_view = new \bolt\view();
-            	$_view->setContent($view)->hasExecuted(true);
-                $view = $_view;
+                $resp = $route['class']();
             }
 
 		}
 		else {
-
-			// create our view
-			$view = new $route['class']($route['args']);
-
+			$resp = new $route['class']();
 		}
 
-		// now create a response
-		b::response()->setView($view)->respond();
+        // figure out what we got as a response
+        if (is_string($resp)) {
+            // with just a string, we need to create
+            // a dummy controller and set it's content
+            $resp = new \bold\browser\controller();
+            $resp->setContent($resp);
+        }
+
+        // if response isn't a controller interface
+        // we need to stop
+        if (!b::isInterfaceOf($resp, '\bolt\browser\iController')) {
+            b::log("request run response is not an interface of iController");
+            return false;
+        }
+
+        // request params
+        $this->_params = b::bucket($route['params']);
+
+
+        // no never ending loops
+        $i = 0;
+
+        // run our controller and see what comes back
+        while ($i++ < 10) {
+
+            // run the response
+            $run = $resp->run();
+
+            // if run is a falsy value
+            // we can stop now
+            if (!$run) { break; }
+
+            // if run isn't an object we stop
+            if (!is_object($run)) { break; }
+
+            // if run is another controller
+            if (b::isInterfaceOf($run, '\bolt\browser\iController') AND $run->getGuid() == $resp->getGuid()) {
+                break;
+            }
+
+            // level up
+            $resp = $run;
+
+        }
+
+        // run isn't a controller object we stop
+        if (b::isInterfaceOf($run, '\bolt\browser\controller')) {
+            return false;
+        }
+
+		// set our response and run
+		return b::response()
+                ->setController($resp)
+                    ->run();
 
 	}
 
