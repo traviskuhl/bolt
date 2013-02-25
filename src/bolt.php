@@ -25,7 +25,7 @@ if (!defined("bTimeZone")) {
 }
 
 if (!defined("bLogLevel")) {
-    define("bLogLevel", 1);
+    define("bLogLevel", 0);
 }
 
 // global config
@@ -231,7 +231,9 @@ final class b {
         }
 
         // settings
-        self::$_settings['global'] = b::settings(bGlobalSettings);
+        if (defined('bGlobalSettings') AND bGlobalSettings !== false) {
+          self::$_settings['global'] = b::settings(bGlobalSettings);
+        }
 
     }
 
