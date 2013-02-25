@@ -1,5 +1,12 @@
 <?php
 
+$opts = getopt("sl", array("include::", "share::", "bin::"));
+
+// include folder
+if (isset($opts['include'])) {
+    set_include_path(get_include_path().PATH_SEPARATOR.$opts['include']);
+}
+
 // no version global means this version
 // of php is super old
 if (!defined('PHP_VERSION')) {
@@ -17,15 +24,16 @@ if ((include "Archive/Tar.php") === false) {
 }
 
 // local
-if (isset($argv[1]) AND $argv[1] === 'local') {
+if (isset($opts['l'])) {
     $resp = file_get_contents("bolt-latest.tar.gz");
 }
 
 // symlink
-else if (isset($argv[1]) AND $argv[1] === 'symlink') {
+else if (isset($opts['s'])) {
 
     // dest
-    $dest = (isset($argv[2]) ? rtrim($argv[2], '/') : "/usr/share/pear");
+    $dest = (isset($opts['share']) ? rtrim($opts['share'], '/') : "/usr/share/pear");
+    $bin = (isset($opts['bin']) ? rtrim($opts['bin'], '/') : "/usr/local/bin/");
 
         // no a location
         if (!file_exists($dest)) {
@@ -60,13 +68,14 @@ else if (isset($argv[1]) AND $argv[1] === 'symlink') {
     }
 
     // bin
-    $bin = "/usr/local/bin/bolt";
+    $bin .= "bolt";
 
     // now symlink the bin file
     if (file_exists($bin)) {
         unlink($bin);
     }
-    symlink(realpath("../bin/bolt"), $bin);
+    file_put_contents($bin, stub($dest));
+    chmod($bin, 0755);
 
     // done
     exit("Bolt symlink installed!\n");
@@ -166,8 +175,11 @@ $str = '#!/usr/bin/env php
 /// governing permissions and limitations under the License.
 ///////////////////////////////////////////////////////////////////////
 
-// include the lib
-require_once("'.$lib.'");
+// check for bolt path
+$root = (getenv("BOLT_ROOT") ?: "'.$lib.'");
+
+// include bolt
+require("{$root}/bolt.php");
 
 ';
 $str .= <<<'END'
@@ -176,11 +188,15 @@ $str .= <<<'END'
 // otherwise we're just including the phar
 if ('cli' === php_sapi_name()) {
 
-    // init
-    bolt::init();
+    b::init(array(
+        'load' => array(
+            "$root/bolt/cli.php",
+            "$root/bolt/client/*.php"
+        )
+    ));
 
-    // run cli
-    bolt::cli();
+    // run in cli mode
+    b::run('cli');
 
 }
 else {

@@ -3,14 +3,26 @@
 namespace bolt\client;
 use \b;
 
-b::command('config', '\bolt\client\config', array(
-
+b::command('settings', '\bolt\client\settings', array(
+        'set' => array(
+            'flags' => array(
+                array("global|g", "Set variable as global")
+            )
+        )
     ));
 
-class config extends \bolt\cli\command {
+class settings extends \bolt\cli\command {
 
-    public function run() {
+    protected $handle = false;
+    protected $file
 
+
+    public function set() {
+        if (count($this->getArgv()) == 0) {
+            return $this->list();
+        }
+
+        list($file, $storage) = $this->getStorage();
 
     }
 

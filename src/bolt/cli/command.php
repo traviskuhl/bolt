@@ -20,11 +20,12 @@ class commands extends \bolt\plugin\singleton {
     }
 
     public function addCommand($name, $class, $opts=array()) {
-        $this->_commands[strtolower($name)] = array(
+        $opts += array(
                 'class' => $class,
                 'flags' => p_raw('flags', array(), $opts),
-                'options' => p_raw('options', array(), $opts)
+                'options' => p_raw('options', array(), $opts),
             );
+        $this->_commands[strtolower($name)] = $opts;
         return $this;
     }
 
@@ -35,18 +36,24 @@ class commands extends \bolt\plugin\singleton {
         $script = array_shift($argv);
 
         // command
-        $cmd = false;
+        $cmd = $sub = false;
 
         // loop through and find our first command
         foreach ($argv as $part) {
             $part = strtolower($part);
-            if ($part{0} != '-' AND array_key_exists($part, $this->_commands)) {
-                $cmd = $this->_commands[$part]; break;
+            if ($part{0} == '-') {continue;}
+            if (stripos($part, ':') !== false) {
+                list($part, $sub) = explode(':', $part);
+            }
+            if (array_key_exists($part, $this->_commands)) {
+                $cmd = $this->_commands[$part];
+                array_shift($argv);
+                break;
             }
         }
 
         // return our full command
-        return $cmd;
+        return array($cmd, $sub, $argv);
 
     }
 
@@ -57,12 +64,10 @@ abstract class command  {
 
     private $_flag;
     private $_option;
-
-    abstract public function run();
-
+    private $_argv = array();
 
     public function __get($name) {
-        $a = b::cli('arguments');
+        $a = b::cli()->arguments();
         $data = $a->getArguments();
         if (array_key_exists($name, $data)) {
             return $data[$name];
@@ -75,10 +80,18 @@ abstract class command  {
     }
 
     public function __call($name, $args) {
-        if (method_exists(array(b::cli(), $name))) {
+        if (method_exists(b::cli(), $name)) {
             return call_user_func_array(array(b::cli(), $name), $args);
         }
         return false;
+    }
+
+    public function setArgv($argv) {
+        $this->_argv = $argv;
+        return $this;
+    }
+    public function getArgv() {
+        return $this->_argv;
     }
 
 }

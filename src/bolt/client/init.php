@@ -9,6 +9,10 @@ b::command('init', '\bolt\client\init', array(
         ),
         'options' => array(
             array('stub|s', array('default' => 'poop', 'description' => 'Output only the stub'))
+        ),
+
+        'set' => array(
+
         )
     ));
 

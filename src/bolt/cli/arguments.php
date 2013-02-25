@@ -15,6 +15,10 @@ class arguments extends \bolt\plugin\singleton {
         $this->instance = new \cli\Arguments(array('strict' => false));
     }
 
+    public function _default() {
+        return $this;
+    }
+
     public function __call($name, $args) {
         if (method_exists($this->instance, $name)) {
             return call_user_func_array(array($this->instance, $name), $args);

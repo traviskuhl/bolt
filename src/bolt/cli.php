@@ -34,6 +34,9 @@ class cli extends plugin {
         if (count($args) == 0) {
             return $this;
         }
+        else if (array_key_exists($args[0], $this->getPlugins())) {
+            return call_user_func_array(array($this, 'call'), $args);
+        }
         else {
             return call_user_func_array(array($this, 'addCommand'), $args);
         }
@@ -43,7 +46,7 @@ class cli extends plugin {
     public function run() {
 
         // figure out our command
-        $cmd = b::command()->match();
+        list($cmd, $subCmd, $_argv) = b::command()->match();
 
         // setup our arguments
         $a = b::cli()->arguments();
@@ -53,17 +56,34 @@ class cli extends plugin {
             return $this->help();
         }
 
+        if (!$subCmd AND method_exists($o, $subCmd)) {
+            $subCmd = 'run';
+        }
+
         // create our class
         $o = new $cmd['class']();
 
+        // run
+        $flags = $options = array();
+
+        // subCmd
+        if (array_key_exists($subCmd, $cmd)) {
+            $flags = p_raw('flags', array(), $cmd[$subCmd]);
+            $options = p_raw('options', array(), $cmd[$subCmd]);
+        }
+        else if ($subCmd == 'run') {
+            $flags = p_raw('flags', array(), $cmd);
+            $options = p_raw('options', array(), $cmd);
+        }
+
         // add flags and they set
-        foreach ($cmd['flags'] as $flag) {
+        foreach ($flags as $flag) {
             if (is_string($flag[0]) AND stripos($flag[0], '|') !== false) {
                 $flag[0] = explode('|', $flag[0]);
             }
             call_user_func_array(array($a, 'addFlag'), $flag);
         }
-        foreach ($cmd['options'] as $opt) {
+        foreach ($options as $opt) {
             if (is_string($opt[0]) AND stripos($opt[0], '|') !== false) {
                 $opt[0] = explode('|', $opt[0]);
             }
@@ -73,15 +93,18 @@ class cli extends plugin {
         // parse
         $a->parse();
 
+        // set argv
+        $o->setArgv($_argv);
+
         // run
-        return $o->run( );
+        return call_user_func(array($o, $subCmd));
 
 
     }
 
     public function help() {
 
-        var_dump('poop');
+        var_dump('help');
 
     }
 

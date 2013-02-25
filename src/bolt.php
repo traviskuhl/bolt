@@ -25,12 +25,12 @@ if (!defined("bTimeZone")) {
 }
 
 if (!defined("bLogLevel")) {
-    define("bLogLevel", 0);
+    define("bLogLevel", 1);
 }
 
 // global config
-if (!defined("bGlobalConfig")) {
-    define("bGlobalConfig", (getenv("bGlobalConfig") ?: "/var/bolt/global.json"));
+if (!defined("bGlobalSettings")) {
+    define("bGlobalSettings", (getenv("bGlobalSettings") ?: "/var/bolt/global.json"));
 }
 
 /// set our bzone
@@ -65,12 +65,17 @@ final class b {
     // our plugin instance
     private static $_instance = false;
     private static $_loaded = array();
+    private static $_settings = array(
+        'global' => false,
+        'project' => false
+    );
 
     // what defined our core
     private static $_core = array(
 
         // general
         'config'    => "./bolt/config.php",
+        'settings'  => "./bolt/settings.php",
         'dao'       => "./bolt/dao.php",
         'source'    => "./bolt/source.php",
         'cache'     => "./bolt/cache.php",
@@ -204,15 +209,30 @@ final class b {
             self::load(self::$_modes[$args['mode']]);
         }
 
+        // set our settings are really buckets
+
+
         // config
         if (isset($args['config'])) {
             b::config($args['config']);
+        }
+
+        // settings or default project
+        if (isset($args['settings'])) {
+            self::$_settings['project'] = b::settings($args['settings']);
+        }
+        else {
+            self::$_settings['project'] = b::bucket();
         }
 
         // load
         if (isset($args['load'])) {
             self::load($args['load']);
         }
+
+        // settings
+        self::$_settings['global'] = b::settings(bGlobalSettings);
+
     }
 
     ////////////////////////////////////////////////////////////
@@ -247,6 +267,22 @@ final class b {
 
     }
 
+
+    ////////////////////////////////////////////////////////////
+    /// @brief setting
+    ///
+    /// @param $name name of setting
+    /// @param $default default value
+    /// @return setting value
+    ////////////////////////////////////////////////////////////
+    public static function setting($name, $default=false) {
+        if (substr($name, 0, 7) == 'global.') {
+            return b::$_settings['global']->get($name, $default);
+        }
+        else {
+            return b::$_settings['project']->get($name, $default);
+        }
+    }
 
     ////////////////////////////////////////////////////////////
     /// @brief load files
