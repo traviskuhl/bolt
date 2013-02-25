@@ -72,12 +72,12 @@ final class b {
         // general
         'config'    => "./bolt/config.php",
         'dao'       => "./bolt/dao.php",
-        'render'    => "./bolt/render.php",
         'source'    => "./bolt/source.php",
         'cache'     => "./bolt/cache.php",
         'bucket'    => "./bolt/bucket.php",
 
         // template renders
+        'render'          => "./bolt/render.php",
         'render-mustache' => "./bolt/render/mustache.php",
         'render-markdown' => "./bolt/render/markdown.php",
 

@@ -132,7 +132,7 @@ abstract class plugin {
             // we can chain our call method
             if (get_parent_class($i) == 'bolt\plugin' AND isset($args[0]) AND is_string($args[0])) {
                 b::log("b::plugin::call - sent to plugin '%s::call'", array($name));
-                return call_user_func_array(array($i, 'call'), $args);
+                return call_user_func(array($i, 'call'), $name, $args);
             }
 
             // is it a string

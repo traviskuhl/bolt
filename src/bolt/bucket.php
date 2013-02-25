@@ -556,3 +556,21 @@ class bString {
     }
 
 }
+
+class proxy {
+    private function _bucketProxy($name, $args=array()) {
+        $var = $this->{$this->bucketProxy};
+        return call_user_func_array(array($var, $name), $args);
+    }
+
+    public function __set($name, $value) {
+        return call_user_func(array($this, '_bucketProxy'), 'set', func_get_args());
+    }
+    public function __get($name) {
+        return call_user_func(array($this, '_bucketProxy'), 'get', func_get_args());
+    }
+    public function __isset($name) {
+        return call_user_func(array($this, '_bucketProxy'), 'exists', func_get_args());
+    }
+
+}

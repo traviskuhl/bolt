@@ -19,18 +19,16 @@ class html extends \bolt\plugin\singleton {
     //
     public function getContent($controller) {
 
-        // layout
-        $layout = '{child}';
+        // child
+        $html = $controller->getContent();
 
         // see if there's a layout
         if ($controller->hasLayout()) {
-            $layout = $controller
+            $html = $controller
                         ->getLayout()
-                            ->render()
+                            ->render(array('child' => $html))
                             ->getContent();
         }
-
-        $html = str_replace('<% child %>', $controller->getContent(), $layout);
 
         // html
         return $html;

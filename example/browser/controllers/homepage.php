@@ -16,7 +16,11 @@ class homepage extends \bolt\browser\controller {
 
         $this->testParam = 'test';
 
-        $this->request->headers->add('test', 'out');
+        $this->response->headers->set('x-test', 'out');
+
+        $this->meta = array(
+            'title' => 'hello world'
+        );
 
         $this->renderTemplate("homepage");
 
