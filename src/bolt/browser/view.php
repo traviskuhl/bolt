@@ -15,10 +15,7 @@ class viewFactory extends \bolt\plugin {
 
     // factory
     public static function factory($class='\bolt\browser\view') {
-
-        // lets do it
         return new $class();
-
     }
 
 }
@@ -40,6 +37,7 @@ class view extends \bolt\bucket\proxy implements iView {
     private $_controller;
     private $_file = false;
     private $_render = 'mustache';
+    private $_rendered = false;
 
     // bucketproxy needs to find
     protected $_params;
@@ -52,7 +50,12 @@ class view extends \bolt\bucket\proxy implements iView {
 
 
     public function setParams($params) {
-        $this->_params->set($params);
+        if (b::isInterfaceOf($params, '\bolt\bucket')) {
+            $this->_params = $params;
+        }
+        else {
+            $this->_params->set($params);
+        }
         return $this;
     }
 
@@ -70,6 +73,18 @@ class view extends \bolt\bucket\proxy implements iView {
         return $this;
     }
 
+    public function setData($data) {
+        $this->_data = $data;
+        return $this;
+    }
+    public function getData() {
+        return $this->_data;
+    }
+
+    public function hasRendered() {
+        return $this->_rendered;
+    }
+
     public function setFile($file) {
         if (stripos($file, '.template.php') === false) {
             $file .= '.template.php';
@@ -83,6 +98,9 @@ class view extends \bolt\bucket\proxy implements iView {
     }
 
     public function render($vars=array()) {
+
+        // already rendered
+        if ($this->hasRendered()) {return;}
 
         // loop throguh local params
         foreach ($this->_params as $key => $param)  {
@@ -116,6 +134,7 @@ class view extends \bolt\bucket\proxy implements iView {
                 'vars' => $vars
             )));
         }
+        $this->_rendered = true;
         return $this;
     }
 

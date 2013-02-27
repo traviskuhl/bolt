@@ -3,6 +3,26 @@
 namespace bolt\browser;
 use \b;
 
+// view
+b::plug('controller', '\bolt\browser\controllerFactory');
+
+// source
+class controllerFactory extends \bolt\plugin {
+
+    // type is singleton
+    // since this is really a plugin dispatch
+    public static $TYPE = "factory";
+
+    // factory
+    public static function factory($class='\bolt\browser\controller') {
+
+        // lets do it
+        return new $class();
+
+    }
+
+}
+
 interface iController {
 
 }
@@ -12,7 +32,6 @@ class controller implements iController {
     private $_guid;
     private $_layout;
     private $_params;
-    private $_view;
     private $_content;
     private $_accept;
 
@@ -89,6 +108,9 @@ class controller implements iController {
         }
         else if (method_exists($this, 'get')){
             $func = 'get';
+        }
+        else {
+            return $this;
         }
 
         // params from the request

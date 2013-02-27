@@ -3,6 +3,13 @@
 // autoload
 spl_autoload_register(array('b', 'autoloader'));
 
+// check env for some bolt balirables
+foreach(array('bRoot','bEnv','bTimeZone','bLogLevel','bGlobalSettings') as $name) {
+    if (!defined($name) AND ($value = getenv($name)) !== false) {
+        define($name, $value);
+    }
+}
+
 // root
 if (!defined("bRoot")) {
     define("bRoot", dirname(__FILE__));
@@ -25,7 +32,7 @@ if (!defined("bTimeZone")) {
 }
 
 if (!defined("bLogLevel")) {
-    define("bLogLevel", 1);
+    define("bLogLevel", 0);
 }
 
 // global config
@@ -228,7 +235,9 @@ final class b {
         }
 
         // settings
-        self::$_settings['global'] = b::settings(bGlobalSettings);
+        if (defined('bGlobalSettings') AND bGlobalSettings !== false) {
+          self::$_settings['global'] = b::settings(bGlobalSettings);
+        }
 
     }
 

@@ -21,6 +21,22 @@ class token extends parser {
                     $parts[] = '(?P<'.$name.'>'.$this->getValidator($name).')';
                     $params[$name] = false;
                 }
+                else if (stripos($part, '{') !== false) {
+                    if (preg_match_all('#\{([^\}]+)\}#', $part, $matches, PREG_SET_ORDER)) {
+                        $i = 0; $rep = array();
+                        foreach ($matches as $match) {
+                            $part = str_replace($match[0], "~{$i}~", $part);
+                            $name = $match[1];
+                            $rep[$i++] = '(?P<'.$name.'>'.$this->getValidator($name).')';
+                            $params[$name] = false;
+                        }
+                        $part = preg_quote($part, '#');
+                        foreach ($rep as $i => $v) {
+                            $part = str_replace("~{$i}~", $v, $part);
+                        }
+                    }
+                    $parts[] = $part;
+                }
                 else {
                     $parts[] = preg_quote($part, '#');
                 }
@@ -30,7 +46,7 @@ class token extends parser {
             $regex = '#^'.implode($parts,'/').'/?$#';
 
             // see if we can find something
-            if (preg_match($regex, $uri, $matches, PREG_OFFSET_CAPTURE)) {
+            if (preg_match_all($regex, $uri, $matches)) {
 
                 // is the method the same
                 if ($this->getMethod() != $method AND $this->getMethod() != '*') {

@@ -194,7 +194,7 @@ abstract class parser extends \bolt\plugin\factory {
     }
 
     public function validate($name, $regex) {
-        $this->_validators[$name] = $regex;
+        $this->_validators[$name] = trim($regex,' ()');
         return $this;
     }
 

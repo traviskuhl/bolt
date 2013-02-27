@@ -88,12 +88,16 @@ class request extends \bolt\plugin\singleton {
 			$resp = new $route['class']();
 		}
 
-        // figure out what we got as a response
-        if (is_string($resp)) {
-            // with just a string, we need to create
-            // a dummy controller and set it's content
-            $resp = new \bold\browser\controller();
-            $resp->setContent($resp);
+        // if response isn't an object
+        if (!is_object($resp)) {
+            $resp = b::controller()->setContent($resp);
+        }
+
+        // it's a viewo
+        if (b::isInterfaceOf($resp, '\bolt\browser\iView')) {
+            $view = $resp;
+            $resp = new \bolt\browser\controller();
+            $resp->setContent($view->render()->getContent());
         }
 
         // if response isn't a controller interface
@@ -196,7 +200,6 @@ class request extends \bolt\plugin\singleton {
 
 }
 
-
 // forward
 if (isset($_SERVER['HTTP_X_FORWARDED_HOST'])) {
     $_SERVER['HTTP_HOST'] = $_SERVER['HTTP_X_FORWARDED_HOST'];
@@ -243,9 +246,19 @@ define("HTTP_HOST",      $_SERVER['HTTP_HOST']);
 define("HOST",           ($_SERVER['SERVER_PORT']==443?"https://":"http://").$_SERVER['HTTP_HOST']);
 define("HOST_NSSL",      "http://".$_SERVER['HTTP_HOST']);
 define("HOST_SSL",       "https://".$_SERVER['HTTP_HOST']);
-define("URI",            HOST.implode("/",array_slice($uri,0,-1))."/");
-define("URI_NSSL",       HOST_NSSL.implode("/",array_slice($uri,0,-1))."/");
-define("URI_SSL",        HOST_SSL.implode("/",array_slice($uri,0,-1))."/");
+
+if (rtrim(str_replace("?".$_SERVER['QUERY_STRING'], "", $_SERVER['REQUEST_URI']),'/') == $_SERVER['SCRIPT_NAME']) {
+    define("URI",            HOST.implode("/",$uri)."/");
+    define("URI_NSSL",       HOST_NSSL.implode("/",$uri)."/");
+    define("URI_SSL",        HOST_SSL.implode("/",$uri)."/");
+}
+else {
+    define("URI",            HOST.implode("/",array_slice($uri,0,-1))."/");
+    define("URI_NSSL",       HOST_NSSL.implode("/",array_slice($uri,0,-1))."/");
+    define("URI_SSL",        HOST_SSL.implode("/",array_slice($uri,0,-1))."/");
+}
+
+
 define("COOKIE_DOMAIN",  false);
 define("IP",             $_SERVER['REMOTE_ADDR']);
 define("SELF",           HOST.$_SERVER['REQUEST_URI']);
