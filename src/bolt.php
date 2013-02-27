@@ -3,6 +3,13 @@
 // autoload
 spl_autoload_register(array('b', 'autoloader'));
 
+// check env for some bolt balirables
+foreach(array('bRoot','bEnv','bTimeZone','bLogLevel','bGlobalSettings') as $name) {
+    if (!defined($name) AND ($value = getenv($name)) !== false) {
+        define($name, $value);
+    }
+}
+
 // root
 if (!defined("bRoot")) {
     define("bRoot", dirname(__FILE__));

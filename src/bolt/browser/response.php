@@ -66,7 +66,7 @@ class response extends \bolt\plugin {
         return $this->_accept;
     }
     public function setAccept($accept) {
-        $this->_accet = $accept;
+        $this->_accept = $accept;
         return $this;
     }
 
