@@ -99,4 +99,42 @@ class config extends plugin\singleton {
         return $this;
     }
 
+    ////////////////////////////////////////////////////////////////////
+    /// @brief import from a ini file
+    ///
+    /// @param $from file name
+    /// @param $args array of setting args
+    /// @return self
+    ////////////////////////////////////////////////////////////////////
+    public function fromIniFile($from, $args=array()) {
+
+        // cache name
+        $cid = md5("config.ini.$from");
+        $data = false;
+
+        // cache
+        if (p('cache', false, $args) == 'apc') {
+            $data = apc_fetch($cid);
+        }
+
+        // no data
+        if (!$data) {
+            $data = parse_ini_file($from, true);
+        }
+
+        if (p('cache', false, $args) == 'apc') {
+            apc_store($cid, $data, p('ttl', false, $args));
+        }
+
+        if (p('key', false, $args)) {
+            $this->set($args['key'], $data);
+        }
+        else {
+            $this->set($data);
+        }
+
+        return $this;
+    }
+
+
 }

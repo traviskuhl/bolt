@@ -38,7 +38,7 @@ class request extends \bolt\plugin\singleton {
 	public function run() {
 
         // pathInfo
-        $pathInfo = trim(ltrim(p('PATH_INFO', false, $_SERVER),'/'));
+        $pathInfo = trim(ltrim(PATH_INFO,'/'));
 
 		// fire lets run our router to figure out what
 		// route we need to take
@@ -258,6 +258,12 @@ else {
     define("URI_SSL",        HOST_SSL.implode("/",array_slice($uri,0,-1))."/");
 }
 
+if (isset($_SERVER['PATH_INFO'])) {
+    define("PATH_INFO", $_SERVER['PATH_INFO']);
+}
+else {
+    define("PATH_INFO", str_replace("?".$_SERVER['QUERY_STRING'], "", $_SERVER['REQUEST_URI']));
+}
 
 define("COOKIE_DOMAIN",  false);
 define("IP",             $_SERVER['REMOTE_ADDR']);

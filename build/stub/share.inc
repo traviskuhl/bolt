@@ -26,15 +26,11 @@ if ('cli' === php_sapi_name()) {
     exit("Unable to run by command line");
 }
 
-
+// init from server request
 b::init(array(
-    'mode' => 'browser'
+    'mode' => 'browser',
+    'src' => 'server'
 ));
-
-// find our project config
-if (($file = getenv("bProjectConfig")) !== false) {
-    b::config()->fromJson($file);
-}
 
 // run in cli mode
 b::run('browser');

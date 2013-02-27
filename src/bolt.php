@@ -4,7 +4,7 @@
 spl_autoload_register(array('b', 'autoloader'));
 
 // check env for some bolt balirables
-foreach(array('bRoot','bEnv','bTimeZone','bLogLevel','bGlobalSettings') as $name) {
+foreach(array('bRoot','bEnv','bTimeZone','bLogLevel','bGlobalSettings','bGlobalConfig') as $name) {
     if (!defined($name) AND ($value = getenv($name)) !== false) {
         define($name, $value);
     }
@@ -17,14 +17,14 @@ if (!defined("bRoot")) {
 
 // devmode
 if ( !defined("bEnv") ) {
-	define("bEnv", (getenv("bEnv") ?: "dev"));
+	define("bEnv", "dev");
 }
 
-// dev mode?
-if ( bEnv === 'dev' ) {
-    error_reporting(E_ALL^E_DEPRECATED);
-    ini_set("display_errors",1);
-}
+    // dev mode?
+    if ( bEnv === 'dev' ) {
+        error_reporting(E_ALL^E_DEPRECATED);
+        ini_set("display_errors",1);
+    }
 
 // set date
 if (!defined("bTimeZone")) {
@@ -35,9 +35,12 @@ if (!defined("bLogLevel")) {
     define("bLogLevel", 0);
 }
 
-// global config
+// global settings & config
 if (!defined("bGlobalSettings")) {
-    define("bGlobalSettings", (getenv("bGlobalSettings") ?: "/etc/bolt/global.json"));
+    define("bGlobalSettings", "/etc/bolt/settings.json");
+}
+if (!defined("bGlobalConfig")) {
+    define("bGlobalConfig", "/etc/bolt/config.ini");
 }
 
 /// set our bzone
@@ -65,6 +68,7 @@ final class b {
     const LogNone = 0;
     const LogDebug = 1;
     const LogError = 2;
+    const LogFatal = 3;
 
     // public autoload
     public static $autoload = array();
@@ -189,6 +193,7 @@ final class b {
     ////////////////////////////////////////////////////////////
     public static function init($args=array()) {
 
+        // lig
         b::log("[b::init] called");
 
         // core always starts with the default
@@ -216,6 +221,67 @@ final class b {
             self::load(self::$_modes[$args['mode']]);
         }
 
+        // settings
+        if (defined('bGlobalSettings') AND bGlobalSettings !== false) {
+          self::$_settings['global'] = b::settings(bGlobalSettings);
+        }
+
+        // config
+        if (defined('bGlobalConfig') AND bGlobalConfig !== false) {
+          b::config()->fromIniFile(bGlobalConfig, array('key' => 'global'));
+        }
+
+        // if we are init from the server
+        // we need to look in our global
+        if (p('src', false, $args) == 'server') {
+
+            // name of
+            if (!HTTP_HOST) {
+                b::log("Unable to get host from server", array(), b::LogFatal); return;
+            }
+
+            // normalzie host
+            $host = strtolower(HTTP_HOST);
+
+            // start our assumeing we'll use the global project
+            $project = b::config()->get('global.defaultProject')->value;
+
+            // figure out if we have a hostname that can
+            // service this request
+            foreach (b::config()->get('global') as $key => $value) {
+                if (is_array($value) AND array_key_exists('hostname', $value)) {
+                    foreach ($value['hostname'] as $hn) { // not hackernews -> hostname
+                        if (strtolower($hn) == $host) {
+                            $project = $key; break;
+                        }
+                        else if (strtolower(implode('.', array_slice(explode('.', $hn), -2))) == $host) {
+                            $project = $key; break;
+                        }
+                    }
+                }
+            }
+
+            // no project
+            if ($project === false) {
+                b::log("Unable to match hostname (%s) to project.", array($host), b::LogFatal); return;
+            }
+
+            // project
+            $project = b::config()->global->getValue($project);
+
+            if (isset($project['load'])) {
+                $args['load'] = $project['load']; unset($project['load']);
+            }
+            if (isset($project['settings'])) {
+                $args['settings'] = $project['settings']; unset($project['settings']);
+            }
+
+            // everything else is config
+            $args['config'] = $project;
+
+        }
+
+
         // config
         if (isset($args['config'])) {
             b::config($args['config']);
@@ -232,11 +298,6 @@ final class b {
         // load
         if (isset($args['load'])) {
             self::load($args['load']);
-        }
-
-        // settings
-        if (defined('bGlobalSettings') AND bGlobalSettings !== false) {
-          self::$_settings['global'] = b::settings(bGlobalSettings);
         }
 
     }
@@ -297,6 +358,7 @@ final class b {
     ////////////////////////////////////////////////////////////
     public static function load($paths) {
         if (is_string($paths)) { $paths = array($paths); }
+
 
         foreach($paths as $pattern) {
 
