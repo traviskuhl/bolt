@@ -2,7 +2,7 @@
 <?php
 
 
-set_include_path(".:/Applications/MAMP/bin/php/php5.3.6/lib/php/");
+set_include_path(get_include_path().":/Applications/MAMP/bin/php/php5.3.6/lib/php/");
 
 // tar
 require "Archive/Tar.php";
@@ -46,11 +46,11 @@ foreach (iterator_to_array($regex) as $file) {
 
 }
 
-// other files
-// $phar->addFromString("LICENSE", file_get_contents("../LICENSE"));
+// variables
+$vars = array('sha' => $sha, 'date' => $date, 'cdate' => date('r', $ts));
 
 // stub
-$phar->setStub(stub($sha, $date, $ts));
+$phar->setStub(stub('stub/pear.inc', $vars));
 
 // DONE
 $phar->stopBuffering();
@@ -61,12 +61,14 @@ unset($phar);
 // chmod
 chmod("bolt.phar", 0755);
 
-
 // create a
 $tar = new Archive_Tar("./bolt-$version.tar.gz", 'gz');
 
 // create
-$tar->create(array("./bolt.phar","../LICENSE","../README"));
+$tar->create(array("./bolt.phar"));
+
+$tar->addString("bin.php", stub('stub/bin.inc', $vars));
+$tar->addString("share.php", stub('stub/share.inc', $vars));
 
 // copy to latest
 copy("./bolt-$version.tar.gz", "./bolt-latest.tar.gz");
@@ -80,49 +82,20 @@ unlink("bolt.phar");
 exit("DONE!\n\n");
 
 
-function stub($sha, $date, $ts) {
-$str = '<?php
-///////////////////////////////////////////////////////////////////////
-/// (c) the.kuhl.co 2012 - author: travis kuhl (travis@kuhl.co)
-///
-/// Licensed under the Apache License, Version 2.0 (the "License");
-/// you may not use this work except in  compliance with the License.
-/// You may obtain a copy of the License in the LICENSE file, or at:
-///
-/// http://www.apache.org/licenses/LICENSE-2.0
-///
-/// Unless required by applicable law or agreed to in writing,
-/// software distributed under the License is distributed on an "AS IS"
-/// BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
-/// express or implied. See the License for the specific language
-/// governing permissions and limitations under the License.
-///////////////////////////////////////////////////////////////////////
-/// Build: '.$sha.' / '.$date.'
-/// Compiled: '.date('r').'
+function stub($file, $vars=array()) {
 
+    // get our str
+    $str = file_get_contents($file);
 
-';
+    // parse any variables
+    foreach ($vars as $name => $value) {
+        $str = str_replace("%".strtoupper($name)."%", $value, $str);
+    }
 
-$str .= <<<'END'
-// map our the phar
-Phar::mapPhar('bolt.phar');
+    // give back
+    return $str;
 
-// phar
-define('bRoot', 'phar://bolt.phar/');
-
-// include bolt
-require("phar://bolt.phar/bolt.php");
-
-// and done
-__HALT_COMPILER();
-
-
-END;
-return $str;
 }
-
-
-
 
 
 /*

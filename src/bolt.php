@@ -30,7 +30,7 @@ if (!defined("bLogLevel")) {
 
 // global config
 if (!defined("bGlobalSettings")) {
-    define("bGlobalSettings", (getenv("bGlobalSettings") ?: "/var/bolt/global.json"));
+    define("bGlobalSettings", (getenv("bGlobalSettings") ?: "/etc/bolt/global.json"));
 }
 
 /// set our bzone
@@ -209,9 +209,6 @@ final class b {
             self::load(self::$_modes[$args['mode']]);
         }
 
-        // set our settings are really buckets
-
-
         // config
         if (isset($args['config'])) {
             b::config($args['config']);
@@ -219,7 +216,7 @@ final class b {
 
         // settings or default project
         if (isset($args['settings'])) {
-            self::$_settings['project'] = b::settings($args['settings']);
+            self::$_settings['project'] = (is_a($args['settings'], '\bolt\settings') ? $args['settings'] : b::settings($args['settings']));
         }
         else {
             self::$_settings['project'] = b::bucket();

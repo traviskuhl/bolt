@@ -25,6 +25,10 @@ class settings extends plugin\factory {
         // open our file
         $this->_handle = fopen($file, "w+");
 
+            if (!$this->_handle) {
+                return $this;
+            }
+
         // shared lock for reading
         flock($this->_handle, LOCK_SH);
         $content = "";

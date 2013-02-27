@@ -7,6 +7,11 @@ if (isset($opts['include'])) {
     set_include_path(get_include_path().PATH_SEPARATOR.$opts['include']);
 }
 
+// dest
+$pear = (isset($opts['pear']) ? rtrim($opts['pear'], '/') : "/usr/share/pear");
+$bin = (isset($opts['bin']) ? rtrim($opts['bin'], '/') : "/usr/local/bin/");
+$share = (isset($opts['share']) ? rtrim($opts['share'], '/') : "/usr/share/php/");
+
 // no version global means this version
 // of php is super old
 if (!defined('PHP_VERSION')) {
@@ -31,14 +36,10 @@ if (isset($opts['l'])) {
 // symlink
 else if (isset($opts['s'])) {
 
-    // dest
-    $dest = (isset($opts['share']) ? rtrim($opts['share'], '/') : "/usr/share/pear");
-    $bin = (isset($opts['bin']) ? rtrim($opts['bin'], '/') : "/usr/local/bin/");
-
-        // no a location
-        if (!file_exists($dest)) {
-            exit("Symlink destination '$dest' doesn't exist.\n");
-        }
+    // no a location
+    if (!file_exists($pear)) {
+        exit("Symlink destination '$dest' doesn't exist.\n");
+    }
 
     // loop through source and slinkink everything
     $dir = new RecursiveDirectoryIterator('../src/');
@@ -49,7 +50,7 @@ else if (isset($opts['s'])) {
     foreach ($regex as $file) {
 
         // get the path
-        $path = $dest . str_replace("../src", "", $file[0]);
+        $path = $pear . str_replace("../src", "", $file[0]);
 
         // if the file already exists
         // unlink it
@@ -63,7 +64,7 @@ else if (isset($opts['s'])) {
         }
 
         // symlink the file
-        symlink(realpath($file[0]), $path);
+        link(realpath($file[0]), $path);
 
     }
 
@@ -74,8 +75,17 @@ else if (isset($opts['s'])) {
     if (file_exists($bin)) {
         unlink($bin);
     }
-    file_put_contents($bin, stub($dest));
-    chmod($bin, 0755);
+    file_put_contents($bin, stub("./stub/bin.inc", "$pear/bolt.php")); chmod($bin, 0755);
+
+
+    // share
+    $share .= "bolt.php";
+
+    // now symlink the share file
+    if (file_exists($share)) {
+        unlink($share);
+    }
+    file_put_contents($share, stub("./stub/share.inc", "$pear/bolt.php"));
 
     // done
     exit("Bolt symlink installed!\n");
@@ -154,55 +164,7 @@ exit("bolt has been installed. Enjoy!\n");
 
 
 /// stub
-function stub($lib) {
-
-// bin stub
-$str = '#!/usr/bin/env php
-<?php
-///////////////////////////////////////////////////////////////////////
-/// (c) the.kuhl.co 2012 - author: travis kuhl (travis@kuhl.co)
-///
-/// Licensed under the Apache License, Version 2.0 (the "License");
-/// you may not use this work except in  compliance with the License.
-/// You may obtain a copy of the License in the LICENSE file, or at:
-///
-/// http://www.apache.org/licenses/LICENSE-2.0
-///
-/// Unless required by applicable law or agreed to in writing,
-/// software distributed under the License is distributed on an "AS IS"
-/// BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
-/// express or implied. See the License for the specific language
-/// governing permissions and limitations under the License.
-///////////////////////////////////////////////////////////////////////
-
-// check for bolt path
-$root = (getenv("BOLT_ROOT") ?: "'.$lib.'");
-
-// include bolt
-require("{$root}/bolt.php");
-
-';
-$str .= <<<'END'
-
-// if we're in cli, load it
-// otherwise we're just including the phar
-if ('cli' === php_sapi_name()) {
-
-    b::init(array(
-        'load' => array(
-            "$root/bolt/cli.php",
-            "$root/bolt/client/*.php"
-        )
-    ));
-
-    // run in cli mode
-    b::run('cli');
-
-}
-else {
-    exit("Unable to run!");
-}
-
-END;
-return $str;
+function stub($file, $phar) {
+    $str = file_get_contents($file);
+    return str_replace('%PHAR%', $phar, $str);
 }
