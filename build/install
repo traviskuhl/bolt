@@ -9,8 +9,9 @@ if (isset($opts['include'])) {
 
 // dest
 $pear = (isset($opts['pear']) ? rtrim($opts['pear'], '/') : "/usr/share/pear");
-$bin = (isset($opts['bin']) ? rtrim($opts['bin'], '/') : "/usr/local/bin/");
-$share = (isset($opts['share']) ? rtrim($opts['share'], '/') : "/usr/share/php/");
+$bin = rtrim((isset($opts['bin']) ? rtrim($opts['bin'], '/') : "/usr/local/bin/"),'/');
+$share = rtrim((isset($opts['share']) ? rtrim($opts['share'], '/') : "/usr/share/php/"),'/');
+$etc = rtrim((isset($opts['etc']) ? rtrim($opts['etc'], '/') : "/etc/"),'/');
 
 // no version global means this version
 // of php is super old
@@ -68,24 +69,34 @@ else if (isset($opts['s'])) {
 
     }
 
+    // make etc
+    $etc .= '/bolt';
+    if (!file_exists($etc)) {
+        mkdir($etc, 0644, true);
+    }
+
     // bin
-    $bin .= "bolt";
+    $bin .= "/bolt";
 
     // now symlink the bin file
     if (file_exists($bin)) {
         unlink($bin);
     }
-    file_put_contents($bin, stub("./stub/bin.inc", "$pear/bolt.php")); chmod($bin, 0755);
+    file_put_contents($bin, stub("./stub/bin.inc", "$pear/bolt.php", $etc)); chmod($bin, 0755);
 
 
     // share
-    $share .= "bolt.php";
+    $share .= "/bolt/index.php";
 
     // now symlink the share file
+    if (!file_exists(dirname($share))) {
+        mkdir(dirname($share), 0644, true);
+    }
     if (file_exists($share)) {
         unlink($share);
     }
-    file_put_contents($share, stub("./stub/share.inc", "$pear/bolt.php"));
+    file_put_contents($share, stub("./stub/share.inc", "$pear/bolt.php", $etc));
+
 
     // done
     exit("Bolt symlink installed!\n");
@@ -164,7 +175,7 @@ exit("bolt has been installed. Enjoy!\n");
 
 
 /// stub
-function stub($file, $phar) {
+function stub($file, $phar, $etc) {
     $str = file_get_contents($file);
-    return str_replace('%PHAR%', $phar, $str);
+    return str_replace(array('%PHAR%','%ETC'), array($phar, $etc), $str);
 }

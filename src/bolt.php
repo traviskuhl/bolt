@@ -3,7 +3,7 @@
 // autoload
 spl_autoload_register(array('b', 'autoloader'));
 
-// check env for some bolt balirables
+// check env for some bolt variables
 foreach(array('bRoot','bEnv','bTimeZone','bLogLevel','bGlobalSettings','bGlobalConfig') as $name) {
     if (!defined($name) AND ($value = getenv($name)) !== false) {
         define($name, $value);

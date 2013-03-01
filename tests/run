@@ -1,6 +1,5 @@
 #!/usr/bin/env php
 <?php
 
-$boot = realpath("./bootstrap.php");
-
-echo `phpunit --bootstrap="$boot" .`;
+$root = __DIR__;
+echo `phpunit --bootstrap="$root/bootstrap.php" $root`;
