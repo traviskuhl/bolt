@@ -4,6 +4,7 @@
 namespace bolt\browser;
 use \b as b;
 
+b::bolt()->setFallbacks('\bolt\browser\helpers');
 
 // helpers
 class helpers {

@@ -115,6 +115,7 @@ final class b {
             "./bolt/browser/request.php",
             "./bolt/browser/response.php",
             "./bolt/browser/cookie.php",
+            "./bolt/browser/helpers.php",
 
             // routers
             "./bolt/browser/route.php",
