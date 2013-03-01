@@ -19,9 +19,10 @@ b::init(array(
     ),
    'load' => array(
         "{$root}/controllers/*.php",
+        "{$root}/views/*.php",
     ),
    'config' => array(
-        "views" => "{$root}/views"
+        "templates" => "{$root}/templates"
     )
 ));
 

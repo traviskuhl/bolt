@@ -1,3 +1,0 @@
-poop hp
-
-<% testParam %>

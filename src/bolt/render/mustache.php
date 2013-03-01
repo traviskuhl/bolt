@@ -10,6 +10,7 @@ b::render()->plug('mustache', '\bolt\render\mustache');
 class mustache extends \bolt\plugin\singleton {
 
   private $eng;
+  private $_helpers = array();
 
   public function __construct() {
 
@@ -24,24 +25,40 @@ class mustache extends \bolt\plugin\singleton {
       'delimiter' => "<% %>",
       'escape' => function($value) {
         return htmlentities($value, ENT_QUOTES, 'UTF-8', false);
-      },
+      }
     ));
+
 
 
   }
 
+
   public function render($str, $vars=array()) {
 
     // preprocess the text for bolt function calls
-    if (preg_match_all('#\<\%\s?(b\::[^%]+)#i', $str, $matches, PREG_SET_ORDER)) {
+    if (preg_match_all('#\<\%\s?(b\::[^%]+)\s?\%>#i', $str, $matches, PREG_SET_ORDER)) {
       foreach ($matches as $match) {
         $str = str_replace($match[0], call_user_func(function($call, $_vars){
           if (substr($call,-1) != ';') { $call .= ';';}
           foreach ($_vars as $k => $v) {
             $$k = $v;
           }
-          return eval(trim($call));
+          return eval(trim('return '.$call));
         }, trim($match[1]), $vars), $str);
+      }
+    }
+
+    // preprocess the text for echo calls
+    if (preg_match_all('#\<\%=\s?([^%]+)\s?\%>#i', $str, $matches, PREG_SET_ORDER)) {
+      foreach ($matches as $match) {
+        $str = str_replace($match[0], call_user_func(function($call, $_vars, $helpers){
+          if (substr($call,-1) != ';') { $call .= ';';}
+          foreach ($_vars as $k => $v) {
+            $$k = $v;
+          }
+          $str =  eval(trim('return '.$call));
+          return $str;
+        }, trim($match[1]), $vars, $this->_helpers), $str);
       }
     }
 

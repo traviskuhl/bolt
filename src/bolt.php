@@ -236,15 +236,15 @@ final class b {
         if (p('src', false, $args) == 'server') {
 
             // name of
-            if (!HTTP_HOST) {
+            if (!HOSTNAME) {
                 b::log("Unable to get host from server", array(), b::LogFatal); return;
             }
 
             // normalzie host
-            $host = strtolower(HTTP_HOST);
+            $host = strtolower(HOSTNAME);
 
             // start our assumeing we'll use the global project
-            $project = b::config()->get('global.defaultProject')->value;
+            $project = b::config()->getValue('global.defaultProject');
 
             // figure out if we have a hostname that can
             // service this request
@@ -267,7 +267,7 @@ final class b {
             }
 
             // project
-            $project = b::config()->global->getValue($project);
+            $project = b::config()->global->get($project)->asArray();
 
             if (isset($project['load'])) {
                 $args['load'] = $project['load']; unset($project['load']);
@@ -363,7 +363,12 @@ final class b {
         foreach($paths as $pattern) {
 
             // is it a file
-            if (stripos($pattern, '.php') !== false AND stripos($pattern, '*') === false)  {
+            if (substr($pattern,0,6) == 'regex:') {
+                $it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(substr($pattern, 6)));
+                $regex = new RegexIterator($it, '/^.+\.php$/i', RecursiveRegexIterator::GET_MATCH);
+                $files = array_reverse(array_keys(iterator_to_array($regex)));
+            }
+            else if (stripos($pattern, '.php') !== false AND stripos($pattern, '*') === false)  {
                 $files = array($pattern);
             }
             else {

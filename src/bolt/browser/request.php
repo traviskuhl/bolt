@@ -138,7 +138,7 @@ class request extends \bolt\plugin\singleton {
         }
 
         // run isn't a controller object we stop
-        if (b::isInterfaceOf($run, '\bolt\browser\controller')) {
+        if (!b::isInterfaceOf($resp, '\bolt\browser\iController')) {
             return false;
         }
 
@@ -246,6 +246,7 @@ define("HTTP_HOST",      $_SERVER['HTTP_HOST']);
 define("HOST",           ($_SERVER['SERVER_PORT']==443?"https://":"http://").$_SERVER['HTTP_HOST']);
 define("HOST_NSSL",      "http://".$_SERVER['HTTP_HOST']);
 define("HOST_SSL",       "https://".$_SERVER['HTTP_HOST']);
+define("HOSTNAME", array_shift(explode(":", $_SERVER['HTTP_HOST'])));
 
 if (rtrim(str_replace("?".$_SERVER['QUERY_STRING'], "", $_SERVER['REQUEST_URI']),'/') == $_SERVER['SCRIPT_NAME']) {
     define("URI",            HOST.implode("/",$uri)."/");

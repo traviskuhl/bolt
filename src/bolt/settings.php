@@ -16,6 +16,12 @@ class settings extends plugin\factory {
 
     public function __construct($file) {
 
+        // not writeable
+        if (!is_writable($file)) {
+            b::log("Settings location '%s' is not writeable", array($file), b::LogFatal);
+            return false;
+        }
+
         // folder
         if (!file_exists(dirname($file))) {
             $folder = dirname($file);

@@ -12,6 +12,18 @@ class render extends plugin {
     // factory
     public static $TYPE = 'singleton';
 
+    private $_helpers = array();
+
+    public function __construct() {
+        // render ehlper
+        $this->helper('view', function($args, $vars){
+          $view = b::view(array_shift($args));
+          $view->setParams($vars);
+          return $view->render($args);
+        });
+
+    }
+
     public function _default($args=array()) {
         if (count($args) > 0) {
             $render = b::render()->call($args['render']);
@@ -20,18 +32,61 @@ class render extends plugin {
         return $this;
     }
 
+    public function helper($name, $callback) {
+      $this->_helpers[$name] = array($callback);
+    }
+
+    public function view($view, $params=array()) {
+
+        // string
+        if (is_string($view) AND class_exists($view, true)) {
+            $view = b::view($view);
+        }
+
+        // make sure view implements bolt\browser\view
+        if (!b::isInterfaceOf($view, '\bolt\browser\iView')) {
+            return false;
+        }
+
+        // set our view
+        return $view
+                ->setParams($params)
+                ->render();
+
+    }
 
     private function _render($render, $args) {
 
-        $file = p_raw('file', false, $args);
-        $string = p_raw('string', false, $args);
-        $vars = p_raw('vars', array(), $args);
+        $file = (isset($args['file']) ? $args['file'] : false);;
+        $string = (isset($args['string']) ? $args['string'] : false);;
+        $vars = (isset($args['vars']) ? $args['vars'] : array());
+        $controller = (isset($args['controller']) ? $args['controller'] : false);
+
+        if ($controller) {
+            $vars['controller'] = $controller;
+           foreach ($controller->getParams() as $key => $param)  {
+               if (!array_key_exists($key, $vars)) {
+                   $vars[$key] = $param;
+               }
+           }
+        }
+
+        // render helpers
+        foreach ($this->_helpers as $name => $helper) {
+          $vars[$name] = function() use ($helper, $vars){
+            return call_user_func_array($helper[0], array(func_get_args(), $vars));
+          };
+        }
 
         // if we have a file, lets try to load it
-        if ($file AND stripos($file, '.php') === false) {
-            $string = file_get_contents($file);
-        }
-        else {
+        if ($file) {
+
+            if (stripos($file, '.template.php') === false) {
+                $file .= '.template.php';
+            }
+            if (!file_exists($file)) {
+                $file = b::config()->getValue("templates")."/".$file;
+            }
 
             // render in a callback to control scope
             $string = call_user_func(function($_file, $_vars){

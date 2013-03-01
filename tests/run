@@ -1,0 +1,6 @@
+#!/usr/bin/env php
+<?php
+
+$boot = realpath("./bootstrap.php");
+
+echo `phpunit --bootstrap="$boot" .`;

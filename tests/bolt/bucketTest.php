@@ -57,10 +57,10 @@ class bucketTest extends bolt_test {
         $this->assertEquals('nest key value 1', $this->bucket->get('array.nested.key1'));
     }
     public function testDotNotationGetFail() {
-        $this->assertFalse($this->bucket->get('array.nested.key1.nothing'));
+        $this->assertFalse($this->bucket->getValue('array.nested.key1.nothing'));
     }
     public function testDotNotationGetFailDefault() {
-        $this->assertTrue($this->bucket->get('array.nested.key1.nothing', true));
+        $this->assertTrue($this->bucket->getValue('array.nested.key1.nothing', true));
     }
 
     // magic methods

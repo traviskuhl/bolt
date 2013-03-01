@@ -37,17 +37,31 @@ class view extends \bolt\bucket\proxy implements iView {
     private $_controller;
     private $_file = false;
     private $_render = 'mustache';
-    private $_rendered = false;
 
     // bucketproxy needs to find
     protected $_params;
 
     // function
-    public function __construct($params=array()) {
+    final public function __construct($params=array()) {
         $this->_guid = uniqid();
         $this->_params = b::bucket($params);
+
+        // init
+        $this->init();
+
     }
 
+    public function init() {}
+    public function build() {}
+    public function beforeRender() {}
+    public function afterRender() {}
+
+    public function __get($name) {
+        if ($name == 'params') {
+            return $this->_params;
+        }
+        return parent::__get($name);
+    }
 
     public function setParams($params) {
         if (b::isInterfaceOf($params, '\bolt\bucket')) {
@@ -81,61 +95,45 @@ class view extends \bolt\bucket\proxy implements iView {
         return $this->_data;
     }
 
-    public function hasRendered() {
-        return $this->_rendered;
-    }
 
     public function setFile($file) {
-        if (stripos($file, '.template.php') === false) {
-            $file .= '.template.php';
-        }
-        if (!file_exists($file)) {
-            $file = b::config()->getValue("views")."/".$file;
-        }
-
         $this->_file = $file;
         return $this;
     }
 
-    public function render($vars=array()) {
+    public function render($args=array()) {
 
-        // already rendered
-        if ($this->hasRendered()) {return;}
+        // call build
+        call_user_func_array(array($this, 'build'), $args);
 
-        // loop throguh local params
-        foreach ($this->_params as $key => $param)  {
-            if (!array_key_exists($key, $vars)) {
-                $vars[$key] = $param;
-            }
-        }
-        if ($this->_controller) {
-            foreach ($this->_controller->getParams() as $key => $param)  {
-                if (!array_key_exists($key, $vars)) {
-                    $vars[$key] = $param;
-                }
-            }
-        }
+        // before render
+        call_user_func(array($this,'beforeRender'));
 
-        if ($this->_file !== false AND file_exists($this->_file)) {
+        // add our view to the vars
+        $vars['me'] = $this;
+
+        if ($this->_file !== false) {
             $this->setContent(b::render(array(
                 'render' => $this->_render,
                 'file' => $this->_file,
-                'view' => $this,
                 'controller' => $this->_controller,
-                'vars' => $vars
+                'vars' => $this->_params
             )));
         }
-        else {
+        else if ($this->_render) {
             $this->setContent(b::render(array(
                 'render' => $this->_render,
                 'string' => $this->_content,
-                'view' => $this,
                 'controller' => $this->_controller,
-                'vars' => $vars
+                'vars' => $this->_params
             )));
         }
-        $this->_rendered = true;
-        return $this;
+
+        // after render
+        call_user_func(array($this,'afterRender'));
+
+
+        return $this->getContent();
     }
 
 }

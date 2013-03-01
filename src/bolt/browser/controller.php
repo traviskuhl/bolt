@@ -146,12 +146,10 @@ class controller implements iController {
         // go ahead an execute
         $resp = call_user_func_array(array($this, $func), $args);
 
+
         // if response is a view
         // render it
-        if (is_object($resp) AND b::isInterfaceOf($reps, '\bolt\browser\iView')) {
-            $this->render($resp);
-        }
-        else if (is_string($resp)) {
+        if (is_string($resp)) {
             $this->setContent($resp);
         }
 
@@ -160,22 +158,33 @@ class controller implements iController {
 
     }
 
-    public function renderTemplate($file, $params=array()) {
-        $view = b::view()
-                    ->setParams($params)
-                    ->setFile($file);
-        return $this->render($view);
+    public function renderTemplate($file, $vars=array(), $render='mustache') {
+        $this->setContent(b::render(array(
+                'render' => $render,
+                'file' => $file,
+                'controller' => $this,
+                'vars' => $vars
+            )));
+        return $this;
     }
 
-    public function renderString($str, $params) {
-        $view = b::view()
-                ->setContent($str)
-                ->setParams($params);
-        return $this->render($view);
+    public function renderString($str, $vars=array(), $render='mustache') {
+        $this->setContent(b::render(array(
+                'render' => $render,
+                'string' => $str,
+                'controller' => $this,
+                'vars' => $vars
+            )));
+        return $this;
     }
 
     // render
     public function render($view) {
+
+        // string
+        if (is_string($view) AND class_exists($view, true)) {
+            $view = b::view($view);
+        }
 
         // make sure view implements bolt\browser\view
         if (!b::isInterfaceOf($view, '\bolt\browser\iView')) {
@@ -183,12 +192,9 @@ class controller implements iController {
         }
 
         // set our view
-        $this->setContent(
-            $view
+        return $view
                 ->setController($this)
-                ->render()
-                ->getContent()
-        );
+                ->render();
 
     }
 

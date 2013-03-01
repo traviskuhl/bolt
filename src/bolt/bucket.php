@@ -127,8 +127,11 @@ class bucket extends \bolt\plugin\factory implements \Iterator, \ArrayAccess {
     /// @param $default value to return if name not set
     /// @return value
     ////////////////////////////////////////////////////////////////////
-	public function get($name, $default=false) {
-		if (!array_key_exists($name, $this->_data)) { $this->_data[$name] = $default; }
+	public function get($name, $default=-1) {
+        if ($default === -1) {$default = new bucket\bString($name, false, $this);}   // always return an object
+        if (!is_string($name) AND !is_integer($name)) {return $default;}              // always a key name
+		if (!array_key_exists($name, $this->_data)) { $this->_data[$name] = $default; }   // does it exist
+
 
         // does default have any .
         if (stripos($name, '.') !== false) {
@@ -164,7 +167,8 @@ class bucket extends \bolt\plugin\factory implements \Iterator, \ArrayAccess {
     /// @return value
     ////////////////////////////////////////////////////////////////////
 	public function getValue($name, $default=false) {
-		return ($this->exists($name) ? $this->_data[$name] : $default);
+        $r = $this->get($name);
+		return (is_a($r, '\bolt\bucket\bString') ? $r->getValue($default) : $default);
 	}
 
     ////////////////////////////////////////////////////////////////////
@@ -470,7 +474,7 @@ namespace bolt\bucket;
 
 class bString {
 
-    public $_value = false;
+    private $_value = false;
     private $_parent = false;
     private $_key = false;
 
@@ -516,7 +520,10 @@ class bString {
     }
 
     public function get($default=false) {
-        return $this->_value || $default;
+        return ($this->_value ?: $default);
+    }
+    public function getValue($default=false) {
+        return $this->get($default);
     }
 
     public function set($value) {

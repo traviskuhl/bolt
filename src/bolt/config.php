@@ -108,6 +108,12 @@ class config extends plugin\singleton {
     ////////////////////////////////////////////////////////////////////
     public function fromIniFile($from, $args=array()) {
 
+        // no file
+        if (!file_exists($from)) {
+            b::log("Unable to read '%s'",array($from));
+            return false;
+        }
+
         // cache name
         $cid = md5("config.ini.$from");
         $data = false;

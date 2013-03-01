@@ -13,7 +13,8 @@
     <body>
         <h1><% meta.title %></h1>
 
-        <% child %>
+        <%& child %>
+
 
     </body>
 </html>
