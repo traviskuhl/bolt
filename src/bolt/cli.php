@@ -97,7 +97,7 @@ class cli extends plugin {
         $o->setArgv($_argv);
 
         // run
-        return call_user_func(array($o, $subCmd));
+        return call_user_func_array(array($o, $subCmd), $_argv);
 
 
     }
@@ -114,10 +114,12 @@ class cli extends plugin {
 
     public function err() {
         return call_user_func_array('\cli\err', func_get_args());
+        exit;
     }
 
     public function out() {
         return call_user_func_array('\cli\out', func_get_args());
+        exit;
     }
 
     public function dots() {

@@ -25,15 +25,36 @@ require("%PHAR%");
 // otherwise we're just including the phar
 if ('cli' === php_sapi_name()) {
 
+    // init our bolt instance
     b::init(array(
+        'mode' => 'cli',
         'load' => array(
-            "$root/bolt/cli.php",
-            "$root/bolt/client/*.php"
+            bRoot."/bolt/client/*.php"
         )
     ));
 
-    // run in cli mode
-    b::run('cli');
+    // get our settings
+    $home = p('SUDO_HOME', p('HOME', false, $_SERVER), $_SERVER);
+    $user = p('SUDO_USER', p('USER', false, $_SERVER), $_SERVER);
+
+    // home
+    if ($home === false) {
+        $home = "/home/{$user}";
+    }
+    if (!file_exists("{$home}/.bolt")) {
+        mkdir("{$home}/.bolt/");
+    }
+
+    // settings
+    b::setSettings('client', "{$home}/.bolt/settings.json");
+
+    // when we're done, save settings
+    b::on('destruct', function(){
+        b::getSettings('client')->save();
+    });
+
+    // run
+    b::run();
 
 }
 else {

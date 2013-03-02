@@ -21,6 +21,8 @@
 // map our the phar
 Phar::mapPhar('bolt.phar');
 
+define("bPear", __DIR__);
+
 // phar
 define('bRoot', 'phar://bolt.phar/');
 

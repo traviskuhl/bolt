@@ -70,7 +70,7 @@ abstract class mongo extends \bolt\dao\item {
 
         // what up
         if ($resp) {
-            $this->set($resp);
+            $this->setData($resp);
         }
 
         // this
@@ -93,7 +93,7 @@ abstract class mongo extends \bolt\dao\item {
         $sth = \b::mongo()->query($this->table, $query, $args);
 
         // stack
-        $stack = new \bolt\dao\stack($lsb);
+        $stack = new \bolt\dao\result($lsb);
 
         // loop it up
         foreach ($sth as $item) {

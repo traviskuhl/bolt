@@ -93,5 +93,8 @@ abstract class command  {
     public function getArgv() {
         return $this->_argv;
     }
+    public function err() {
+        return call_user_func_array(array(b::cli(), 'err'), func_get_args());
+    }
 
 }

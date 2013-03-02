@@ -12,9 +12,13 @@ class settings extends plugin\factory {
 
     // data
     private $_bucket;
-    private $_handle;
+    private $_file;
 
     public function __construct($file) {
+        $this->_bucket = b::bucket();
+
+        // must be a string
+        if (!is_string($file)) {return;}
 
         // not writeable
         if (!is_writable($file)) {
@@ -28,32 +32,18 @@ class settings extends plugin\factory {
             mkdir($folder, 0777, true);
         }
 
-        // open our file
-        $this->_handle = fopen($file, "w+");
-
-            if (!$this->_handle) {
-                return $this;
-            }
-
-        // shared lock for reading
-        flock($this->_handle, LOCK_SH);
-        $content = "";
-        while (!feof($this->_handle)) {
-            $content .= fread($this->_handle, 8192);
-        }
-        flock($this->_handle, LOCK_UN);
-
         // make our bucket
-        $this->_bucket = b::bucket($content);
+        $this->_bucket->set(json_decode(file_get_contents($file), true));
+
+        // save file
+        $this->_file = $file;
 
     }
 
-    public function __destruct() {
-        if ($this->_handle AND is_resource($this->_handle)) {
-            flock($this->_handle, LOCK_EX);
-            fwrite($this->_handle, $this->_bucket->asJson());
-            flock($this->_handle, LOCK_UN);
-            fclose($this->_handle);
+    // save
+    public function save() {
+        if ($this->_file) {
+            file_put_contents($this->_file, $this->_bucket->asJson());
         }
     }
 

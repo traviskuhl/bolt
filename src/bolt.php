@@ -32,7 +32,7 @@ if (!defined("bTimeZone")) {
 }
 
 if (!defined("bLogLevel")) {
-    define("bLogLevel", 0);
+    define("bLogLevel", 1);
 }
 
 // global settings & config
@@ -140,6 +140,9 @@ final class b {
         )
     );
 
+    // mode
+    public static $_mode = 'browser';
+
     ////////////////////////////////////////////////////////////
     /// @brief return bolt instance
     ///
@@ -220,6 +223,7 @@ final class b {
         // mode
         if (isset($args['mode']) AND array_key_exists($args['mode'], self::$_modes)) {
             self::load(self::$_modes[$args['mode']]);
+            self::$_mode = $args['mode'];
         }
 
         // settings
@@ -282,7 +286,6 @@ final class b {
 
         }
 
-
         // config
         if (isset($args['config'])) {
             b::config($args['config']);
@@ -310,6 +313,7 @@ final class b {
     /// @return void
     ////////////////////////////////////////////////////////////
     public static function run($mode=false) {
+        if ($mode === false) {$mode = self::$_mode; }
 
         b::log("[b::run] %s", array($mode));
 
@@ -344,13 +348,22 @@ final class b {
     /// @return setting value
     ////////////////////////////////////////////////////////////
     public static function setting($name, $default=false) {
-        if (substr($name, 0, 7) == 'global.') {
-            return b::$_settings['global']->get($name, $default);
+        $type = 'project';
+        if (stripos($name, '.') !== false) {
+            $parts = explode(".", $name);
+            $type = array_shift($parts);
+            $name = implode(".", $parts);
         }
-        else {
-            return b::$_settings['project']->get($name, $default);
-        }
+        return (array_key_exists($type, self::$_settings) ? self::$_settings[$type] : b::bucket());
     }
+
+    public static function setSettings($name, $file) {
+        self::$_settings[$name] = b::settings($file);
+    }
+    public function getSettings($name) {
+        return self::$_settings[$name];
+    }
+
 
     ////////////////////////////////////////////////////////////
     /// @brief load files
@@ -484,6 +497,13 @@ final class b {
     ////////////////////////////////////////////////////////////
     public static function _($name, $value=null) {
         return ($value === null ? b::config()->get($name) : b::config()->set($name, $value));
+    }
+
+    public static function on() {
+        return call_user_func_array(array(b::bolt(), 'on'), func_get_args());
+    }
+    public static function fire() {
+        return call_user_func_array(array(b::bolt(), 'fire'), func_get_args());
     }
 
 }

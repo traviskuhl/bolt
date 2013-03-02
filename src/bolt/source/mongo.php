@@ -16,7 +16,7 @@ class mongo extends \bolt\plugin\singleton {
     private $instance = false;
 
     public function __construct($args=array()) {
-        $this->instance = b::source()->mongo(b::config()->mongo);
+        $this->instance = b::source()->mongo(b::setting('mongo')->asArray());
     }
 
     // call it
@@ -51,6 +51,7 @@ class mongoi extends \bolt\plugin\factory {
 		$this->_db = ($this->_db ? $this->_db : p('db', false, $this->config));
 		$this->_user = p('user', false, $this->config);
 		$this->_pass = p('pass', false, $this->config);
+
 
 		// try to connect
 		try {

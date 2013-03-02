@@ -1,6 +1,6 @@
 <?php
 
-$opts = getopt("sl", array("include::", "share::", "bin::"));
+$opts = getopt("sl", array("include::", "share::", "bin::", "pear::"));
 
 // include folder
 if (isset($opts['include'])) {
@@ -12,6 +12,7 @@ $pear = (isset($opts['pear']) ? rtrim($opts['pear'], '/') : "/usr/share/pear");
 $bin = rtrim((isset($opts['bin']) ? rtrim($opts['bin'], '/') : "/usr/local/bin/"),'/');
 $share = rtrim((isset($opts['share']) ? rtrim($opts['share'], '/') : "/usr/share/php/"),'/');
 $etc = rtrim((isset($opts['etc']) ? rtrim($opts['etc'], '/') : "/etc/"),'/');
+
 
 // no version global means this version
 // of php is super old
@@ -39,7 +40,7 @@ else if (isset($opts['s'])) {
 
     // no a location
     if (!file_exists($pear)) {
-        exit("Symlink destination '$dest' doesn't exist.\n");
+        exit("Symlink destination '$pear' doesn't exist.\n");
     }
 
     // loop through source and slinkink everything
@@ -65,7 +66,7 @@ else if (isset($opts['s'])) {
         }
 
         // symlink the file
-        link(realpath($file[0]), $path);
+        symlink(realpath($file[0]), $path);
 
     }
 

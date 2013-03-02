@@ -38,8 +38,11 @@ class controller implements iController {
     public function __construct() {
         $this->_guid = uniqid();
         $this->_params = b::bucket();
+
+        $this->init();
     }
 
+    public function init() {}
 
     public function __set($name, $value) {
         $this->_params->set($name, $value);

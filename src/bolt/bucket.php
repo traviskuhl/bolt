@@ -156,6 +156,9 @@ class bucket extends \bolt\plugin\factory implements \Iterator, \ArrayAccess {
 		else if (is_array($this->_data[$name])) {
 			return new bucket($this->_data[$name], $name, $this);
 		}
+
+
+
 		return new bucket\bString($name, $this->_data[$name], $this);
 	}
 
@@ -184,7 +187,7 @@ class bucket extends \bolt\plugin\factory implements \Iterator, \ArrayAccess {
 				$this->set($k, $v);
 			}
 		}
-		else {
+		else if (is_string($name) OR is_integer($name)) {
 			$this->_data[$name] = $value;
 			if ($this->_parent) {
 				$this->_parent->setValue($this->_root, $this->_data);

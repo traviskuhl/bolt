@@ -9,10 +9,14 @@ abstract class plugin {
     private $_plugin = array();
     private $_instance = array();
     private $_fallback = array();
+    private $_events = array();
 
     // let's construct
     public function __construct($fallback=array()) {
         $this->setFallbacks($fallback);
+    }
+    public function __destruct() {
+        $this->fire('destruct');
     }
 
     // plugin
@@ -36,6 +40,27 @@ abstract class plugin {
     // call something
     public function __call($name, $args) {
         return $this->call($name, $args);
+    }
+
+    // on
+    public function on($name, $callback, $args=array()) {
+        if (!array_key_exists($name, $this->_events)){ $this->_events[$name] = array(); }
+        $eid = uniqid();
+        $this->_events[$name] = array('callback' => $callback, 'args' => $args, 'eid' => $eid);
+        return $eid;
+    }
+
+    public function fire($name, $args=array()) {
+        if (array_key_exists($name, $this->_events)) {
+            foreach ($this->_events as $event) {
+                if (is_callable($event['callback'])) {
+                    $args['args'] = $event['args'];
+                    $args['eid'] = $event['eid'];
+                    $args['this'] = $this;
+                    call_user_func($event['callback'], $args);
+                }
+            }
+        }
     }
 
     ////////////////////////////////////////////////////////////
