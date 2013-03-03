@@ -1,6 +1,6 @@
 <?php
 
-$opts = getopt("sl", array("include::", "share::", "bin::", "pear::"));
+$opts = getopt("sl", array("include::", "www::", "bin::", "pear::"));
 
 // include folder
 if (isset($opts['include'])) {
@@ -8,11 +8,12 @@ if (isset($opts['include'])) {
 }
 
 // dest
-$pear = (isset($opts['pear']) ? rtrim($opts['pear'], '/') : "/usr/share/pear");
+$pear = rtrim((isset($opts['pear']) ? rtrim($opts['pear'], '/') : (file_exists("/usr/share/pear") ? "/usr/share/pear" : "/usr/share/php")), '/');
 $bin = rtrim((isset($opts['bin']) ? rtrim($opts['bin'], '/') : "/usr/local/bin/"),'/');
-$share = rtrim((isset($opts['share']) ? rtrim($opts['share'], '/') : "/usr/share/php/"),'/');
+$share = rtrim((isset($opts['www']) ? rtrim($opts['www'], '/') : "/var/www/"),'/');
 $etc = rtrim((isset($opts['etc']) ? rtrim($opts['etc'], '/') : "/etc/"),'/');
 
+var_dump($pear, $bin, $share, $etc); die;
 
 // no version global means this version
 // of php is super old
