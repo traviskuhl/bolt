@@ -9,13 +9,13 @@ abstract class factory {
 
     // factory
     public static function factory($args=array()) {
-    
+
         // paretn
         $parent = get_called_class();
-        
+
         // rebuild our class
         return new $parent($args);
-    
+
     }
 
 

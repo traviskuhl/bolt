@@ -68,7 +68,7 @@ class dao extends plugin\factory {
     /// @param $class trait class
     /// @return void
     ////////////////////////////////////////////////////////////
-    public static function trait($class) {
+    public static function traits($class) {
         self::$_traits[] = $class;
     }
 

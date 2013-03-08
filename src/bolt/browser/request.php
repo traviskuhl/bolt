@@ -110,7 +110,6 @@ class request extends \bolt\plugin\singleton {
         // request params
         $this->_params = b::bucket($route['params']);
 
-
         // no never ending loops
         $i = 0;
 
@@ -163,11 +162,12 @@ class request extends \bolt\plugin\singleton {
 		};
 	}
 
-	public function getParams($type='request') {
+	public function getParams($type=false) {
 		switch($type) {
 			case 'get': return $this->_get;
 			case 'post': return $this->_post;
-			default: return $this->_request;
+            case 'request': return $this->_requests;
+			default: return $this->_params;
 		};
 	}
 	public function getHeaders() {
@@ -241,12 +241,13 @@ $path = explode("/",$_SERVER['SCRIPT_FILENAME']);
 
 // need to get base tree
 $uri = explode('/',$_SERVER['SCRIPT_NAME']);
+$hostParts = explode(":", $_SERVER['HTTP_HOST']);
 
 define("HTTP_HOST",      $_SERVER['HTTP_HOST']);
 define("HOST",           ($_SERVER['SERVER_PORT']==443?"https://":"http://").$_SERVER['HTTP_HOST']);
 define("HOST_NSSL",      "http://".$_SERVER['HTTP_HOST']);
 define("HOST_SSL",       "https://".$_SERVER['HTTP_HOST']);
-define("HOSTNAME", array_shift(explode(":", $_SERVER['HTTP_HOST'])));
+define("HOSTNAME",         array_shift($hostParts));
 
 if (rtrim(str_replace("?".$_SERVER['QUERY_STRING'], "", $_SERVER['REQUEST_URI']),'/') == $_SERVER['SCRIPT_NAME']) {
     define("URI",            HOST.implode("/",$uri)."/");

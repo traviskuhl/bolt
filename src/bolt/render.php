@@ -84,9 +84,6 @@ class render extends plugin {
             if (stripos($file, '.template.php') === false) {
                 $file .= '.template.php';
             }
-            if (!file_exists($file)) {
-                $file = b::config()->getValue("templates")."/".$file;
-            }
 
             // render in a callback to control scope
             $string = call_user_func(function($_file, $_vars){

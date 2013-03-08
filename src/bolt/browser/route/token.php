@@ -14,6 +14,7 @@ class token extends parser {
             $parts = array();
             $params = array();
 
+
             // loop through each part and replace it with a validator
             foreach (explode("/", trim($path, '/')) as $part) {
                 if ($part{0} == '{') {

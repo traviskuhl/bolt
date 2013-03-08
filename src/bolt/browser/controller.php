@@ -35,10 +35,11 @@ class controller implements iController {
     private $_content;
     private $_accept;
 
+    protected $templateDir = false;
+
     public function __construct() {
         $this->_guid = uniqid();
         $this->_params = b::bucket();
-
         $this->init();
     }
 
@@ -69,7 +70,7 @@ class controller implements iController {
     public function setLayout($layout) {
         if (is_string($layout)) {
             $layout = b::view()
-                        ->setFile($layout)
+                        ->setFile($this->templateDir."/".$layout)
                         ->setController($this);
         }
         $this->_layout = $layout;
@@ -164,7 +165,7 @@ class controller implements iController {
     public function renderTemplate($file, $vars=array(), $render='mustache') {
         $this->setContent(b::render(array(
                 'render' => $render,
-                'file' => $file,
+                'file' => $this->templateDir."/".$file,
                 'controller' => $this,
                 'vars' => $vars
             )));

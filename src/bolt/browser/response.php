@@ -14,6 +14,7 @@ class response extends \bolt\plugin {
     private $_headers;
     private $_status = 200;
     private $_accept = false;
+    private $_contentType = false;
 
 
 	public function __construct() {
@@ -33,26 +34,14 @@ class response extends \bolt\plugin {
         return $this;
     }
 
-	public function __get($name) {
-		switch($name) {
-            case 'controller':
-                return $this->_controller;
-            case 'accept':
-                return $this->_accept;
-			case 'headers':
-				return $this->getHeaders();
-            case 'status':
-                return $this->_status;
-			default:
-				return false;
-		};
-	}
+    public function setContentType($type) {
+        $this->_contentType = $type;
+        return $this;
+    }
 
 	public function getHeaders() {
 		return $this->_headers;
 	}
-
-
 
 	public function getStatus() {
 		return $this->_status;
@@ -137,8 +126,11 @@ class response extends \bolt\plugin {
         // handler
         $handler = $this->getOutputHandler();
 
+        // type
+        $type = ($this->_contentType ?: $handler->contentType);
+
         // print a content type
-        header("Content-Type: {$handler->contentType}", true, $this->getStatus());
+        header("Content-Type: {$type}", true, $this->getStatus());
 
     	// print all headers
         $this->_headers->map(function($name, $value){

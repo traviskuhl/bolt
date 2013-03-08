@@ -13,8 +13,6 @@ $bin = rtrim((isset($opts['bin']) ? rtrim($opts['bin'], '/') : "/usr/local/bin/"
 $share = rtrim((isset($opts['www']) ? rtrim($opts['www'], '/') : "/var/www/"),'/');
 $etc = rtrim((isset($opts['etc']) ? rtrim($opts['etc'], '/') : "/etc/"),'/');
 
-var_dump($pear, $bin, $share, $etc); die;
-
 // no version global means this version
 // of php is super old
 if (!defined('PHP_VERSION')) {
@@ -55,6 +53,7 @@ else if (isset($opts['s'])) {
         // get the path
         $path = $pear . str_replace("../src", "", $file[0]);
 
+
         // if the file already exists
         // unlink it
         if (file_exists($path)) {
@@ -74,7 +73,7 @@ else if (isset($opts['s'])) {
     // make etc
     $etc .= '/bolt';
     if (!file_exists($etc)) {
-        mkdir($etc, 0644, true);
+        `mkdir -p $etc`;
     }
 
     // bin

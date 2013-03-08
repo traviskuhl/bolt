@@ -20,8 +20,8 @@ class settings extends plugin\factory {
         // must be a string
         if (!is_string($file)) {return;}
 
-        // not writeable
-        if (!is_writable($file)) {
+        // not readable
+        if (!is_readable($file)) {
             b::log("Settings location '%s' is not writeable", array($file), b::LogFatal);
             return false;
         }

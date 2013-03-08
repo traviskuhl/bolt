@@ -22,7 +22,7 @@ if ( !defined("bEnv") ) {
 
     // dev mode?
     if ( bEnv === 'dev' ) {
-        error_reporting(E_ALL^E_DEPRECATED);
+        error_reporting(E_ALL^E_DEPRECATED^E_STRICT);
         ini_set("display_errors",1);
     }
 
@@ -286,6 +286,11 @@ final class b {
 
         }
 
+        // global load
+        if (b::config()->global->load->value) {
+            b::load(b::config()->get('global.load')->asArray());
+        }
+
         // config
         if (isset($args['config'])) {
             b::config($args['config']);
@@ -354,7 +359,8 @@ final class b {
             $type = array_shift($parts);
             $name = implode(".", $parts);
         }
-        return (array_key_exists($type, self::$_settings) ? self::$_settings[$type] : b::bucket());
+        $obj = (array_key_exists($type, self::$_settings) ? self::$_settings[$type] : b::bucket());
+        return $obj->get($name, $default);
     }
 
     public static function setSettings($name, $file) {
@@ -375,12 +381,11 @@ final class b {
 
 
         foreach($paths as $pattern) {
+            $files = array();
 
             // is it a file
             if (substr($pattern,0,6) == 'regex:') {
-                $it = new RecursiveIteratorIterator(new RecursiveDirectoryIterator(substr($pattern, 6)));
-                $regex = new RegexIterator($it, '/^.+\.php$/i', RecursiveRegexIterator::GET_MATCH);
-                $files = array_reverse(array_keys(iterator_to_array($regex)));
+                self::_resursiveDirectorySerach(substr($pattern, 6), $files);
             }
             else if (stripos($pattern, '.php') !== false AND stripos($pattern, '*') === false)  {
                 $files = array($pattern);
@@ -423,6 +428,18 @@ final class b {
 
         }
     }
+
+        // nestedDirectory
+        private static function _resursiveDirectorySerach($path, &$files) {
+            foreach (new DirectoryIterator($path) as $dir) {
+                if ($dir->isFile() AND $dir->getExtension() == 'php') {
+                    $files[] = $dir->getPathname();
+                }
+                else if ($dir->isDir() AND !$dir->isDot()) {
+                    self::_resursiveDirectorySerach($dir->getPathname(), $files);
+                }
+            }
+        }
 
     ////////////////////////////////////////////////////////////
     /// @brief static return a list of loaded files
