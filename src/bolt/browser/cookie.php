@@ -17,10 +17,15 @@ class cookie extends plugin\singleton {
     /// @return string url with additional params
     ////////////////////////////////////////////////
 	public function set($name, $value, $expires=false, $domain=false, $secure=false, $http=false) {
+		if (is_array($expires)) {
+			foreach ($expires as $k => $v) {
+				${$k} = $v;
+			}
+		}
 
 		// domain
-		$domain = b::config()->get("cookies.domain");
-		$prefix = b::config()->get("cookies.prefix");
+		$domain = b::setting("project.cookies.domain")->value;
+		$prefix = b::setting("project.cookies.prefix")->value;
 
 		// get name from config
 		if ( substr($name, 0, 1) == '$' ) {
@@ -69,8 +74,8 @@ class cookie extends plugin\singleton {
 	public function delete($name) {
 
 		// domain
-		$domain = b::config()->get("cookies.domain");
-		$prefix = b::config()->get("cookies.prefix");
+		$domain = b::setting("project.cookies.domain")->value;
+		$prefix = b::setting("project.cookies.prefix")->value;
 
 		// get name from config
 		if ( substr($name, 0, 1) == '$' ) {
@@ -84,15 +89,18 @@ class cookie extends plugin\singleton {
 
 	public function get($name) {
 
-		$prefix = b::config()->get("cookies.prefix");
+		// prefix
+		$prefix = b::setting("project.cookies.prefix")->value;
 
 		// get name from config
 		if ( substr($name, 0, 1) == '$' ) {
 			$name = b::_(substr($name, 1));
 		}
 
+		$name = str_replace(".", "_", $prefix.$name);
+
 		// try to get it
-		$cookie = urldecode(p($prefix.$name, false, $_COOKIE));
+		$cookie = urldecode(array_key_exists($name,	$_COOKIE) ? $_COOKIE[$name] : "");
 
 			// if we don't have it, stop
 			if ( !$cookie ) { return false; }

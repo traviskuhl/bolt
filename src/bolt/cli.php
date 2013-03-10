@@ -56,12 +56,12 @@ class cli extends plugin {
             return $this->help();
         }
 
-        if (!$subCmd AND method_exists($o, $subCmd)) {
-            $subCmd = 'run';
-        }
-
         // create our class
         $o = new $cmd['class']();
+
+        if (!$subCmd OR !method_exists($o, $subCmd)) {
+            $subCmd = 'run';
+        }
 
         // run
         $flags = $options = array();

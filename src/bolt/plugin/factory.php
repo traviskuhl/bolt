@@ -2,7 +2,7 @@
 
 namespace bolt\plugin;
 
-abstract class factory {
+abstract class factory extends \bolt\event {
 
     // constant
     public static $TYPE = "factory";

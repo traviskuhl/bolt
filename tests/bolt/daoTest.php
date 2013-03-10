@@ -37,7 +37,7 @@ class daoTest extends bolt_test {
         $this->assertEquals($s, array('test' => 'daoTestClass'));
     }
     public function testAddGetTraits() {
-        \bolt\dao::trait('daoTestClass');
+        \bolt\dao::traits('daoTestClass');
         $s = \bolt\dao::getTraits();
         $this->assertEquals($s, array('daoTestClass'));
     }

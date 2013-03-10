@@ -2,7 +2,7 @@
 
 namespace bolt\plugin;
 
-class singleton {
+class singleton extends \bolt\event {
 
     // constant
     public static $TYPE = "singleton";

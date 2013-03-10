@@ -136,7 +136,7 @@ class helpers {
 
 
     public function md5($str) {
-        $salt = b::_("salt");
+        $salt = b::config()->get('salt', '#()e2jd28909u32r09i1e3ji2d8u*(OUD#20kd39dujiakd')->value;
         return md5($salt.$str.strrev($salt));
     }
 

@@ -129,6 +129,7 @@ class bucket extends \bolt\plugin\factory implements \Iterator, \ArrayAccess {
     ////////////////////////////////////////////////////////////////////
 	public function get($name, $default=-1) {
         if ($default === -1) {$default = new bucket\bString($name, false, $this);}   // always return an object
+        if (is_string($default) OR is_array($default)) { $default = (is_array($default) ? b::bucket($default) : new bucket\bString($name, $default, $this)); }
         if (!is_string($name) AND !is_integer($name)) {return $default;}              // always a key name
 		if (!array_key_exists($name, $this->_data)) { $this->_data[$name] = $default; }   // does it exist
 

@@ -13,6 +13,7 @@ abstract class item extends \bolt\bucket {
     private $_struct = array(); /// item struct
     private $_traits = array(); /// traits
     private $_traitInstance = array('\bolt\dao\traitStorage' => false);
+    private $_data = false;
 
     // traits
     protected $traits = array();
@@ -33,7 +34,9 @@ abstract class item extends \bolt\bucket {
     ////////////////////////////////////////////////////////////////////
     public function __construct($data=array()) {
         $this->_guid = uniqid();    // guid to compare objects
-        $this->setData($data);      // set some data
+
+        // bucket
+        $this->_data = b::bucket($data);
 
         // set a struct
         $this->_struct = $this->getStruct();
@@ -147,10 +150,11 @@ abstract class item extends \bolt\bucket {
     ///
     /// @param $name name of value
     /// @param $default default return if value undefined
+    /// @params $useTraits try to get the value from a trait
     /// @see bucket::get()
     /// @return value
     ////////////////////////////////////////////////////////////////////
-    public function getValue($name, $default=false) {
+    public function getValue($name, $default=false, $userTraits=true) {
         $getName = "get{$name}"; $value = false;
 
         // default value
@@ -162,11 +166,11 @@ abstract class item extends \bolt\bucket {
         if (method_exists($this, $getName)) {
             $value = call_user_func(array($this, $getName));
         }
-        else if (array_key_exists(strtolower($getName), $this->_traits)) {
+        else if (array_key_exists(strtolower($getName), $this->_traits) AND $userTraits !== false) {
             $value = $this->callTrait($getName);
         }
         else {
-            $value = parent::get($name, $default);
+            $value = $this->_data->get($name, $default);
         }
 
         // cast as something special
@@ -192,7 +196,7 @@ abstract class item extends \bolt\bucket {
     /// @return sefl
     ////////////////////////////////////////////////////////////////////
     public function setValue($name, $value=false) {
-        $setName = "get{$name}";
+        $setName = "set{$name}";
 
         // cast as something special
         if (array_key_exists($name, $this->_struct) AND isset($this->_struct[$name]['cast'])) {
@@ -211,9 +215,9 @@ abstract class item extends \bolt\bucket {
         else if (array_key_exists(strtolower($setName), $this->_traits)) {
             $value = $this->callTrait($setName, array($value));
         }
-        else {
-            $value = parent::set($name, $value);
-        }
+
+        // set it
+        $this->_data->set($name, $value);
 
         $this->_loaded = true;
         return $this;
@@ -226,7 +230,7 @@ abstract class item extends \bolt\bucket {
     /// @return array of values
     ////////////////////////////////////////////////////////////////////
     public function normalize() {
-        $data = $this->getData();
+        $data = $this->_data->getData();
 
         // loop through the struct
         // and try to normalize the data
@@ -330,7 +334,7 @@ abstract class item extends \bolt\bucket {
             if (isset($t[1])) {
                 foreach ($t[1] as $key) {
                     if ($key{0} == '$') {
-                        $_args[] = $this->getValue(substr($key, 1));
+                        $_args[] = $this->getValue(substr($key, 1), false, false);
                     }
                     else {
                         $_args[] = $key;
@@ -355,7 +359,7 @@ abstract class item extends \bolt\bucket {
                 if (!$i->hasInstance($name)) {
                     foreach ($t[3] as $key) {
                         if ($key{0} == '$') {
-                            $_args[] = $this->getValue(substr($key, 1));
+                            $_args[] = $this->getValue(substr($key, 1), false, false);
                         }
                         else {
                             $_args[] = $key;
@@ -380,7 +384,7 @@ abstract class item extends \bolt\bucket {
                 // loop
                 if (count($params) > 0) {
                     foreach ($params as $parm) {
-                        $_args[] = $this->getValue($param->name, $param->getDefaultValue());
+                        $_args[] = $this->_data->getValue($param->name, $param->getDefaultValue());
                     }
                 }
 
@@ -390,7 +394,6 @@ abstract class item extends \bolt\bucket {
             }
 
         }
-
 
         // give back with args
         return call_user_func_array($func, $_args);

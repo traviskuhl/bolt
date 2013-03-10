@@ -37,6 +37,9 @@ class request extends \bolt\plugin\singleton {
 
 	public function run() {
 
+        // run start
+        $this->fire("run");
+
         // pathInfo
         $pathInfo = trim(ltrim(PATH_INFO,'/'));
 
@@ -48,6 +51,16 @@ class request extends \bolt\plugin\singleton {
 			if (!$route) {
 				return false;
 			}
+
+        // route matc
+        $_route = $this->fire("routeMatch", array(
+                'route' => $route
+            ));
+
+            // route is false we assume bad callback and stop
+            if ($_route !== false AND $_route !== null) {
+                $route = $_route;
+            }
 
         // controller
         $reps = false;
@@ -106,6 +119,11 @@ class request extends \bolt\plugin\singleton {
             b::log("request run response is not an interface of iController");
             return false;
         }
+
+        $this->fire("beforeControllerRun", array(
+                'controller' => $resp,
+                'route' => $route
+            ));
 
         // request params
         $this->_params = b::bucket($route['params']);

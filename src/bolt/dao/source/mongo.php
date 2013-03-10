@@ -124,6 +124,10 @@ abstract class mongo extends \bolt\dao\item {
 		// unset
 		unset($data['id'], $data['_id']);
 
+        if ($id === false) {
+            $id = uniqid();
+        }
+
 		// save it
 		try {
 			$r = \b::mongo()->update($this->table, array('_id' => $id), array('$set' => $data), array('upsert'=>true, 'safe'=>true));

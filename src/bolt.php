@@ -309,6 +309,9 @@ final class b {
             self::load($args['load']);
         }
 
+        // ready
+        b::fire('ready');
+
     }
 
     ////////////////////////////////////////////////////////////
@@ -321,6 +324,9 @@ final class b {
         if ($mode === false) {$mode = self::$_mode; }
 
         b::log("[b::run] %s", array($mode));
+
+        // ready
+        b::fire('run');
 
         // figure out how to run
         if ($mode == 'cli' OR ($mode === false AND php_sapi_name() == 'cli')) {
@@ -352,14 +358,15 @@ final class b {
     /// @param $default default value
     /// @return setting value
     ////////////////////////////////////////////////////////////
-    public static function setting($name, $default=false) {
+    public static function setting($name, $default=-1) {
+        if ($default === -1) {$default = b::bucket(); }
         $type = 'project';
         if (stripos($name, '.') !== false) {
             $parts = explode(".", $name);
             $type = array_shift($parts);
             $name = implode(".", $parts);
         }
-        $obj = (array_key_exists($type, self::$_settings) ? self::$_settings[$type] : b::bucket());
+        $obj = (array_key_exists($type, self::$_settings) ? self::$_settings[$type] : self::$_settings['project']);
         return $obj->get($name, $default);
     }
 
@@ -419,7 +426,7 @@ final class b {
                 b::log("[b::load] included file '%s'", array($file));
 
                 // load it
-                require($file);
+                require_once($file);
 
                 // loaded
                 self::$_loaded[] = $file;
@@ -431,13 +438,18 @@ final class b {
 
         // nestedDirectory
         private static function _resursiveDirectorySerach($path, &$files) {
+            $dirs = array();
+
             foreach (new DirectoryIterator($path) as $dir) {
                 if ($dir->isFile() AND $dir->getExtension() == 'php') {
                     $files[] = $dir->getPathname();
                 }
                 else if ($dir->isDir() AND !$dir->isDot()) {
-                    self::_resursiveDirectorySerach($dir->getPathname(), $files);
+                    $dirs[] = $dir->getPathname();
                 }
+            }
+            foreach ($dirs as $dir) {
+                self::_resursiveDirectorySerach($dir, $files);
             }
         }
 

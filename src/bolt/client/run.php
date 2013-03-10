@@ -16,7 +16,7 @@ class run extends \bolt\cli\command {
 
     public function run() {
 
-
+        echo `php -S localhost:81`;
 
     }
 
