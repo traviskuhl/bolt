@@ -170,7 +170,7 @@ abstract class item extends \bolt\bucket {
             $value = $this->callTrait($getName);
         }
         else {
-            $value = $this->_data->get($name, $default);
+            $value = $this->_data->getValue($name, $default);
         }
 
         // cast as something special
@@ -184,6 +184,8 @@ abstract class item extends \bolt\bucket {
                 settype($value, $this->_struct[$name]['cast']);
             }
         }
+
+
         return $value;
     }
 

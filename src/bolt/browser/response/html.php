@@ -25,8 +25,6 @@ class html extends \bolt\plugin\singleton {
         // see if there's a layout
         if ($controller->hasLayout()) {
 
-
-
             $html = $controller
                         ->getLayout()
                             ->setParams(array('child' => $html))

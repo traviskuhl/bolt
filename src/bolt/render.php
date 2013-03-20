@@ -62,6 +62,7 @@ class render extends plugin {
         $vars = (isset($args['vars']) ? $args['vars'] : array());
         $controller = (isset($args['controller']) ? $args['controller'] : false);
 
+
         if ($controller) {
             $vars['controller'] = $controller;
            foreach ($controller->getParams() as $key => $param)  {

@@ -70,7 +70,7 @@ abstract class mongo extends \bolt\dao\item {
 
         // what up
         if ($resp) {
-            $this->setData($resp);
+            $this->set($resp);
         }
 
         // this
@@ -147,7 +147,7 @@ abstract class mongo extends \bolt\dao\item {
 		$this->id = $id;
 
 		// give back
-		return $id;
+		return $this;
 
     }
 

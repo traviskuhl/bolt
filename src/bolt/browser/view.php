@@ -101,7 +101,7 @@ class view extends \bolt\bucket\proxy implements iView {
         return $this;
     }
 
-    public function render($args=array()) {
+    final public function render($args=array()) {
 
         // call build
         call_user_func_array(array($this, 'build'), $args);
@@ -110,7 +110,7 @@ class view extends \bolt\bucket\proxy implements iView {
         call_user_func(array($this,'beforeRender'));
 
         // add our view to the vars
-        $vars['me'] = $this;
+        $this->_params->self = $this;
 
         if ($this->_file !== false) {
             $this->setContent(b::render(array(

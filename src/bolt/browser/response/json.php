@@ -10,7 +10,8 @@ class json extends \bolt\plugin\singleton {
 
     // accept or header
     public static $accept = array(
-        100 => 'text/javascript'
+        100 => 'text/javascript',
+        200 => 'text/javascript;secure'
     );
 
     // content type
@@ -24,8 +25,16 @@ class json extends \bolt\plugin\singleton {
             'response' => $view->getContent()
         ));
 
+        // pretty
+        $resp = (p('_pretty') ? $this->_pretty($resp) : $resp);
+
+        // securet
+        if ($view->getAccept() == 'text/javascript;secure') {
+            $resp = 'while(1);'.$resp;
+        }
+
         // give it up
-        return (p('_pretty') ? $this->_pretty($resp) : $resp);
+        return $resp;
 
     }
 

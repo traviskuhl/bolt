@@ -34,13 +34,15 @@ class controller implements iController {
     private $_params;
     private $_content;
     private $_accept;
+    private $_fromInit = false;
 
     protected $templateDir = false;
 
     public function __construct() {
         $this->_guid = uniqid();
         $this->_params = b::bucket();
-        $this->init();
+        $this->_fromInit = $this->init();
+
     }
 
     public function init() {}
@@ -91,9 +93,18 @@ class controller implements iController {
         $this->_accept = $accept;
         return $this;
     }
+    public function setStatus($status) {
+        b::response()->setStatus($status);
+        return $this;
+    }
 
     // run
     public function run() {
+
+        // check
+        if ($this->_fromInit AND b::isInterfaceOf($this->_fromInit, '\bolt\browser\iController')) {
+            return $this->_fromInit;
+        }
 
         // lets figure out what method was request
         $method = strtolower(b::request()->getMethod());
@@ -150,7 +161,6 @@ class controller implements iController {
         // go ahead an execute
         $resp = call_user_func_array(array($this, $func), $args);
 
-
         // if response is a view
         // render it
         if (is_string($resp)) {
@@ -158,7 +168,7 @@ class controller implements iController {
         }
 
         // me
-        return $this;
+        return $resp;
 
     }
 
@@ -208,6 +218,9 @@ class controller implements iController {
     }
 
     public function setContent($content) {
+        if (b::isInterfaceOf($content, '\bolt\browser\iView')) {
+            $content = $this->render($content);
+        }
         $this->_content = $content;
         return $this;
     }

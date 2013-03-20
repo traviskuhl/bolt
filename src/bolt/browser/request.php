@@ -110,7 +110,7 @@ class request extends \bolt\plugin\singleton {
         if (b::isInterfaceOf($resp, '\bolt\browser\iView')) {
             $view = $resp;
             $resp = new \bolt\browser\controller();
-            $resp->setContent($view->render()->getContent());
+            $resp->setContent($view->render());
         }
 
         // if response isn't a controller interface
@@ -144,8 +144,14 @@ class request extends \bolt\plugin\singleton {
             // if run isn't an object we stop
             if (!is_object($run)) { break; }
 
+            // it's a viewo
+            if (b::isInterfaceOf($run, '\bolt\browser\iView')) {
+                $resp->setContent($resp->render($run));
+                break;
+            }
+
             // if run is another controller
-            if (b::isInterfaceOf($run, '\bolt\browser\iController') AND $run->getGuid() == $resp->getGuid()) {
+            else if (b::isInterfaceOf($run, '\bolt\browser\iController') AND $run->getGuid() == $resp->getGuid()) {
                 break;
             }
 

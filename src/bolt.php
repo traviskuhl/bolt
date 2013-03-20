@@ -91,6 +91,7 @@ final class b {
         'source'    => "./bolt/source.php",
         'cache'     => "./bolt/cache.php",
         'bucket'    => "./bolt/bucket.php",
+        'event'     => "./bolt/event.php",
 
         // template renders
         'render'          => "./bolt/render.php",
@@ -391,8 +392,8 @@ final class b {
             $files = array();
 
             // is it a file
-            if (substr($pattern,0,6) == 'regex:') {
-                self::_resursiveDirectorySerach(substr($pattern, 6), $files);
+            if (is_dir($pattern)) {
+                self::_resursiveDirectorySerach($pattern, $files);
             }
             else if (stripos($pattern, '.php') !== false AND stripos($pattern, '*') === false)  {
                 $files = array($pattern);

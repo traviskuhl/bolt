@@ -12,6 +12,22 @@ class bucket extends \bolt\plugin\factory implements \Iterator, \ArrayAccess {
 	private $_root;
 	private $_data = array();
 
+
+    ////////////////////////////////////////////////////////////////////
+    ///
+    ////////////////////////////////////////////////////////////////////
+    public static function factory($args=array()) {
+        if (count($args) == 0) { return new \bolt\bucket(); }
+        //
+        if (is_array($args)) {
+            return new bucket($args);
+        }
+        else {
+            return new bucket\bString(false, $args, false);
+        }
+
+    }
+
 	////////////////////////////////////////////////////////////////////
     /// @brief constrcut a new bucket
     ///
@@ -23,7 +39,7 @@ class bucket extends \bolt\plugin\factory implements \Iterator, \ArrayAccess {
 	public function __construct($data=array(), $root=false, $parent=false) {
 		$this->_data = (is_array($data) ? $data : array());
 		$this->_parent = $parent;
-		$this->_root=  $root;
+		$this->_root =  $root;
 	}
 
     ////////////////////////////////////////////////////////////////////
@@ -125,9 +141,11 @@ class bucket extends \bolt\plugin\factory implements \Iterator, \ArrayAccess {
     ///
     /// @param $name name of variable
     /// @param $default value to return if name not set
+    /// @param $useDotNamespace
     /// @return value
     ////////////////////////////////////////////////////////////////////
-	public function get($name, $default=-1) {
+	public function get($name, $default=-1, $useDotNamespace=true) {
+        $oName = $name; // placeholder for future use
         if ($default === -1) {$default = new bucket\bString($name, false, $this);}   // always return an object
         if (is_string($default) OR is_array($default)) { $default = (is_array($default) ? b::bucket($default) : new bucket\bString($name, $default, $this)); }
         if (!is_string($name) AND !is_integer($name)) {return $default;}              // always a key name
@@ -135,7 +153,7 @@ class bucket extends \bolt\plugin\factory implements \Iterator, \ArrayAccess {
 
 
         // does default have any .
-        if (stripos($name, '.') !== false) {
+        if (stripos($name, '.') !== false AND $useDotNamespace === true) {
             $parts = explode('.', $name);
             $name = array_pop($parts);
             $var = $this;
@@ -146,12 +164,13 @@ class bucket extends \bolt\plugin\factory implements \Iterator, \ArrayAccess {
                 return $var->get($name, $default);
             }
             else {
-                return $default;
+                // fallback to check without namespace
+                return $this->get($oName, $default, false);
             }
         }
 
 		// figureo ut if it's an object
-		if (is_a($this->_data[$name], '\bolt\bucket') OR is_a($this->_data[$name], '\bolt\bucket\bString')) {
+		if (is_object($this->_data[$name])) {
 			return $this->_data[$name];
 		}
 		else if (is_array($this->_data[$name])) {
@@ -189,7 +208,7 @@ class bucket extends \bolt\plugin\factory implements \Iterator, \ArrayAccess {
 			}
 		}
 		else if (is_string($name) OR is_integer($name)) {
-			$this->_data[$name] = $value;
+            $this->setValue($name, $value);
 			if ($this->_parent) {
 				$this->_parent->setValue($this->_root, $this->_data);
 			}
@@ -205,6 +224,8 @@ class bucket extends \bolt\plugin\factory implements \Iterator, \ArrayAccess {
     /// @return self
     ////////////////////////////////////////////////////////////////////
 	public function setValue($name, $value) {
+        $this->fire('set', array('new' => $value, 'prev' => $this->getValue($name)));
+        $this->fire("set{$name}", array('new' => $value, 'prev' => $this->getValue($name)));
 		$this->_data[$name] = $value;
 		return $this;
 	}
@@ -564,6 +585,13 @@ class bString {
     public function cast($type) {
         settype($this->_value, $type);
         return $this;
+    }
+    public function totime() {
+        return strtotime($this->_value);
+    }
+
+    public function exists() {
+        return true;
     }
 
 }

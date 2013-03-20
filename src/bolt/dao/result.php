@@ -54,7 +54,9 @@ class result extends \bolt\bucket {
     /// @return variable
     ////////////////////////////////////////////////////////////////////
     public function __get($name) {
-        return call_user_func(array($this->_meta, '__get'), $name);
+        if ($this->_meta) {
+            return call_user_func(array($this->_meta, '__get'), $name);
+        }
     }
 
     ////////////////////////////////////////////////////////////////////
@@ -75,6 +77,15 @@ class result extends \bolt\bucket {
     ////////////////////////////////////////////////////////////////////
     public function loaded() {
         return $this->_loaded;
+    }
+
+    public function item($index) {
+        switch($index) {
+            case 'first':
+                return $this->get(key($this->asArray()));
+            default:
+                return $this->get($index);
+        };
     }
 
     ////////////////////////////////////////////////////////////////////

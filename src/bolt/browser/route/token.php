@@ -17,12 +17,7 @@ class token extends parser {
 
             // loop through each part and replace it with a validator
             foreach (explode("/", trim($path, '/')) as $part) {
-                if ($part{0} == '{') {
-                    $name = trim($part,'{}');
-                    $parts[] = '(?P<'.$name.'>'.$this->getValidator($name).')';
-                    $params[$name] = false;
-                }
-                else if (stripos($part, '{') !== false) {
+                if (stripos($part, '{') !== false) {
                     if (preg_match_all('#\{([^\}]+)\}#', $part, $matches, PREG_SET_ORDER)) {
                         $i = 0; $rep = array();
                         foreach ($matches as $match) {

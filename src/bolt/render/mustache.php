@@ -63,7 +63,7 @@ class mustache extends \bolt\plugin\singleton {
     }
 
     try {
-      $str = $this->eng->render($str, $vars);
+      $str = $this->eng->render($str, (is_object($vars) ? $vars : b::bucket($vars)));
     }
     catch(LogicException $e) { return; }
 

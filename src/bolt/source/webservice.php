@@ -226,16 +226,12 @@ class webservice extends \bolt\plugin\factory {
 
         // if we don't have oauth
         if (!$this->_oauth) {
-
-            // setup
-            $this->_oauth = new \OAuth($this->auth['key'], $this->auth['secret'], OAUTH_SIG_METHOD_HMACSHA1, OAUTH_AUTH_TYPE_AUTHORIZATION);
+            $this->_oauth = new \OAuth($this->auth['key'], $this->auth['secret'], OAUTH_SIG_METHOD_HMACSHA1, OAUTH_AUTH_TYPE_URI);
             $this->_oauth->enableDebug();
-
         }
 
-
         // token
-        $this->_oauth->setToken($this->auth['key'], $this->auth['secret']);
+        $this->_oauth->setToken($this->auth['token'], $this->auth['token_secret']);
 
         // fetch it
         try {
