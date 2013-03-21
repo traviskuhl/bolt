@@ -1,46 +1,46 @@
 <?php
+////////////////////////////////////////////////////
+// Copyright 2013 Travis Kuhl (travis@kuhl.co)
+//
+// Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
+// files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
+// modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom
+// the Software is furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+// WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+// COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF  CONTRACT, TORT
+// OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+////////////////////////////////////////////////////
 
 // autoload
 spl_autoload_register(array('b', 'autoloader'));
 
+// globals
+$bGlobals = array(
+    'bRoot' => dirname(__FILE__),
+    'bEnv' => 'prod',
+    'bTimeZone' => 'UTC',
+    'bLogLevel' => 0,
+    'bGlobalConfig' => "/etc/bolt/config.ini"
+);
+
 // check env for some bolt variables
-foreach(array('bRoot','bEnv','bTimeZone','bLogLevel','bGlobalSettings','bGlobalConfig') as $name) {
+foreach($bGlobals as $name => $default) {
     if (!defined($name) AND ($value = getenv($name)) !== false) {
         define($name, $value);
     }
-}
-
-// root
-if (!defined("bRoot")) {
-    define("bRoot", dirname(__FILE__));
-}
-
-// devmode
-if ( !defined("bEnv") ) {
-	define("bEnv", "dev");
-}
-
-    // dev mode?
-    if ( bEnv === 'dev' ) {
-        error_reporting(E_ALL^E_DEPRECATED^E_STRICT);
-        ini_set("display_errors",1);
+    else if (!defined($name)) {
+        define($name, $default);
     }
-
-// set date
-if (!defined("bTimeZone")) {
-    define("bTimeZone", "UTC");
 }
 
-if (!defined("bLogLevel")) {
-    define("bLogLevel", 1);
-}
-
-// global settings & config
-if (!defined("bGlobalSettings")) {
-    define("bGlobalSettings", "/etc/bolt/settings.json");
-}
-if (!defined("bGlobalConfig")) {
-    define("bGlobalConfig", "/etc/bolt/config.ini");
+// dev mode?
+if ( bEnv === 'dev' ) {
+    error_reporting(E_ALL^E_DEPRECATED^E_STRICT);
+    ini_set("display_errors",1);
 }
 
 /// set our bzone
@@ -227,11 +227,6 @@ final class b {
             self::$_mode = $args['mode'];
         }
 
-        // settings
-        if (defined('bGlobalSettings') AND bGlobalSettings !== false) {
-          self::$_settings['global'] = b::settings(bGlobalSettings);
-        }
-
         // config
         if (defined('bGlobalConfig') AND bGlobalConfig !== false) {
           b::config()->fromIniFile(bGlobalConfig, array('key' => 'global'));
@@ -387,7 +382,6 @@ final class b {
     public static function load($paths) {
         if (is_string($paths)) { $paths = array($paths); }
 
-
         foreach($paths as $pattern) {
             $files = array();
 
@@ -406,10 +400,12 @@ final class b {
             foreach ($files as $oFile) {
 
                 // see if it's relative
-                if (substr($oFile,0,2) == './') { $oFile = bRoot."/".ltrim($oFile,'./'); }
-
-                // make sure it's the real path
-                $file = realpath($oFile);
+                if (substr($oFile,0,2) == './') {
+                    $file = bRoot."/".ltrim($oFile,'./');
+                }
+                else {
+                    $file = realpath($oFile);
+                }
 
                 // already loaded
                 if (in_array($file, self::$_loaded)) {

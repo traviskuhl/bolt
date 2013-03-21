@@ -1,6 +1,7 @@
 #!/usr/bin/php
 <?php
 
+$opts = getopt("tna");
 
 set_include_path(get_include_path().":/Applications/MAMP/bin/php/php5.3.6/lib/php/");
 
@@ -18,11 +19,21 @@ $phar->setSignatureAlgorithm(Phar::SHA1);
 // buffering
 $phar->startBuffering();
 
-// find out the version
-list($sha, $date, $ts) = explode("|", trim(`git log --pretty="%h|%ci|%ct" -n1 `));
+// tet
+if (isset($opts['t'])) {
+    $sha = $version = 'test';
+    $date = date("r");
+    $ts = time();
+}
+else {
 
-// version
-$version = $sha;
+    // find out the version
+    list($sha, $date, $ts) = explode("|", trim(`git log --pretty="%h|%ci|%ct" -n1 `));
+
+    // version
+    $version = $sha;
+
+}
 
 // lets get our files
 $dir = new RecursiveDirectoryIterator('../src/');
@@ -61,22 +72,31 @@ unset($phar);
 // chmod
 chmod("bolt.phar", 0755);
 
+if (isset($opts['n'])) {
+    rename("./bolt.phar", "../tests/bolt.phar");
+    echo "Phar created and placed in test\n";
+    exit;
+}
+
 // create a
 $tar = new Archive_Tar("./bolt-$version.tar.gz", 'gz');
 
 // create
 $tar->create(array("./bolt.phar"));
 
-$tar->addString("bin.php", stub('stub/bin.inc', $vars));
-$tar->addString("share.php", stub('stub/share.inc', $vars));
+$tar->addString("bin.inc", stub('stub/bin.inc', $vars));
+$tar->addString("share.inc", stub('stub/share.inc', $vars));
 
 // copy to latest
-copy("./bolt-$version.tar.gz", "./bolt-latest.tar.gz");
-rename("./bolt-$version.tar.gz", "./tar/bolt-$version.tar.gz");
+if (!isset($opts['t'])) {
+    copy("./bolt-$version.tar.gz", "./bolt-latest.tar.gz"); //latest
+    if (isset($opts['a'])) { // archive
+        rename("./bolt-$version.tar.gz", "./tar/bolt-$version.tar.gz");
+    }
+}
 
 // remove
 unlink("bolt.phar");
-
 
 // goodbye sucka
 exit("DONE!\n\n");

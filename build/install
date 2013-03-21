@@ -85,7 +85,6 @@ else if (isset($opts['s'])) {
     }
     file_put_contents($bin, stub("./stub/bin.inc", "$pear/bolt.php", $etc)); chmod($bin, 0755);
 
-
     // share
     $share .= "/bolt/index.php";
 
@@ -136,40 +135,36 @@ $tar = new Archive_Tar($tmp, 'gz');
 // get the phar
 $phar = $tar->extractInString('bolt.phar');
 
-// no lib dir
-if (!file_exists("/usr/local/lib/bolt")) {
-    mkdir("/usr/local/lib/bolt", 0755);
+// place phar in pear
+file_put_contents("{$pear}/bolt.phar", $phar);
+
+// make etc
+$etc .= '/bolt';
+if (!file_exists($etc)) {
+    `mkdir -p $etc`;
 }
 
-// where the lib is going to go
-$lib = "/usr/local/lib/bolt/bolt.phar";
-$bin = "/usr/local/bin/bolt";
-$share = "/usr/share/pear/bolt.php";
+// bin
+$bin .= "/bolt";
 
-// make our stub
-$stub = stub($lib);
-
-// share already exists
-if (file_exists($lib)) {
-    @unlink($lib);
-    @unlink($bin);
-    @unlink($share);
+// now symlink the bin file
+if (file_exists($bin)) {
+    unlink($bin);
 }
+file_put_contents($bin, stub("./stub/bin.inc", "$pear/bolt.php", $etc)); chmod($bin, 0755);
 
-// now place it. swallow the error
-// and then check
-@file_put_contents($lib, $phar);
+// share
+$share .= "/bolt/index.php";
 
-    // nope
-    if (!file_exists($lib)) {
-        exit("Looks like you don't have permission to write to '$bin' or '$share'.\n");
-    }
+// now symlink the share file
+if (!file_exists(dirname($share))) {
+    mkdir(dirname($share), 0644, true);
+}
+if (file_exists($share)) {
+    unlink($share);
+}
+file_put_contents($share, stub("./stub/share.inc", "$pear/bolt.php", $etc));
 
-// no place bin
-@file_put_contents($bin, $stub); chmod($bin, 0755);
-
-// symlink to share
-symlink($lib, $share);
 
 // tell them we're done
 exit("bolt has been installed. Enjoy!\n");
