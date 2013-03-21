@@ -5,7 +5,7 @@ use \b;
 
 
 
-abstract class item extends \bolt\bucket {
+abstract class item {
 
     // private
     private $_guid; /// guid for unique objects
@@ -25,6 +25,8 @@ abstract class item extends \bolt\bucket {
     ////////////////////////////////////////////////////////////////////
     abstract public function getStruct();
 
+    // find
+    public function find() {return $this;}
 
     ////////////////////////////////////////////////////////////////////
     /// @brief constrcut a dao item
@@ -53,7 +55,7 @@ abstract class item extends \bolt\bucket {
                 $this->_traits["get{$key}"] = array(
                     '\bolt\dao\traitStorage',
                     $info['class'],
-                    (array_key_exists('method', $info) ? $info['method'] : 'get'),
+                    (array_key_exists('method', $info) ? $info['method'] : 'find'),
                     (array_key_exists('args', $info) ? $info['args'] : array()),
                 );
             }
@@ -78,7 +80,7 @@ abstract class item extends \bolt\bucket {
     /// @return array of traits
     ////////////////////////////////////////////////////////////////////
     public function __get($name) {
-        return $this->getValue($name);
+        return $this->get($name);
     }
 
     ////////////////////////////////////////////////////////////////////
@@ -90,7 +92,7 @@ abstract class item extends \bolt\bucket {
     /// @return self
     ////////////////////////////////////////////////////////////////////
     public function __set($name, $value) {
-        return $this->setValue($name, $value);
+        return $this->set($name, $value);
     }
 
     ////////////////////////////////////////////////////////////////////
@@ -121,29 +123,6 @@ abstract class item extends \bolt\bucket {
         return new result($items, $key);
     }
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief handle getting the values
-    ///
-    /// @return self
-    ////////////////////////////////////////////////////////////////////
-    public function get() {
-        return $this;
-    }
-
-    ////////////////////////////////////////////////////////////////////
-    /// @brief set an array of data
-    ///
-    /// @param $values array of values
-    /// @see setValue
-    /// @return self
-    ////////////////////////////////////////////////////////////////////
-    public function set($values) {
-        foreach ($values as $name => $value) {
-            $this->setValue($name, $value);
-        }
-        $this->_loaded = true;
-        return $this;
-    }
 
     ////////////////////////////////////////////////////////////////////
     /// @brief return a value
@@ -154,7 +133,7 @@ abstract class item extends \bolt\bucket {
     /// @see bucket::get()
     /// @return value
     ////////////////////////////////////////////////////////////////////
-    public function getValue($name, $default=false, $userTraits=true) {
+    public function get($name, $default=false, $userTraits=true) {
         $getName = "get{$name}"; $value = false;
 
         // default value
@@ -170,7 +149,7 @@ abstract class item extends \bolt\bucket {
             $value = $this->callTrait($getName);
         }
         else {
-            $value = $this->_data->getValue($name, $default);
+            $value = $this->_data->get($name, $default);
         }
 
         // cast as something special
@@ -185,6 +164,7 @@ abstract class item extends \bolt\bucket {
             }
         }
 
+        if (!is_object($value)) { $value = b::bucket($value); }
 
         return $value;
     }
@@ -197,7 +177,13 @@ abstract class item extends \bolt\bucket {
     /// @see bucket::set()
     /// @return sefl
     ////////////////////////////////////////////////////////////////////
-    public function setValue($name, $value=false) {
+    public function set($name, $value=false) {
+        if (is_array($name)) {
+            foreach ($name as $k => $v) {
+                $this->set($k, $v);
+            }
+            return $this;
+        }
         $setName = "set{$name}";
 
         // cast as something special
@@ -225,6 +211,29 @@ abstract class item extends \bolt\bucket {
         return $this;
     }
 
+    ////////////////////////////////////////////////////////////////////
+    /// @brief get a string value
+    ///
+    /// @param $values array of values
+    /// @see setValue
+    /// @return self
+    ////////////////////////////////////////////////////////////////////
+    public function getValue($name, $default=false) {
+        return $this->get($name, $default)->value;
+    }
+
+    ////////////////////////////////////////////////////////////////////
+    /// @brief set an array of data
+    ///
+    /// @param $values array of values
+    /// @see setValue
+    /// @return self
+    ////////////////////////////////////////////////////////////////////
+    public function setValue($name, $value) {
+        $this->set($name, $value);
+        return $this;
+    }
+
 
     ////////////////////////////////////////////////////////////////////
     /// @brief noramize the data array with struct
@@ -234,11 +243,12 @@ abstract class item extends \bolt\bucket {
     public function normalize() {
         $data = $this->_data->getData();
 
+
         // loop through the struct
         // and try to normalize the data
         foreach ($this->_struct as $key => $info) {
             if (!array_key_exists($key, $data)) {
-                $data[$key] = $this->getValue($key);
+                $data[$key] = $this->get($key);
             }
 
             // name of normalize function
@@ -247,6 +257,7 @@ abstract class item extends \bolt\bucket {
             // check to see if we have a normalization trai
             if (array_key_exists($name, $this->_traits)) {
                 $data[$key] = $this->callTrait($name);
+
             }
 
             // if we have a bucket or bstring convert
@@ -254,11 +265,9 @@ abstract class item extends \bolt\bucket {
                 $data[$key] = $data[$key]->asArray();
             }
 
-
             if (is_a($data[$key], '\bolt\bucket\bString')) {
                 $data[$key] = $data[$key]->value;
             }
-
 
             // make sure the tair conforms to any cast
             if (isset($info['cast'])) {
@@ -357,7 +366,6 @@ abstract class item extends \bolt\bucket {
 
             // trait storage
             if (is_a($i, '\bolt\dao\traitStorage')) {
-
                 if (!$i->hasInstance($name)) {
                     foreach ($t[3] as $key) {
                         if ($key{0} == '$') {
@@ -382,6 +390,8 @@ abstract class item extends \bolt\bucket {
 
                 // params
                 $params = $ref->getParameters();
+
+
 
                 // loop
                 if (count($params) > 0) {

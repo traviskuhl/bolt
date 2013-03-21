@@ -21,7 +21,7 @@ abstract class mongo extends \bolt\dao\item {
     }
 
     // get
-    public function get() {
+    public function find() {
 
         // args
         $args = func_get_args();
@@ -35,6 +35,11 @@ abstract class mongo extends \bolt\dao\item {
         }
 
     }
+
+    public function findByOne() {
+        return call_user_func_array(array($this, 'row'), $args);
+    }
+
 
     public function count($query, $args=array()) {
         return b::mongo()->count($this->table, $query, $args);

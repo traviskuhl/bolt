@@ -42,7 +42,7 @@ class daoItemTest extends bolt_test {
         $this->assertEquals($this->item->getTraitTest(), 'testt');
     }
     public function testGetTypeClass() {
-        $this->assertEquals($this->item->class, array('static', 'poop'));
+        $this->assertEquals($this->item->class->asArray(), array('static', 'poop'));
     }
     public function testGetCast() {
         $fl = 'a'; settype($fl, 'float');
@@ -56,7 +56,7 @@ class daoItemTest extends bolt_test {
     }
     public function testSet() {
         $this->item->set(array('string' => true, 'bool' => true));
-        $this->assertEquals("", $this->item->string);
+        $this->assertEquals("", $this->item->string->value);
         $this->assertTrue($this->item->bool->value);
     }
     public function testMagicSet() {
@@ -183,7 +183,7 @@ class daoTestTraitClass2 {
 
 class daoTestTypeClass {
 
-    public function get($param1, $param2) {
+    public function find($param1, $param2) {
         return array($param1, (string)$param2);
     }
 
