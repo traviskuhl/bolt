@@ -283,7 +283,7 @@ final class b {
         }
 
         // global load
-        if (b::config()->global->load->value) {
+        if (b::config()->get('global.load')->value) {
             b::load(b::config()->get('global.load')->asArray());
         }
 
