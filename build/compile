@@ -79,7 +79,7 @@ if (isset($opts['n'])) {
 }
 
 // create a
-$tar = new Archive_Tar("./bolt-$version.tar.gz", 'gz');
+$tar = new Archive_Tar("./bolt-latest.tar.gz", 'gz');
 
 // create
 $tar->create(array("./bolt.phar"));
@@ -87,16 +87,14 @@ $tar->create(array("./bolt.phar"));
 $tar->addString("bin.inc", stub('stub/bin.inc', $vars));
 $tar->addString("share.inc", stub('stub/share.inc', $vars));
 
-// copy to latest
-if (!isset($opts['t'])) {
-    copy("./bolt-$version.tar.gz", "./bolt-latest.tar.gz"); //latest
-    if (isset($opts['a'])) { // archive
-        rename("./bolt-$version.tar.gz", "./tar/bolt-$version.tar.gz");
-    }
+// archive
+if (isset($opts['a'])) {
+    rename("./bolt-$version.tar.gz", "./tar/bolt-$version.tar.gz");
 }
 
-// remove
-unlink("bolt.phar");
+// keep our phar
+rename("bolt.phar", "./latest/bolt.phar");
+rename("bolt-latest.tar.gz", "./latest/bolt-latest.tar.gz");
 
 // goodbye sucka
 exit("DONE!\n\n");

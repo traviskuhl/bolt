@@ -29,78 +29,9 @@ if ((include "Archive/Tar.php") === false) {
     exit("You don't seem to have Archive_Tar available in your include_dir. Try installing with `pear install Archive_Tar`\n");
 }
 
-// local
+// localx
 if (isset($opts['l'])) {
     $resp = file_get_contents("bolt-latest.tar.gz");
-}
-
-// symlink
-else if (isset($opts['s'])) {
-
-    // no a location
-    if (!file_exists($pear)) {
-        exit("Symlink destination '$pear' doesn't exist.\n");
-    }
-
-    // loop through source and slinkink everything
-    $dir = new RecursiveDirectoryIterator('../src/');
-    $it = new RecursiveIteratorIterator($dir);
-    $regex = new RegexIterator($it, '/^.+\.php$/i', RecursiveRegexIterator::GET_MATCH);
-
-    // add our files
-    foreach ($regex as $file) {
-
-        // get the path
-        $path = $pear . str_replace("../src", "", $file[0]);
-
-
-        // if the file already exists
-        // unlink it
-        if (file_exists($path)) {
-            unlink($path);
-        }
-
-        // make sure the base dir exists
-        if (!file_exists(dirname($path))) {
-            mkdir(dirname($path), 0777, true);
-        }
-
-        // symlink the file
-        symlink(realpath($file[0]), $path);
-
-    }
-
-    // make etc
-    $etc .= '/bolt';
-    if (!file_exists($etc)) {
-        `mkdir -p $etc`;
-    }
-
-    // bin
-    $bin .= "/bolt";
-
-    // now symlink the bin file
-    if (file_exists($bin)) {
-        unlink($bin);
-    }
-    file_put_contents($bin, stub("./stub/bin.inc", "$pear/bolt.php", $etc)); chmod($bin, 0755);
-
-    // share
-    $share .= "/bolt/index.php";
-
-    // now symlink the share file
-    if (!file_exists(dirname($share))) {
-        mkdir(dirname($share), 0644, true);
-    }
-    if (file_exists($share)) {
-        unlink($share);
-    }
-    file_put_contents($share, stub("./stub/share.inc", "$pear/bolt.php", $etc));
-
-
-    // done
-    exit("Bolt symlink installed!\n");
-
 }
 
 // get from remote
@@ -138,6 +69,9 @@ $phar = $tar->extractInString('bolt.phar');
 // place phar in pear
 file_put_contents("{$pear}/bolt.phar", $phar);
 
+// symlink to bolt.phar => bolt.php
+symlink("{$pear}/bolt.phar", "{$pear}/bolt.php");
+
 // make etc
 $etc .= '/bolt';
 if (!file_exists($etc)) {
@@ -163,7 +97,7 @@ if (!file_exists(dirname($share))) {
 if (file_exists($share)) {
     unlink($share);
 }
-file_put_contents($share, stub("./stub/share.inc", "$pear/bolt.php", $etc));
+file_put_contents($share, stub("./stub/share.inc", "$pear/bolt.phar", $etc));
 
 
 // tell them we're done
