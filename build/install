@@ -38,16 +38,24 @@ if (isset($opts['l'])) {
 else {
 
     // pull down the latest version
-    $latest = "https://github.com/traviskuhl/bolt/raw/master/build/bolt-latest.tar.gz";
+    $latest = "https://github.com/traviskuhl/bolt/raw/master/build/latest/bolt-latest.tar.gz";
 
-    // get it
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, $latest);
-    curl_setopt($ch, CURLOPT_HEADER, 0);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
-    $resp = curl_exec($ch);
-    curl_close($ch);
+    // no curl
+    if (function_exists('curl_init')) {
+
+        // get it
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $latest);
+        curl_setopt($ch, CURLOPT_HEADER, 0);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+        $resp = curl_exec($ch);
+        curl_close($ch);
+
+    }
+    else {
+        $resp = trim(`curl -Ls $latest`);
+    }
 
 }
 
@@ -57,11 +65,13 @@ if (!$resp) {
 }
 
 // write tar to tmp
-$tmp = tempnam(sys_get_temp_dir(), 'bolt');
-file_put_contents($tmp, $resp);
+$tmp = sys_get_temp_dir() . 'bolt'.time();
+mkdir($tmp);
+
+file_put_contents($tmp."/tar", $resp);
 
 // open it
-$tar = new Archive_Tar($tmp, 'gz');
+$tar = new Archive_Tar($tmp."/tar", 'gz');
 
 // get the phar
 $phar = $tar->extractInString('bolt.phar');
@@ -70,7 +80,12 @@ $phar = $tar->extractInString('bolt.phar');
 file_put_contents("{$pear}/bolt.phar", $phar);
 
 // symlink to bolt.phar => bolt.php
+if (file_exists("{$pear}/bolt.php")) {
+    unlink("{$pear}/bolt.php");
+}
+
 symlink("{$pear}/bolt.phar", "{$pear}/bolt.php");
+
 
 // make etc
 $etc .= '/bolt';
@@ -85,7 +100,7 @@ $bin .= "/bolt";
 if (file_exists($bin)) {
     unlink($bin);
 }
-file_put_contents($bin, stub("./stub/bin.inc", "$pear/bolt.php", $etc)); chmod($bin, 0755);
+file_put_contents($bin, stub($tar->extractInString('bin.inc'), "$pear/bolt.php", $etc)); chmod($bin, 0755);
 
 // share
 $share .= "/bolt/index.php";
@@ -97,7 +112,7 @@ if (!file_exists(dirname($share))) {
 if (file_exists($share)) {
     unlink($share);
 }
-file_put_contents($share, stub("./stub/share.inc", "$pear/bolt.phar", $etc));
+file_put_contents($share, stub($tar->extractInString('share.inc'), "$pear/bolt.phar", $etc));
 
 
 // tell them we're done
@@ -105,7 +120,6 @@ exit("bolt has been installed. Enjoy!\n");
 
 
 /// stub
-function stub($file, $phar, $etc) {
-    $str = file_get_contents($file);
+function stub($str, $phar, $etc) {
     return str_replace(array('%PHAR%','%ETC'), array($phar, $etc), $str);
 }
