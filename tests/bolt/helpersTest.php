@@ -79,7 +79,7 @@ class helpersTest extends bolt_test {
     public function testTZConvert() {
         $from = 'UTC';
         $to = 'America/Los_Angeles';
-        $ts = gmmktime();
+        $ts = time();
 
         $dt = new \DateTime(null, new \DateTimeZone($from));
         $dt->setTimestamp($ts);
