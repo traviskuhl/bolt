@@ -2,25 +2,21 @@
 
 // bolt
 namespace bolt;
-
-// this is a special class. it's
-// not a plugin and can't
-// be inited
-use \b as b;
+use \b;
 
 
 // helpers
 class helpers {
 
     // implemnets
-    public static function isInterfaceOf($obj, $interface) {
+    public function isInterfaceOf($obj, $interface) {
         return (is_object($obj) AND ($implements = class_implements($obj)) !== false AND in_array(ltrim($interface,'\\'), $implements));
     }
 
     ////////////////////////////////////////////////
     /// payload
     ////////////////////////////////////////////////
-    public static function payload($payload) {
+    public function payload($payload) {
         if (is_string($payload) AND $payload{0} == ':') {
             $sig = substr($payload, 1, 32);
             $data = substr($payload, 33);
@@ -35,7 +31,7 @@ class helpers {
     ////////////////////////////////////////////////
     /// encrypt a password
     ////////////////////////////////////////////////
-    public static function crypt($str, $salt=false) {
+    public function crypt($str, $salt=false) {
         if (!$salt) { $salt = b::config()->salt->value; }
         return crypt( $str, ($salt{0} == '$' ? $salt : '$5$rounds=5000$'.$salt.'$'));
     }
@@ -43,21 +39,21 @@ class helpers {
     ////////////////////////////////////////////////
     /// encrypt using mcrypt
     ////////////////////////////////////////////////
-    public static function encrypt($str, $salt) {
+    public function encrypt($str, $salt) {
         return self::mcrypt($str, $salt, MCRYPT_ENCRYPT);
     }
 
     ////////////////////////////////////////////////
     /// deencrypt using mcrypt
     ////////////////////////////////////////////////
-    public static function decrypt($str, $salt) {
+    public function decrypt($str, $salt) {
         return self::mcrypt($str, $salt, MCRYPT_DECRYPT);
     }
 
     ////////////////////////////////////////////////
     /// mcrypt
     ////////////////////////////////////////////////
-    public static function mcrypt($str, $salt=false, $what=MCRYPT_DECRYPT) {
+    public function mcrypt($str, $salt=false, $what=MCRYPT_DECRYPT) {
 
         // nothing to do
         if (!$str) { return ""; }
@@ -107,7 +103,7 @@ class helpers {
     ///
     /// @return random string
     ////////////////////////////////////////////////
-    public static function randString($len=30) {
+    public function randString($len=30) {
         // chars
         $chars = array(
                 'a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z',
@@ -130,7 +126,7 @@ class helpers {
 
     }
             // shortcut
-            public static function randomString($len=30) {
+            public function randomString($len=30) {
                 return self::randString($len);
             }
 
@@ -141,7 +137,7 @@ class helpers {
     }
 
 
-    public static function uuid($string=false) {
+    public function uuid($string=false) {
         if (function_exists('uuid_create')) {
             $uuid = uuid_create();
         }
@@ -151,12 +147,12 @@ class helpers {
         return ($string ? str_replace('-', '', $uuid) : $uuid);
     }
 
-    public static function utctime() {
+    public function utctime() {
         $dt = new \DateTime('now',new \DateTimeZone('UTC'));
         return $dt->getTimestamp();
     }
 
-    public static function convertTimestamp($ts, $to, $from='UTC') {
+    public function convertTimestamp($ts, $to, $from='UTC') {
 
         // datetime
         $dt = new \DateTime(null, new \DateTimeZone($from));
@@ -172,7 +168,7 @@ class helpers {
 
     }
 
-    public static function plural($str, $count, $multi=false) {
+    public function plural($str, $count, $multi=false) {
         if ( is_array($count) ) { $count = count($count); }
 
         if ( $multi !== false ) {
@@ -185,12 +181,12 @@ class helpers {
         return $str . ($count!=1?'s':'');
     }
 
-    public static function possesive($str) {
+    public function possesive($str) {
         if ( strtolower($str) == 'you' ) { return $str{0}.'our'; }
         return $str . (substr($str,-1)=='s'?"'":"'s");
     }
 
-    public static function niceDate($ts) {
+    public function niceDate($ts) {
         $diff = b::utctime() - $ts;
         if ($diff < b::SecondsInYear) {
             return "Today";
@@ -206,7 +202,7 @@ class helpers {
         }
     }
 
-    public static function ago($tm, $short=false) {
+    public function ago($tm, $short=false) {
 
         $cur_tm = b::utctime();
 
@@ -248,7 +244,7 @@ class helpers {
         return ($short ? trim($x) : trim($x) . ' ago');
     }
 
-    public static function left($theTime, $level="days+hours+min+sec") {
+    public function left($theTime, $level="days+hours+min+sec") {
             $now = strtotime("now");
             $timeLeft = $theTime - $now;
             $theText = '';
@@ -292,7 +288,7 @@ class helpers {
 
     }
 
-    public static function short($str, $len=200, $onwords=true, $append=false) {
+    public function short($str, $len=200, $onwords=true, $append=false) {
         if ( mb_strlen($str) < $len ) { return $str; }
         if ( !$onwords ) {
             if ( mb_strlen($str) > $len ) {
@@ -316,18 +312,18 @@ class helpers {
 
     }
 
-    public static function br2nl($string){
+    public function br2nl($string){
         $return=eregi_replace('<br[[:space:]]*/?'.
         '[[:space:]]*>',chr(13).chr(10),$string);
         return $return;
     }
 
-    public static function convertBase($str,$to=36,$from=10) {
+    public function convertBase($str,$to=36,$from=10) {
         return (string)base_convert(hexdec($str),$from, $to);
     }
 
 
-    public static function mergeArray($a1, $a2) {
+    public function mergeArray($a1, $a2) {
        if (!is_array($a1)) { $a1 = array(); }
        if (!is_array($a2)) { $a2 = array(); }
 

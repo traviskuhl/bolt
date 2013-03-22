@@ -1,4 +1,4 @@
 ./build/bolt-test.tar.gz
 ./tests/bolt.phar
-./test/misc
-./test/misc/*
+./tests/misc
+./tests/misc/*
