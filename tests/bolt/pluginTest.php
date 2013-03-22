@@ -44,7 +44,7 @@ class pluginTest extends bolt_test {
         $this->i->setFallbacks("pluginTestFallbackClass");
 
         // it's there
-        $this->assertTrue(in_array("pluginTestFallbackClass",$this->i->getFallbacks()));
+        $this->assertTrue(array_key_exists("pluginTestFallbackClass",$this->i->getFallbacks()));
 
     }
 
@@ -54,7 +54,7 @@ class pluginTest extends bolt_test {
         $this->i->setFallbacks("pluginTestFallbackClass");
 
         // it's there
-        $this->assertTrue(in_array("pluginTestFallbackClass",$this->i->getFallbacks()));
+        $this->assertTrue(array_key_exists("pluginTestFallbackClass",$this->i->getFallbacks()));
 
     }
 

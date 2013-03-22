@@ -28,7 +28,10 @@ abstract class plugin extends event {
         if (is_string($classes)) {
             $classes = array($classes);
         }
-        return $this->_fallback = array_merge($this->_fallback, $classes);
+        foreach ($classes as $class) {
+            $this->_fallback[$class] = new $class;
+        }
+        return $this->_fallback;
     }
 
     // get fallcacks

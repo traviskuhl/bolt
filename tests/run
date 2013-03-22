@@ -1,5 +1,13 @@
 #!/usr/bin/env php
 <?php
 
+if (`which phpunit` === trim("")) {
+    exit("Unable to find PHPUnit.\n".
+         "We need PHPUnit to run our tests!\n\n".
+         "You can install from PEAR:\n".
+         " pear config-set auto_discover 1\n".
+         " pear install pear.phpunit.de/phpunit\n\n");
+}
+
 $root = __DIR__;
 echo `phpunit --bootstrap="$root/bootstrap.php" $root`;
