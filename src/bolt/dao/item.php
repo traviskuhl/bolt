@@ -95,6 +95,14 @@ abstract class item {
         return $this->set($name, $value);
     }
 
+    public function __toString() {
+        return $this->_data->__toString();
+    }
+
+    public function __isset($name) {
+        return $this->_data->exists($name);
+    }
+
     ////////////////////////////////////////////////////////////////////
     /// @brief MAGIC
     ///
@@ -107,6 +115,9 @@ abstract class item {
         else if (array_key_exists(strtolower($name), $this->_traits)) {
             return $this->callTrait($name, $args);
         }
+        else if (method_exists($this->_data, $name)) {
+            return call_user_func_array(array($this->_data, $name), $args);
+        }
         return false;
     }
 
@@ -115,12 +126,11 @@ abstract class item {
     ///
     /// @return self
     ////////////////////////////////////////////////////////////////////
-    public function result($items, $key=null) {
-        $class = get_class($this);
-        foreach ($items as $i => $item){
-            $items[$i] = new $class($item);
-        }
-        return new result($items, $key);
+    public function asArray() {
+        return $this->_data->asArray();
+    }
+    public function isEmpty() {
+        return $this->_loaded;
     }
 
 

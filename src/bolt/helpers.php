@@ -36,7 +36,7 @@ class helpers {
     /// encrypt a password
     ////////////////////////////////////////////////
     public static function crypt($str, $salt=false) {
-        if (!$salt) { $salt = b::config()->salt; }
+        if (!$salt) { $salt = b::config()->salt->value; }
         return crypt( $str, ($salt{0} == '$' ? $salt : '$5$rounds=5000$'.$salt.'$'));
     }
 

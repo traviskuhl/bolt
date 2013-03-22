@@ -4,10 +4,10 @@ namespace bolt\render;
 use \b;
 
 // render
-b::render()->plug('mustache', '\bolt\render\mustache');
+b::render()->plug('handlebars', '\bolt\render\handlebars');
 
-// mustache
-class mustache extends \bolt\plugin\singleton {
+// handlebars
+class handlebars extends \bolt\plugin\singleton {
 
   private $eng;
   private $_helpers = array();
@@ -15,17 +15,23 @@ class mustache extends \bolt\plugin\singleton {
   public function __construct() {
 
     // include
-    require bRoot.'/vendor/Mustache/Autoloader.php';
+    require bRoot.'/vendor/Handlebars/Autoloader.php';
 
     // auto load
-    \Mustache_Autoloader::register(bRoot.'/vendor/');
+    \Handlebars_Autoloader::register(bRoot.'/vendor/');
 
     // engine
-    $this->eng = new \Mustache_Engine(array(
+    $this->eng = new \Handlebars_Engine(array(
       'delimiter' => "<% %>",
       'escape' => function($value) {
         return htmlentities($value, ENT_QUOTES, 'UTF-8', false);
       },
+      'helpers' => new \Handlebars_Helpers(array(
+          'escape' => function($template, $context, $args, $text) {
+            return htmlentities($text, ENT_QUOTES, 'UTF-8', false);
+          }
+        )
+      )
     ));
 
 

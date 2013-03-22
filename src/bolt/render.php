@@ -26,7 +26,7 @@ class render extends plugin {
 
     public function _default($args=array()) {
         if (count($args) > 0) {
-            $render = b::render()->call(p('render', 'mustache',$args));
+            $render = b::render()->call(p('render', 'handlebars', $args));
             return $this->_render($render, $args);
         }
         return $this;

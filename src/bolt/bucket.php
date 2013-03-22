@@ -135,6 +135,9 @@ class bucket extends \bolt\plugin\factory implements \Iterator, \ArrayAccess {
         return $this->asJson();
     }
 
+    public function isEmpty() {
+        return (count($this->_data) == 0 ? true : false);
+    }
 
     ////////////////////////////////////////////////////////////////////
     /// @brief get a variable or return deafult value
@@ -518,6 +521,10 @@ class bString {
         $this->_value = $value;
         $this->_key = $key;
         $this->_parent = $parent;
+    }
+
+    public function isEmpty() {
+        return !$this->_value;
     }
 
     ////////////////////////////////////////////////////////////////////

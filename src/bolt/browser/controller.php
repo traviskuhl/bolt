@@ -172,7 +172,7 @@ class controller implements iController {
 
     }
 
-    public function renderTemplate($file, $vars=array(), $render='mustache') {
+    public function renderTemplate($file, $vars=array(), $render=false) {
         $this->setContent(b::render(array(
                 'render' => $render,
                 'file' => $this->templateDir."/".$file,
@@ -182,7 +182,7 @@ class controller implements iController {
         return $this;
     }
 
-    public function renderString($str, $vars=array(), $render='mustache') {
+    public function renderString($str, $vars=array(), $render=false) {
         $this->setContent(b::render(array(
                 'render' => $render,
                 'string' => $str,

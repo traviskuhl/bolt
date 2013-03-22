@@ -97,6 +97,7 @@ final class b {
         'render'          => "./bolt/render.php",
         'render-mustache' => "./bolt/render/mustache.php",
         'render-markdown' => "./bolt/render/markdown.php",
+        'render-handlebars' => "./bolt/render/handlebars.php",
 
         // source
         'source-mongo'      => "./bolt/source/mongo.php",
