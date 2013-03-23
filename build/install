@@ -65,7 +65,7 @@ if (!$resp) {
 }
 
 // write tar to tmp
-$tmp = sys_get_temp_dir() . 'bolt'.time();
+$tmp = sys_get_temp_dir().'/bolt'.time();
 mkdir($tmp);
 
 file_put_contents($tmp."/tar", $resp);
@@ -114,6 +114,8 @@ if (file_exists($share)) {
 }
 file_put_contents($share, stub($tar->extractInString('share.inc'), "$pear/bolt.phar", $etc));
 
+// delete dir
+`rm -r $tmp`;
 
 // tell them we're done
 exit("bolt has been installed. Enjoy!\n");

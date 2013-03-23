@@ -39,6 +39,24 @@ class config extends plugin\singleton {
         return call_user_func_array(array($this->_bucket, $name), $args);
     }
 
+    public function asArray() {
+        return $this->_bucket->asArray();
+    }
+
+    // import
+    public function import($file) {
+        switch(strtolower(array_pop(explode(".", $file)))) {
+            case 'json':
+                return $this->fromJson($file);
+            case 'yaml':
+                return $this->fromYamlFile($file);
+            case 'ini':
+                return $this->fromIniFile($file);
+            default:
+                return false;
+        };
+    }
+
     ////////////////////////////////////////////////////////////////////
     /// @brief import from a jason string or file
     ///
@@ -132,12 +150,7 @@ class config extends plugin\singleton {
             apc_store($cid, $data, p('ttl', false, $args));
         }
 
-        if (p('key', false, $args)) {
-            $this->set($args['key'], $data);
-        }
-        else {
-            $this->set($data);
-        }
+        $this->set($data);
 
         return $this;
     }

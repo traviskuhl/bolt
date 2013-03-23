@@ -5,7 +5,7 @@ use \b;
 
 b::command('init', '\bolt\client\init', array(
         'flags' => array(
-            array('verbose|v', 'Turn on verbose logs')
+
         ),
         'options' => array(
 

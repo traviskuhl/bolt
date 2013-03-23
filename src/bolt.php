@@ -230,7 +230,7 @@ final class b {
 
         // config
         if (defined('bGlobalConfig') AND bGlobalConfig !== false) {
-          b::config()->fromIniFile(bGlobalConfig, array('key' => 'global'));
+          b::config()->import(bGlobalConfig);
         }
 
         // if we are init from the server
@@ -246,11 +246,13 @@ final class b {
             $host = strtolower(HOSTNAME);
 
             // start our assumeing we'll use the global project
-            $project = b::config()->getValue('global.defaultProject');
+            $project = b::config()->getValue('defaultProject');
+
 
             // figure out if we have a hostname that can
             // service this request
-            foreach (b::config()->get('global') as $key => $value) {
+            foreach (b::config()->asArray() as $key => $value) {
+
                 if (is_array($value) AND array_key_exists('hostname', $value)) {
                     foreach ($value['hostname'] as $hn) { // not hackernews -> hostname
                         if (strtolower($hn) == $host) {
@@ -269,7 +271,7 @@ final class b {
             }
 
             // project
-            $project = b::config()->global->get($project)->asArray();
+            $project = b::config()->get($project)->asArray();
 
             if (isset($project['load'])) {
                 $args['load'] = $project['load']; unset($project['load']);

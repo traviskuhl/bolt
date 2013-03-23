@@ -59,8 +59,28 @@ class bucket extends \bolt\plugin\factory implements \Iterator, \ArrayAccess {
     /// @return array of data
     ////////////////////////////////////////////////////////////////////
     public function getData() {
-        return $this->_data;
+        $data = $this->_data;
+        array_walk_recursive($data, function(&$item){
+            if (is_object($item) AND is_a($item, '\bolt\bucket\bString')) {
+                $item = (string)$item;
+            }
+            else if (is_object($item) AND method_exists($item, 'asArray')) {
+                $item = $item->asArray();
+            }
+        });
+        return $this->filter_recursive($data, function($value){
+            return !($value === null);
+        });
     }
+
+        public function filter_recursive($o, $cb) {
+            foreach ($o as &$value) {
+                if (is_array($value)) {
+                    $value = $this->filter_recursive($value, $cb);
+                }
+            }
+            return array_filter($o, $cb);
+        }
 
     ////////////////////////////////////////////////////////////////////
     /// @brief return a clean data array
@@ -147,13 +167,11 @@ class bucket extends \bolt\plugin\factory implements \Iterator, \ArrayAccess {
     /// @param $useDotNamespace
     /// @return value
     ////////////////////////////////////////////////////////////////////
-	public function get($name, $default=-1, $useDotNamespace=true) {
+	public function get($name, $default=null, $useDotNamespace=true) {
         $oName = $name; // placeholder for future use
         if ($default === -1) {$default = new bucket\bString($name, false, $this);}   // always return an object
         if (is_string($default) OR is_array($default)) { $default = (is_array($default) ? b::bucket($default) : new bucket\bString($name, $default, $this)); }
         if (!is_string($name) AND !is_integer($name)) {return $default;}              // always a key name
-		if (!array_key_exists($name, $this->_data)) { $this->_data[$name] = $default; }   // does it exist
-
 
         // does default have any .
         if (stripos($name, '.') !== false AND $useDotNamespace === true) {
@@ -172,6 +190,8 @@ class bucket extends \bolt\plugin\factory implements \Iterator, \ArrayAccess {
             }
         }
 
+        if (!array_key_exists($name, $this->_data)) { $this->_data[$name] = $default; }
+
 		// figureo ut if it's an object
 		if (is_object($this->_data[$name])) {
 			return $this->_data[$name];
@@ -179,8 +199,6 @@ class bucket extends \bolt\plugin\factory implements \Iterator, \ArrayAccess {
 		else if (is_array($this->_data[$name])) {
 			return new bucket($this->_data[$name], $name, $this);
 		}
-
-
 
 		return new bucket\bString($name, $this->_data[$name], $this);
 	}
