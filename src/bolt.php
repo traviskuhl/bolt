@@ -29,8 +29,8 @@ $bGlobals = array(
 
 // check env for some bolt variables
 foreach($bGlobals as $name => $default) {
-    if (!defined($name) AND ($value = getenv($name)) !== false) {
-        define($name, $value);
+    if (!defined($name) AND getenv($name)) {
+        define($name, getenv($name));
     }
     else if (!defined($name)) {
         define($name, $default);
