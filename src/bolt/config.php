@@ -45,7 +45,8 @@ class config extends plugin\singleton {
 
     // import
     public function import($file) {
-        switch(strtolower(array_pop(explode(".", $file)))) {
+        $parts = explode(".", $file);
+        switch(strtolower(array_pop($parts))) {
             case 'json':
                 return $this->fromJson($file);
             case 'yaml':

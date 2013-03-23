@@ -1,5 +1,7 @@
 <?php
 
+error_reporting(E_ALL);
+
 // do dev mode
 define("bDevMode", true);
 define("bGlobalSettings", false);
