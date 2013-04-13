@@ -44,18 +44,20 @@ class config extends plugin\singleton {
     }
 
     // import
-    public function import($file) {
+    public function import($file, $args=array()) {
         $parts = explode(".", $file);
+        $key = p('key', false, $args);
+        $data = array();
         switch(strtolower(array_pop($parts))) {
             case 'json':
-                return $this->fromJson($file);
+                $data = $this->fromJson($file); break;
             case 'yaml':
-                return $this->fromYamlFile($file);
+                $data = $this->fromYamlFile($file); break;
             case 'ini':
-                return $this->fromIniFile($file);
-            default:
-                return false;
+                $data = $this->fromIniFile($file); break;
         };
+        $this->_bucket->set(($key ? array($key => $data) : $data));
+        return $this;
     }
 
     ////////////////////////////////////////////////////////////////////
@@ -65,21 +67,22 @@ class config extends plugin\singleton {
     /// @return self
     ////////////////////////////////////////////////////////////////////
     public function fromJson($from) {
+        $data = array();
         if (is_resource($from)) {
             $str = $buffer = false;
             while (($buffer = fgets($from, 4096)) !== false) {
                 $str .= $buffer;
             }
             fclose($from);
-            $this->set(json_decode($str, true));
+            $data = json_decode($str, true);
         }
         else if ($from{0} == '{' OR $from{0} == '[') {
-            $this->set(json_decode($from, true));
+            $data = json_decode($from, true);
         }
         else if (file_exists($from)) {
-            $this->set(json_decode(file_get_contents($from), true));
+            $data = json_decode(file_get_contents($from), true);
         }
-        return $this;
+        return $data;
     }
 
     ////////////////////////////////////////////////////////////////////
@@ -89,6 +92,7 @@ class config extends plugin\singleton {
     /// @return self
     ////////////////////////////////////////////////////////////////////
     public function fromYamlFile($from) {
+        $data = array();
         if (function_exists('yaml_parse_file')) {
             if (is_resource($from)) {
                 $str = $buffer = false;
@@ -96,13 +100,13 @@ class config extends plugin\singleton {
                     $str .= $buffer;
                 }
                 fclose($from);
-                $this->set(yaml_parse($str));
+                $data = yaml_parse($str);
             }
             else {
-                $this->set(yaml_parse_file($from));
+                $data = yaml_parse_file($from);
             }
         }
-        return $this;
+        return $data;
     }
 
     ////////////////////////////////////////////////////////////////////
@@ -113,9 +117,9 @@ class config extends plugin\singleton {
     ////////////////////////////////////////////////////////////////////
     public function fromYamlString($from) {
         if (function_exists('yaml_parse')) {
-            $this->set(yaml_parse($from));
+            return yaml_parse($from);
         }
-        return $this;
+        return array();
     }
 
     ////////////////////////////////////////////////////////////////////
@@ -133,28 +137,53 @@ class config extends plugin\singleton {
             return false;
         }
 
-        // cache name
-        $cid = md5("config.ini.$from");
-        $data = false;
+        $data = parse_ini_file($from, true);
 
-        // cache
-        if (p('cache', false, $args) == 'apc') {
-            $data = apc_fetch($cid);
-        }
-
-        // no data
-        if (!$data) {
-            $data = parse_ini_file($from, true);
-        }
-
-        if (p('cache', false, $args) == 'apc') {
-            apc_store($cid, $data, p('ttl', false, $args));
-        }
-
-        $this->set($data);
-
-        return $this;
+        return $data;
     }
 
+    /*
+    * @package   Config_Lite
+    * @author    Patrick C. Engel <pce@php.net>
+    * @copyright 2010-2011 <pce@php.net>
+    * @license   http://www.gnu.org/copyleft/lesser.html  LGPL License 2.1
+    */
+    public function toIniFile($key=false) {
+        $data = ($key ? $this->_bucket->get($key)->asArray() : $this->_bucket->asArray());
+        $content = '';
+        $sections = '';
+        $globals  = '';
+        if (!empty($data)) {
+            // 2 loops to write `globals' on top, alternative: buffer
+            foreach ($data as $section => $item) {
+                if (!is_array($item)) {
+                    $value    = $item;
+                    $globals .= $section . ' = "' . $value .'"'."\n";
+                }
+            }
+            $content .= $globals;
+            foreach ($data as $section => $item) {
+                if (is_array($item)) {
+                    $sections .= "\n[" . $section . "]\n";
+                    foreach ($item as $key => $value) {
+                        if (is_array($value)) {
+                            foreach ($value as $arrkey => $arrvalue) {
+                                $arrvalue  = $arrvalue;
+                                $arrkey    = $key . '[' . (is_int($arrkey) ? "" : $arrkey) . ']';
+                                $sections .= $arrkey . ' = "' . $arrvalue.'"'
+                                            ."\n";
+                            }
+                        } else {
+                            $value     = $value;
+                            $sections .= $key . ' = "' . $value .'"'."\n";
+                        }
+                    }
+                }
+            }
+            $content .= $sections;
+        }
+        return $content;
+
+    }
 
 }

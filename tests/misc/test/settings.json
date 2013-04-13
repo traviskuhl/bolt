@@ -1,0 +1,1 @@
+{"mongo":{"host":"localhost","port":27017,"db":"$config.mongo.db"}}

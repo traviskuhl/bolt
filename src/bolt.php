@@ -24,7 +24,7 @@ $bGlobals = array(
     'bEnv' => 'prod',
     'bTimeZone' => 'UTC',
     'bLogLevel' => 0,
-    'bGlobalConfig' => "/etc/bolt/config.ini"
+    'bConfig' => "/etc/bolt/"
 );
 
 // check env for some bolt variables
@@ -77,7 +77,6 @@ final class b {
     private static $_instance = false;
     private static $_loaded = array();
     private static $_settings = array(
-        'global' => false,
         'project' => false
     );
 
@@ -142,8 +141,17 @@ final class b {
         )
     );
 
-    // mode
+    // mode & env
     public static $_mode = 'browser';
+
+    ////////////////////////////////////////////////////////////
+    /// @brief return env setting
+    ///
+    /// @return bolt instance
+    ////////////////////////////////////////////////////////////
+    public static function env() {
+        return self::config()->get('global.env', 'prod');
+    }
 
     ////////////////////////////////////////////////////////////
     /// @brief return bolt instance
@@ -229,8 +237,8 @@ final class b {
         }
 
         // config
-        if (defined('bGlobalConfig') AND bGlobalConfig !== false) {
-          b::config()->import(bGlobalConfig);
+        if (defined('bConfig') AND bConfig !== false AND file_exists(bConfig."/config.ini")) {
+          b::config()->import(bConfig."/config.ini", array('key' => 'global'));
         }
 
         // if we are init from the server
@@ -246,12 +254,12 @@ final class b {
             $host = strtolower(HOSTNAME);
 
             // start our assumeing we'll use the global project
-            $project = b::config()->getValue('defaultProject');
+            $project = b::config()->getValue('global.defaultProject');
 
 
             // figure out if we have a hostname that can
             // service this request
-            foreach (b::config()->asArray() as $key => $value) {
+            foreach (b::config()->get('global')->asArray() as $key => $value) {
 
                 if (is_array($value) AND array_key_exists('hostname', $value)) {
                     foreach ($value['hostname'] as $hn) { // not hackernews -> hostname
@@ -271,7 +279,7 @@ final class b {
             }
 
             // project
-            $project = b::config()->get($project)->asArray();
+            $project = b::config()->get('global')->get($project)->asArray();
 
             if (isset($project['load'])) {
                 $args['load'] = $project['load']; unset($project['load']);

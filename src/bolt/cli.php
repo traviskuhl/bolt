@@ -108,6 +108,20 @@ class cli extends plugin {
 
     }
 
+    // ask
+    public function ask($q, $default=false) {
+        $this->out($q.($default ? " [{$default}]: " : ": "));
+        $a = trim(fgets(STDIN));
+        return (empty($a) ? $default : $a);
+    }
+    public function askYesNo($q, $default='y') {
+        $d = strtolower($default{0});
+        $this->out($q.($default == 'n' ? " [yes/No]: " : " [Yes/no]: "));
+        $a = strtolower(trim(fgets(STDIN)));
+        if (!$a) { $a = $d; }
+        return ($a{0} == 'y' ? true : false);
+    }
+
     public function line() {
         return call_user_func_array('\cli\line', func_get_args());
     }
