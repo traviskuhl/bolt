@@ -3,7 +3,7 @@
 namespace bolt\client;
 use \b;
 
-b::command('plugin', '\bolt\client\plugin', array(
+b::command('bundle', '\bolt\client\bundle', array(
         'install' => array(
 
         ),
@@ -12,7 +12,7 @@ b::command('plugin', '\bolt\client\plugin', array(
         )
     ));
 
-class plugin extends \bolt\cli\command {
+class bundle extends \bolt\cli\command {
 
 
     public function install($plugin) {
@@ -37,7 +37,7 @@ class plugin extends \bolt\cli\command {
 
     }
 
-    public function package($dir=false) {
+    public function compile($dir=false) {
         $pwd = getcwd();
         $dir = ($dir ?: getcwd());
 

@@ -3,9 +3,9 @@
 namespace bolt\dao;
 use \b;
 
+interface iItem {}
 
-
-abstract class item {
+abstract class item implements iItem {
 
     // private
     private $_guid; /// guid for unique objects

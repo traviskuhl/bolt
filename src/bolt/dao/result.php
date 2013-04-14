@@ -3,20 +3,22 @@
 namespace bolt\dao;
 use \b;
 
-class result extends \bolt\bucket {
+interface iResult {}
 
-    // private
+class result implements iResult {
+
+    // private    
     private $_guid; /// guid for unique objects
+    private $_class = false;
     private $_loaded = false;
     private $_meta;
     private $_total = 0;
     private $_limit = 0;
     private $_offset = 0;
+    private $_items = array();
 
-    public static function create($class, $items, $key='id') {
-        $result = new result();
-        $result->setItems($items, $key, $class);
-        return $result;
+    public static function create($class, $items=array(), $key='id') {
+        return new result($class, $items, $key);                
     }
 
     ////////////////////////////////////////////////////////////////////
@@ -24,7 +26,8 @@ class result extends \bolt\bucket {
     ///
     /// @return void
     ////////////////////////////////////////////////////////////////////
-    public function __construct($items=false, $key='id') {
+    public function __construct($class=false, $items=false, $key='id') {
+        $this->_class = $class;
         if (is_array($items)) {
             $this->setItems($items, $key);
         }
@@ -82,10 +85,15 @@ class result extends \bolt\bucket {
     public function item($index) {
         switch($index) {
             case 'first':
-                return $this->get(key($this->asArray()));
-            default:
-                return $this->get($index);
+                $index = key($this->_items); break;
         };
+
+        if (array_key_exists($index, $this->_items)) {
+            return $this->_items[$index];
+        }
+        else {
+            return b::dao($this->_class);
+        }
     }
 
     ////////////////////////////////////////////////////////////////////
@@ -96,12 +104,12 @@ class result extends \bolt\bucket {
     /// @param $class class name
     /// @return self
     ////////////////////////////////////////////////////////////////////
-    public function setItems($items, $key='id', $class=false) {
+    public function setItems($items, $key='id') {
         foreach ($items as $item) {
-            if (!is_a($item, $class)) {
-                $item = new $class($item);
-            }
-            $this->push($item, (string)$item->getValue($key));
+            if (!is_a($item, $this->_class)) {
+                $item = b::dao($this->_class)->set($item);
+            }            
+            $this->_items[(string)$item->getValue($key)] = $item;
         }
         $this->_loaded = true;
         return $this;

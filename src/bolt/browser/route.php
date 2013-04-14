@@ -79,6 +79,8 @@ class route extends \bolt\plugin\singleton {
             return false;
         }
 
+        b::log('[b::route] found route %s', array($controller));
+
         // return what we foudn
         return array(
             'class' => $controller,

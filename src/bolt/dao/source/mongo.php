@@ -36,8 +36,16 @@ abstract class mongo extends \bolt\dao\item {
 
     }
 
-    public function findByOne() {
-        return call_user_func_array(array($this, 'row'), $args);
+    public function findOne() {
+        $args = func_get_args();
+        $resp = call_user_func_array(array($this, 'find'), $args);
+        if (b::isInterfaceOf($resp, '\bolt\dao\iResult')) {            
+            return $resp->item('first');
+        }
+        else {
+            return $this;
+        }
+
     }
 
 
@@ -97,16 +105,14 @@ abstract class mongo extends \bolt\dao\item {
         // run our query
         $sth = \b::mongo()->query($this->table, $query, $args);
 
-        // stack
-        $stack = new \bolt\dao\result($lsb);
+        $items = array();
 
-        // loop it up
         foreach ($sth as $item) {
-            $stack->push(b::dao($lsb)->get('id', $item['_id']), $item['_id']);
+            $items[] = b::dao($lsb)->findOne('id', $item['_id']);
         }
 
         // give me this
-        return $stack;
+        return  \bolt\dao\result::create($lsb, $items, '_id');
 
     }
 

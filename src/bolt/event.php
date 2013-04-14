@@ -8,15 +8,16 @@ abstract class event {
 
     // on
     public function on($name, $callback, $args=array()) {
+        b::log("[b::event] attached %s", array($name));
         if (!array_key_exists($name, $this->_events)){ $this->_events[$name] = array(); }
         $eid = uniqid();
-        $this->_events[$name] = array('callback' => $callback, 'args' => $args, 'eid' => $eid);
+        $this->_events[$name][] = array('callback' => $callback, 'args' => $args, 'eid' => $eid);
         return $eid;
     }
 
     public function fire($name, $args=array()) {
         if (array_key_exists($name, $this->_events)) {
-            foreach ($this->_events as $event) {
+            foreach ($this->_events[$name] as $event) {
                 if (is_callable($event['callback'])) {
                     $args['args'] = $event['args'];
                     $args['eid'] = $event['eid'];
@@ -35,7 +36,7 @@ abstract class event {
             b::fire(str_replace("\\", ":", $class).":{$name}", $args);
         }
 
-        b::log("event fired from {$class} named {$name}");
+        b::log("[b::event] fired from {$class} named {$name}");
 
     }
 

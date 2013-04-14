@@ -37,11 +37,12 @@ class request extends \bolt\plugin\singleton {
 
 	public function run() {
 
-        // run start
-        $this->fire("run");
 
         // pathInfo
         $pathInfo = trim(ltrim(PATH_INFO,'/'));
+
+        // run start
+        $this->fire("run", array('pathInfo' => $pathInfo));
 
 		// fire lets run our router to figure out what
 		// route we need to take
@@ -295,3 +296,4 @@ define("COOKIE_DOMAIN",  false);
 define("IP",             $_SERVER['REMOTE_ADDR']);
 define("SELF",           HOST.$_SERVER['REQUEST_URI']);
 define("PORT",           $_SERVER['SERVER_PORT']);
+define("PROTO",         (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) ? $_SERVER['HTTP_X_FORWARDED_PROTO'] : 'http'));

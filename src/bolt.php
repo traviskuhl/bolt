@@ -23,7 +23,7 @@ $bGlobals = array(
     'bRoot' => dirname(__FILE__),
     'bEnv' => 'prod',
     'bTimeZone' => 'UTC',
-    'bLogLevel' => 0,
+    'bLogLevel' => 1,
     'bConfig' => "/etc/bolt/"
 );
 
@@ -519,7 +519,10 @@ final class b {
         if (!is_array($vars)) {$sev = $vars;} // vars is really sev
         if ($sev >= bLogLevel) {
             array_unshift($vars, $message);
-            error_log(call_user_func_array('sprintf', $vars));
+            foreach ($vars as $var) {
+                if (!is_string($var)) {return;}
+            }
+            error_log(call_user_func_array('sprintf', $vars));            
         }
         return self::bolt();
     }
