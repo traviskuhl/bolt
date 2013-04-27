@@ -101,6 +101,12 @@ class controller implements iController {
     // run
     public function run() {
 
+        // params from the request
+        $params = b::request()->getParams();
+
+        // start out with params from teh request
+        $this->_params = $params;
+
         // check
         if ($this->_fromInit AND b::isInterfaceOf($this->_fromInit, '\bolt\browser\iController')) {
             return $this->_fromInit;
@@ -109,14 +115,24 @@ class controller implements iController {
         // lets figure out what method was request
         $method = strtolower(b::request()->getMethod());
 
+        $action = b::request()->getAction();
+
         // figure out how we handle this request
         // order goes
-        // 1. _dispatch
-        // 2. method
-        // 3. get
+        // 1. dispatch
+        // 2. method+action
+        // 3. action
+        // 4. method
+        // 5. get
 
-        if (method_exists($this, '_dispatch')) {
-            $func = '_dispatch';
+        if (method_exists($this, 'dispatch')) {
+            $func = 'dispatch';
+        }
+        else if (method_exists($this, $method.$action)) {
+            $func = $method.$action;
+        }
+        else if (method_exists($this, $action)) {
+            $func = $action;
         }
         else if (method_exists($this, $method)) {
             $func = $method;
@@ -127,9 +143,6 @@ class controller implements iController {
         else {
             return $this;
         }
-
-        // params from the request
-        $params = b::request()->getParams();
 
         // reflect our method and add any
         // request params

@@ -70,6 +70,8 @@ class Handlebars_Helpers
             'if',
             function ($template, $context, $args, $source) {
                 $tmp = $context->get($args);
+
+
                 $buffer = '';
 
                 if ($tmp) {

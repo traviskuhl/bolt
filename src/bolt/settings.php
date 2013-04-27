@@ -49,12 +49,12 @@ class settings extends plugin\factory {
 
     // __get
     public function __get($name) {
-        return $this->get($name);
+        return $this->_bucket->get($name);
     }
 
     // __set
     public function __set($name, $value) {
-        return $this->set($name, $value);
+        return $this->_bucket->set($name, $value);
     }
 
     public function __call($name, $args) {

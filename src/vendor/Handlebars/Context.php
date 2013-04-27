@@ -2,9 +2,9 @@
 /**
  * This file is part of Handlebars-php
  * Base on mustache-php https://github.com/bobthecow/mustache.php
- * 
+ *
  * PHP version 5.3
- * 
+ *
  * @category  Xamin
  * @package   Handlebars
  * @author    fzerorubigd <fzerorubigd@gmail.com>
@@ -18,7 +18,7 @@
 /**
  * Handlebars context
  * Context for a template
- * 
+ *
  * @category  Xamin
  * @package   Handlebars
  * @author    fzerorubigd <fzerorubigd@gmail.com>
@@ -32,7 +32,7 @@ class Handlebars_Context
 {
     /**
      * @var array stack for context only top stack is available
-     */ 
+     */
     protected $stack = array();
 
     /**
@@ -95,9 +95,9 @@ class Handlebars_Context
 
     /**
      * Get a avariable from current context
-     * Supported types : 
+     * Supported types :
      * variable , ../variable , variable.variable , .
-     * 
+     *
      * @param string  $variableName variavle name to get from current context
      * @param boolean $strict       strict search? if not found then throw exception
      *
@@ -116,7 +116,7 @@ class Handlebars_Context
         if (count($this->stack) < $level) {
             if ($strict) {
                 throw new InvalidArgumentException('can not find variable in context');
-            }                
+            }
             return '';
         }
         end($this->stack);
@@ -128,7 +128,7 @@ class Handlebars_Context
         if (!$variableName) {
             if ($strict) {
                 throw new InvalidArgumentException('can not find variable in context');
-            }                
+            }
             return '';
         } elseif ($variableName == '.' || $variableName == 'this') {
             return $current;
@@ -141,6 +141,12 @@ class Handlebars_Context
                 $current = $this->_findVariableInContext($current, $chunk, $strict);
             }
         }
+
+        if (is_object($current) AND is_a($current, '\bolt\bucket\bString')) {
+            $current = $current->value;
+        }
+
+
         return $current;
     }
 
@@ -153,7 +159,7 @@ class Handlebars_Context
      *
      * @return boolean true if exist
      * @throw InvalidArgumentException in strict mode and variable not found
-     */ 
+     */
     private function _findVariableInContext($variable, $inside, $strict = false)
     {
         $value = '';
@@ -164,9 +170,10 @@ class Handlebars_Context
         } elseif (is_object($variable)) {
             if (isset($variable->$inside)) {
                 $value = $variable->$inside;
-            } elseif (is_callable(array($variable, $inside))) {
+            }
+            elseif (is_callable(array($variable, $inside))) {
                 $value = call_user_func(array($variable, $inside));
-            }                
+            }
         } elseif ($inside === '.') {
             $value = $variable;
         } elseif ($strict) {
@@ -174,4 +181,4 @@ class Handlebars_Context
         }
         return $value;
     }
-}    
+}

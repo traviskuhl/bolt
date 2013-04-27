@@ -522,7 +522,7 @@ final class b {
             foreach ($vars as $var) {
                 if (!is_string($var)) {return;}
             }
-            error_log(call_user_func_array('sprintf', $vars));            
+            error_log(call_user_func_array('sprintf', $vars));
         }
         return self::bolt();
     }

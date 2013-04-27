@@ -11,6 +11,9 @@ class bucket extends \bolt\plugin\factory implements \Iterator, \ArrayAccess {
 	private $_parent;
 	private $_root;
 	private $_data = array();
+    private $_returnObject = true;
+
+    public $value = false;
 
 
     ////////////////////////////////////////////////////////////////////
@@ -41,6 +44,11 @@ class bucket extends \bolt\plugin\factory implements \Iterator, \ArrayAccess {
 		$this->_parent = $parent;
 		$this->_root =  $root;
 	}
+
+    public function returnObject($return) {
+        $this->_returnObject = $return;
+        return $this;
+    }
 
     ////////////////////////////////////////////////////////////////////
     /// @brief set the data
@@ -145,6 +153,11 @@ class bucket extends \bolt\plugin\factory implements \Iterator, \ArrayAccess {
         return $this->exists($name);
     }
 
+    public function __call($name, $args) {
+        array_unshift($args, $name);
+        return call_user_func_array(array($this, 'getValue'), $args);
+    }
+
     ////////////////////////////////////////////////////////////////////
     /// @brief MAGIC return data as json string
     ///
@@ -169,8 +182,8 @@ class bucket extends \bolt\plugin\factory implements \Iterator, \ArrayAccess {
     ////////////////////////////////////////////////////////////////////
 	public function get($name, $default=null, $useDotNamespace=true) {
         $oName = $name; // placeholder for future use
-        if ($default === -1) {$default = new bucket\bString($name, false, $this);}   // always return an object
-        if (is_string($default) OR is_array($default)) { $default = (is_array($default) ? b::bucket($default) : new bucket\bString($name, $default, $this)); }
+        if ($default === null) {$default = new bucket(false, $name, $this);}   // always return an object
+        if (is_string($default) OR is_array($default)) { $default = (is_array($default) ? new bucket($default, $name, $this) : new bucket\bString($name, $default, $this)); }
         if (!is_string($name) AND !is_integer($name)) {return $default;}              // always a key name
 
         // does default have any .
@@ -192,15 +205,40 @@ class bucket extends \bolt\plugin\factory implements \Iterator, \ArrayAccess {
 
         if (!array_key_exists($name, $this->_data)) { $this->_data[$name] = $default; }
 
+        // return
+        $return = $default;
+
+
 		// figureo ut if it's an object
 		if (is_object($this->_data[$name])) {
-			return $this->_data[$name];
+			$return = $this->_data[$name];
 		}
 		else if (is_array($this->_data[$name])) {
-			return new bucket($this->_data[$name], $name, $this);
+			$return =  new bucket($this->_data[$name], $name, $this);
 		}
+        else {
+		  $return = new bucket\bString($name, $this->_data[$name], $this);
+        }
 
-		return new bucket\bString($name, $this->_data[$name], $this);
+        // return object
+        if ($this->_returnObject === false) {
+            if (is_a($return, '\bolt\bucket')) {
+                return $return->asArray();
+            }
+            else if (is_a($return, '\bolt\bucket\bString')) {
+                return $return->value;
+            }
+            else if (is_object($return) AND !is_a($return, 'Closure')) {
+                $return->returnObject(false);
+                return $return;
+            }
+            else {
+                return $return;
+            }
+        }
+
+        return $return;
+
 	}
 
     ////////////////////////////////////////////////////////////////////
@@ -211,8 +249,8 @@ class bucket extends \bolt\plugin\factory implements \Iterator, \ArrayAccess {
     /// @return value
     ////////////////////////////////////////////////////////////////////
 	public function getValue($name, $default=false) {
-        $r = $this->get($name);
-		return (is_a($r, '\bolt\bucket\bString') ? $r->getValue($default) : $default);
+        $r = $this->get($name, $default);
+		return (is_a($r, '\bolt\bucket\bString') ? $r->getValue($default) : $r);
 	}
 
     ////////////////////////////////////////////////////////////////////
@@ -518,6 +556,8 @@ class bucket extends \bolt\plugin\factory implements \Iterator, \ArrayAccess {
 
 namespace bolt\bucket;
 
+
+
 class bString {
 
     private $_value = false;
@@ -563,6 +603,10 @@ class bString {
 
     public function __set($name, $value) {
         $this->set($value);
+    }
+
+    public function __call($name, $args) {
+        return $this->_value;
     }
 
     public function __toString() {

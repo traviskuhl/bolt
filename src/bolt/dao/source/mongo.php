@@ -36,10 +36,14 @@ abstract class mongo extends \bolt\dao\item {
 
     }
 
+    public function findById($id) {
+        return $this->findOne('id', $id);
+    }
+
     public function findOne() {
         $args = func_get_args();
         $resp = call_user_func_array(array($this, 'find'), $args);
-        if (b::isInterfaceOf($resp, '\bolt\dao\iResult')) {            
+        if (b::isInterfaceOf($resp, '\bolt\dao\iResult')) {
             return $resp->item('first');
         }
         else {

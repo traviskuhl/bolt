@@ -100,7 +100,7 @@ abstract class item implements iItem {
     }
 
     public function __isset($name) {
-        return $this->_data->exists($name);
+        return $this->get($name);
     }
 
     ////////////////////////////////////////////////////////////////////
@@ -281,7 +281,12 @@ abstract class item implements iItem {
 
             // make sure the tair conforms to any cast
             if (isset($info['cast'])) {
-                settype($data[$key], $info['cast']);
+                if ($info['cast'] == 'array' AND !is_array($data[$key])) {
+                    $data[$key] = array();
+                }
+                else if ($info['cast'] != 'array') {
+                    settype($data[$key], $info['cast']);
+                }
             }
 
             // default value

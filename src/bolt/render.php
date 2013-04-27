@@ -13,6 +13,7 @@ class render extends plugin {
     public static $TYPE = 'singleton';
 
     private $_helpers = array();
+    private $_globals = array();
 
     public function __construct() {
         // render ehlper
@@ -34,6 +35,9 @@ class render extends plugin {
 
     public function helper($name, $callback) {
       $this->_helpers[$name] = array($callback);
+    }
+    public function variable($name, $var) {
+      $this->_globals[$name] = $var;
     }
 
     public function view($view, $params=array()) {
@@ -62,7 +66,6 @@ class render extends plugin {
         $vars = (isset($args['vars']) ? $args['vars'] : array());
         $controller = (isset($args['controller']) ? $args['controller'] : false);
 
-
         if ($controller) {
             $vars['controller'] = $controller;
            foreach ($controller->getParams() as $key => $param)  {
@@ -72,7 +75,11 @@ class render extends plugin {
            }
         }
 
-        // render helpers
+        // render helpers & globals
+        foreach ($this->_globals as $name => $var) {
+          $vars[$name] = $var;
+          $vars["_{$name}"] = $var;
+        }
         foreach ($this->_helpers as $name => $helper) {
           $vars[$name] = function() use ($helper, $vars){
             return call_user_func_array($helper[0], array(func_get_args(), $vars));

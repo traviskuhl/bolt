@@ -13,6 +13,7 @@ class helpers {
         return (is_object($obj) AND ($implements = class_implements($obj)) !== false AND in_array(ltrim($interface,'\\'), $implements));
     }
 
+
     ////////////////////////////////////////////////
     /// payload
     ////////////////////////////////////////////////

@@ -10,6 +10,7 @@ class request extends \bolt\plugin\singleton {
 
 	private $_accept = array();
 	private $_method = false;
+    private $_action = false;
 	private $_get;
 	private $_post;
 	private $_request;
@@ -37,6 +38,8 @@ class request extends \bolt\plugin\singleton {
 
 	public function run() {
 
+        // ask the router to look for classes
+        b::route()->loadClassRoutes();
 
         // pathInfo
         $pathInfo = trim(ltrim(PATH_INFO,'/'));
@@ -66,14 +69,21 @@ class request extends \bolt\plugin\singleton {
         // controller
         $reps = false;
 
+        // call before
+        $route->fire("before");
+
+        // route class
+        $class = $route->getController();
+        $params = $route->getParams();
+
 		// is the route a clouser
-		if (is_a($route['class'], 'Closure')) {
+		if (is_a($class, 'Closure')) {
 
 			// args
-			$args = $route['params'];
+			$args = $route->getParams();
 
             // reflect our function
-            $f = new \ReflectionFunction($route['class']);
+            $f = new \ReflectionFunction($class);
 
             // params
             $p = $f->getParameters();
@@ -90,16 +100,16 @@ class request extends \bolt\plugin\singleton {
                 }
 
                 // call our function
-                $resp = call_user_func_array($route['class'], $_params);
+                $resp = call_user_func_array($class, $_params);
 
             }
             else {
-                $resp = $route['class']();
+                $resp = $class();
             }
 
 		}
 		else {
-			$resp = new $route['class']();
+			$resp = new $class();
 		}
 
         // if response isn't an object
@@ -127,7 +137,10 @@ class request extends \bolt\plugin\singleton {
             ));
 
         // request params
-        $this->_params = b::bucket($route['params']);
+        $this->_params = b::bucket($params);
+
+        // our aciton
+        $this->_action = $route->getAction();
 
         // no never ending loops
         $i = 0;
@@ -166,10 +179,14 @@ class request extends \bolt\plugin\singleton {
             return false;
         }
 
+        // set the controller
+        b::response()->setController($resp);
+
+        // call before
+        $route->fire("after");
+
 		// set our response and run
-		return b::response()
-                ->setController($resp)
-                    ->run();
+		return b::response()->run();
 
 	}
 
@@ -202,7 +219,13 @@ class request extends \bolt\plugin\singleton {
 		return $this->_input;
 	}
 
-
+    public function getAction() {
+        return $this->_action;
+    }
+    public function setAction($action){
+        $this->_action = $action;
+        return $this;
+    }
 
 
 	public function getMethod() {

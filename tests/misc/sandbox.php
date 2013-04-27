@@ -15,7 +15,7 @@ b::init(array(
     'config' => array(
         'autoload' => array()
     ),
-    'core' => array('bucket')
+    'core' => array('bucket','render')
 ));
 
 // data array
@@ -34,12 +34,27 @@ $data = array(
     ),
     'bool' => true,
     'int' => 1,
-    'float' => 1.1
-
+    'float' => 1.1,
 );
 
-$bucket = b::bucket($data);
+
+class item extends \bolt\dao\item {
+
+    public function getStruct() {
+        return array(
+            'id' => array(),
+            'media' => array()
+        );
+    }
+
+
+}
+
+$b = b::bucket($data);
+
+$b->n1->push('ns', 'a');
 
 
 
-var_dump( $bucket->getValue('no.value') ); die;
+var_dump($b->asArray()); die;
+

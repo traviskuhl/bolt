@@ -1,6 +1,6 @@
 <?php
 
-namespace bolt\route;
+namespace bolt\browser\route;
 use \b;
 
 class token extends parser {

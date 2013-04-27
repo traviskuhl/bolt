@@ -36,7 +36,7 @@ class view extends \bolt\bucket\proxy implements iView {
     private $_data = array();
     private $_controller;
     private $_file = false;
-    private $_render = 'mustache';
+    private $_render = 'handlebars';
 
     // bucketproxy needs to find
     protected $_params;
