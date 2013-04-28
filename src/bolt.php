@@ -234,6 +234,7 @@ final class b {
         if (isset($args['mode']) AND array_key_exists($args['mode'], self::$_modes)) {
             self::load(self::$_modes[$args['mode']]);
             self::$_mode = $args['mode'];
+            \bolt\browser\request::initServer();
         }
 
         // config

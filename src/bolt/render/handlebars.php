@@ -34,6 +34,37 @@ class handlebars extends \bolt\plugin\singleton {
               return htmlentities($text, ENT_QUOTES, 'UTF-8', false);
             }
             return false;
+          },
+          'url' => function($template, $context, $args, $text) {
+            if (empty($args)) {return;}
+
+            // get all our context params an see if they exist in the string
+            if (preg_match_all('#\$([a-zA-Z0-9_\.]+)#', $args, $matches, PREG_SET_ORDER)) {
+              foreach ($matches as $match) {
+                $args = str_replace($match[0], $context->get('controller')->getParamValue($match[1]), $args);
+              }
+            }
+
+            $parts = explode(",", trim($args));
+
+            if (count($parts) == 0) return;
+            $name = trim(array_shift($parts));
+            $params = array();
+            $query = array();
+
+            foreach ($parts as $part) {
+              list($key, $value) = explode("=", trim($part));
+              if ($key == 'query') {
+                $query = json_decode($value, true);
+              }
+              else {
+                $params[$key] = $value;
+              }
+            }
+
+            return b::url($name, $params, $query);
+
+
           }
         )
       )

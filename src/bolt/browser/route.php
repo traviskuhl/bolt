@@ -19,8 +19,7 @@ class route extends \bolt\plugin\singleton {
     public static $TYPE = "singleton";
 
     // routes
-    private $routes = array();
-    private $urls = array();
+    private $_routes = array();
 
     // default
     public function _default() {
@@ -34,12 +33,20 @@ class route extends \bolt\plugin\singleton {
 
     // get routes
     public function getRoutes() {
-        return $this->routes;
+        return $this->_routes;
+    }
+
+    public function getRouteByName($name) {
+        foreach ($this->_routes as $route) {
+            if ($route->getName() == $name) {
+                return $route;
+            }
+        }
+        return false;
     }
 
     // register
     public function register($paths, $view=false, $method='*') {
-
 
         // if paths is not an object
         if (!is_object($paths)) {
@@ -48,7 +55,7 @@ class route extends \bolt\plugin\singleton {
         }
 
         // add to routes
-        $this->routes[] = $paths;
+        $this->_routes[] = $paths;
 
 
         return $paths;
@@ -78,7 +85,7 @@ class route extends \bolt\plugin\singleton {
 
         // register their routes
         foreach ($classes as $class) {
-            $route = array(); $models = array();
+            $route = array(); $dao = array();
 
 
             if ($class->hasProperty('routes')) {
@@ -89,9 +96,9 @@ class route extends \bolt\plugin\singleton {
                 $route = call_user_func(array($method->class, $method->name));
             }
 
-            // models
-            if ($class->hasProperty('models') AND $class->getProperty("models")->isStatic()) {
-                $models = $class->getProperty('models')->getValue();
+            // dao
+            if ($class->hasProperty('dao') AND $class->getProperty("dao")->isStatic()) {
+                $dao = $class->getProperty('dao')->getValue();
             }
 
             if (is_string($route)) {
@@ -103,8 +110,8 @@ class route extends \bolt\plugin\singleton {
                 }
                 foreach ($route as $item) {
                     $r = $this->register($item['route'], $class->getName());
-                    if (count($models)) {
-                        $r->model($models);
+                    if (count($dao)) {
+                        $r->dao($dao);
                     }
                     foreach ($item as $name => $value) {
                         if ($name != 'route') {
@@ -128,7 +135,7 @@ class route extends \bolt\plugin\singleton {
 
         // loop through each route and
         // try to match it
-        foreach ($this->routes as $route) {
+        foreach ($this->_routes as $route) {
             if ($route->match($path, $method) !== false) {
                 $controller = $route->getController();
                 $params = $route->getParams();
@@ -169,41 +176,16 @@ class route extends \bolt\plugin\singleton {
         if (!is_string($name)) { $name = (string)$name; }
 
         // no url
-        if (!$name OR ($name AND !array_key_exists($name, $this->urls))) {
+        if (!$this->getRouteByName($name)) {
             return rtrim(strtolower(b::addUrlParams(rtrim($uri,'/')."/".ltrim($name,'/'), $params)),'/');
         }
 
         // get our url
-        $url = $this->urls[$name];
+        $path = $this->getRouteByName($name)->getPath();
 
-        // get our parts
-        $parts = explode("/", stripslashes($url));
-
-        // lets do it
-        foreach ($parts as $i => $part) {
-
-            // does this part have a :
-            if (strpos($part, '>')!== false) {
-
-                // loop through our data
-                foreach ($data as $k => $v) {
-                    if (stripos($part, ">$k") !== false) {
-                        $parts[$i] = $v; goto forward;
-                    }
-                }
-
-                // unset this one
-                unset($parts[$i]);
-
-            }
-
-            // we end here
-            forward:
-
+        foreach ($data as $k => $v) {
+            $path = str_replace('{'.$k.'}', $v, $path );
         }
-
-        // path
-        $path = implode("/", $parts);
 
         // base url
         if (stripos($path, 'http') == false) {
@@ -225,7 +207,7 @@ use \b;
 
 abstract class parser extends \bolt\event {
 
-    private $_paths;
+    private $_path;
     private $_controller;
     private $_method = '*';
     private $_action = false;
@@ -233,16 +215,15 @@ abstract class parser extends \bolt\event {
     private $_weight = false;
     private $_validators = array();
     private $_params = array();
-    private $_models = array();
+    private $_daos = array();
 
-    final public function __construct($paths, $controller, $method='*', $action=false) {
-        if (!is_array($paths)) {$paths = array($paths);}
-        $this->_paths = $paths;
+    final public function __construct($path, $controller, $method='*', $action=false) {
+        $this->_path = $path;
         $this->_controller = $controller;
         $this->_method = $method;
 
         // before
-        $this->on('before', array($this, 'initModels'));
+        $this->on('before', array($this, 'initDaos'));
     }
 
     public function __call($name, $args) {
@@ -264,12 +245,12 @@ abstract class parser extends \bolt\event {
         return $this;
     }
 
-    public function initModels() {
-        if (count($this->_models) == 0) {return;}
+    public function initDaos() {
+        if (count($this->_daos) == 0) {return;}
         $resp = array();
 
         // loop through each item
-        foreach ($this->_models as $name => $model) {
+        foreach ($this->_daos as $name => $model) {
             $o = b::dao($model['class']);
             $m = (isset($model['method']) ? $model['method'] : 'findById');
             $args = (isset($model['args']) ? $model['args'] : array());
@@ -301,6 +282,11 @@ abstract class parser extends \bolt\event {
         return (array_key_exists($name, $this->_validators) ? $this->_validators[$name] : '[^\/]+');
     }
 
+    public function name($name) {
+        $this->_name = $name;
+        return $this;
+    }
+
     public function method($method) {
         $this->_method = $method;
         return $this;
@@ -311,19 +297,19 @@ abstract class parser extends \bolt\event {
         return $this;
     }
 
-    public function model($name, $class=false, $args=false) {
+    public function dao($name, $class=false, $args=false) {
         if (is_array($name)) {
             if (is_string($name[0])) {
                 $name = array($name);
             }
-            foreach ($name as $model) {
-                $this->model($model[0], $model[1], $model[2]);
+            foreach ($name as $dao) {
+                $this->dao($dao[0], $dao[1], $dao[2]);
             }
             return $this;
         }
 
 
-        $this->_models[$name] = array('class' => $class, 'args' => $args);
+        $this->_daos[$name] = array('class' => $class, 'args' => $args);
         return $this;
     }
 

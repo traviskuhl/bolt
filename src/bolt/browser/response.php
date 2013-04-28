@@ -21,6 +21,13 @@ class response extends \bolt\plugin {
 		$this->_headers = b::bucket();
 	}
 
+    public function __get($name) {
+        switch($name) {
+            case 'headers':
+                return $this->_headers;
+        };
+    }
+
     public function __set($name, $value) {
         if ($name == 'status') {
             $this->_status = (int)$value;

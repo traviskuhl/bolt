@@ -1,6 +1,6 @@
 <?php
 
-namespace bolt;
+namespace bolt {
 use \b;
 
 // bucket
@@ -554,9 +554,9 @@ class bucket extends \bolt\plugin\factory implements \Iterator, \ArrayAccess {
 
 }
 
-namespace bolt\bucket;
+}
 
-
+namespace bolt\bucket {
 
 class bString {
 
@@ -680,5 +680,7 @@ class proxy {
     public function __isset($name) {
         return call_user_func(array($this, '_bucketProxy'), 'exists', func_get_args());
     }
+
+}
 
 }

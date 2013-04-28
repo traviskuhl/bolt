@@ -10,4 +10,6 @@ if (`which phpunit` === trim("")) {
 }
 
 $root = __DIR__;
-echo `phpunit --bootstrap="$root/bootstrap.php" $root`;
+$in = realpath($root."/".(isset($argv[1]) ? $argv[1] : "./"));
+
+echo `phpunit --bootstrap="$root/bootstrap.php" $in`;

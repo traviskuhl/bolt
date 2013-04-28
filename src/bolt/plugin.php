@@ -54,7 +54,7 @@ abstract class plugin extends event {
     // call something
     public function __call($name, $args) {
         return $this->call($name, $args);
-    }    
+    }
 
     ////////////////////////////////////////////////////////////
     /// @brief call one of our plugins
@@ -199,5 +199,17 @@ abstract class plugin extends event {
 
     }
 
+    ////////////////////////////////////////////////////////////
+    /// @brief remove a singleton instance
+    ///
+    /// @param $plugin name of plugin
+    /// @return self
+    ////////////////////////////////////////////////////////////
+    public function removeInstance($plugin) {
+        if (array_key_exists($plugin, $this->_instance)) {
+            unset($this->_instance[$plugin]);
+        }
+        return $this;
+    }
 
 }

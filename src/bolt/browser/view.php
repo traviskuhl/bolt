@@ -26,9 +26,7 @@ interface iView {
 
 
 // the view
-class view extends \bolt\bucket\proxy implements iView {
-
-    protected $bucketProxy = '_params';
+class view implements iView {
 
     // some things we're going to need
     private $_guid = false;
@@ -60,7 +58,14 @@ class view extends \bolt\bucket\proxy implements iView {
         if ($name == 'params') {
             return $this->_params;
         }
-        return parent::__get($name);
+        return $this->_params->get($name);
+    }
+    public function __set($name, $value) {
+        $this->_params->set($name, $value);
+    }
+
+    public function getGuid() {
+        return $this->_guid;
     }
 
     public function setParams($params) {

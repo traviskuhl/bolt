@@ -3,24 +3,43 @@
 namespace bolt\example\browser\controllers;
 use \b;
 
-// route
-b::route(array('*','homepage/{name}'), '\bolt\example\browser\controllers\homepage');
-
 // homepage class
 class homepage extends \bolt\browser\controller {
 
-    public function get($name=false) {
+    static $routes = array(
+        array('route' => '*'),
+        array('route' => 'hello/{name}', "name" => 'hello', 'action' => 'name', 'validate' => array('name' => '[a-zA-Z\s]+'))
+    );
 
-        // laout
-        $this->setLayout('layout');
+    protected $layout = 'layout';
+
+    public function getTemplateDir() {
+        return __DIR__."/../templates";
+    }
+
+    public function init() {
+
+        $this->meta = array(
+            'title' => 'hello world'
+        );
+
+    }
+
+    public function get() {
 
         $this->testParam = 'test';
 
         $this->response->headers->set('x-test', 'out');
 
-        $this->meta = array(
-            'title' => 'hello world'
-        );
+        $this->name = 'who knows';
+
+
+        $this->renderTemplate("homepage");
+
+    }
+
+    public function getName($name) {
+
 
         $this->renderTemplate("homepage");
 
