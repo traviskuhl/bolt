@@ -1,14 +1,23 @@
 #!/usr/bin/php
 <?php
 
-$opts = getopt("tna");
+$opts = getopt("tn", array("nostore"));
 
 set_include_path(get_include_path().":/Applications/MAMP/bin/php/php5.3.6/lib/php/");
+date_default_timezone_set("UTC");
 
 // tar
 require "Archive/Tar.php";
+require 'AWSSDKforPHP/aws.phar';
 
-date_default_timezone_set("UTC");
+use Aws\S3\S3Client;
+use Aws\Common\Enum\Region;
+
+$cfg = json_decode(file_get_contents($_SERVER['HOME']."/.boltbuild"), true);
+
+if (!$cfg) {
+    exit("Unable to load cfg from {$_SERVER['HOME']}/.boltbuild\n");
+}
 
 // phar
 $phar = new Phar('bolt.phar', 0, 'bolt.phar');
@@ -26,13 +35,8 @@ if (isset($opts['t'])) {
     $ts = time();
 }
 else {
-
-    // find out the version
     list($sha, $date, $ts) = explode("|", trim(`git log --pretty="%h|%ci|%ct" -n1 `));
-
-    // version
     $version = $sha;
-
 }
 
 // lets get our files
@@ -88,8 +92,26 @@ $tar->addString("bin.inc", stub('stub/bin.inc', $vars));
 $tar->addString("share.inc", stub('stub/share.inc', $vars));
 
 // archive
-if (isset($opts['a'])) {
-    rename("./bolt-$version.tar.gz", "./tar/bolt-$version.tar.gz");
+if (!isset($opts['nostore'])) {
+
+    // Instantiate the S3 client with your AWS credentials and desired AWS region
+    $s3 = S3Client::factory(array(
+        'key'    => $cfg['s3']['key'],
+        'secret' => $cfg['s3']['secret'],
+    ));
+
+    $s3->putObject(array(
+            "Bucket" => $cfg['s3']['bucket'],
+            "Key" => $cfg['store']['phar']."/bolt-$version.phar",
+            "Body" => file_get_contents("bolt.phar")
+        ));
+
+    $s3->putObject(array(
+            "Bucket" => $cfg['s3']['bucket'],
+            "Key" => $cfg['store']['pkg']."/bolt-$version.tar.gz",
+            "Body" => file_get_contents("bolt-latest.tar.gz")
+        ));
+
 }
 
 // keep our phar
