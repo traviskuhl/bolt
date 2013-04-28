@@ -9,22 +9,22 @@ b::response()->plug('xhr', '\bolt\browser\response\xhr');
 class xhr extends \bolt\plugin\singleton {
 
     // accept or header
-    public static $accept = array(
+    public static $contentType = array(
         100 => 'text/javascript;text/xhr'
     );
-    
-    // content type
-    public $contentType = "text/javascript";
-    
+
+
     //
     public function getContent($view) {
-        
+
+        b::response()->setContentType("text/javascript");
+
         // body
         $body = $view->getContent();
-        
+
         // holders
         $js = $css = array();
-                    
+
         // script
         $body = preg_replace("#<script([^>]+)(\>)#", "<script$1%%E%%", $body);
 
@@ -45,7 +45,7 @@ class xhr extends \bolt\plugin\singleton {
 
         // pick our javascript and css
         // need to remove comments
-        $body = preg_replace(array("/\/\/[a-zA-Z0-9\s\&\?\.]+\n/", "/\/\*(.*)\*\//"), " ", $body);    
+        $body = preg_replace(array("/\/\/[a-zA-Z0-9\s\&\?\.]+\n/", "/\/\*(.*)\*\//"), " ", $body);
 
         // if yes remove
         if ( preg_match_all("/((<[\s\/]*script\b[^>]*>)([^>]*)(<\/script>))/i", $body, $_js) ) {
@@ -57,7 +57,7 @@ class xhr extends \bolt\plugin\singleton {
         }
 
         $body = str_replace(array("%%EE%%", "%%E%%"),">", $body);
-        
+
         // give it up
         return json_encode(array(
             'status' => $view->getStatus(),
@@ -71,7 +71,7 @@ class xhr extends \bolt\plugin\singleton {
                 'uid' => uniqid("u")
             )
         ));
-    
+
     }
 
 }

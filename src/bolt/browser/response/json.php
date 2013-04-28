@@ -9,16 +9,15 @@ b::response()->plug('json', '\bolt\browser\response\json');
 class json extends \bolt\plugin\singleton {
 
     // accept or header
-    public static $accept = array(
+    public static $contentType = array(
         100 => 'text/javascript',
         200 => 'text/javascript;secure'
     );
 
-    // content type
-    public $contentType = "text/javascript";
-
     //
     public function getContent($view) {
+
+        b::response()->setContentType("text/javascript");
 
         $resp = json_encode(array(
             'status' => b::response()->getStatus(),

@@ -123,7 +123,8 @@ final class b {
             "./bolt/browser/route/regex.php",
             "./bolt/browser/route/token.php",
 
-            // renders
+            // response
+            "./bolt/browser/response/plain.php",
             "./bolt/browser/response/json.php",
             "./bolt/browser/response/xhr.php",
             "./bolt/browser/response/ajax.php",
@@ -355,7 +356,7 @@ final class b {
             b::request()->run();
 
             // browser response
-            b::response()->run();
+            exit(b::response()->run());
 
         }
 

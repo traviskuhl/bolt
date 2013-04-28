@@ -3,14 +3,14 @@
 namespace bolt\browser\response;
 use \b as b;
 
-b::response()->plug('html', '\bolt\browser\response\html');
+b::response()->plug('plain', '\bolt\browser\response\plain');
 
 // json
-class html extends \bolt\plugin\singleton {
+class plain extends \bolt\plugin\singleton {
 
     // accept or header
     public static $contentType = array(
-        100 => 'text/html'
+        100 => 'text/plain'
     );
 
     //

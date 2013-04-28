@@ -12,12 +12,9 @@ b::response()->plug('xml', '\bolt\browser\response\xml');
 class xml extends \bolt\plugin\singleton {
 
     // accept or header
-    public static $accept = array(
+    public static $contentType = array(
         100 => 'application/xml'
     );
-
-    // content type
-    public $contentType = "application/xml";
 
     //
     public function getContent($view) {

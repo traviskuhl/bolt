@@ -6,7 +6,6 @@ use \b;
 /// plug into b::request();
 b::plug('request', '\bolt\browser\request');
 
-
 ////////////////////////////////////////////////////////////////////
 /// @brief browser request class
 /// @extends \bolt\plugin\singleton
@@ -14,7 +13,7 @@ b::plug('request', '\bolt\browser\request');
 ////////////////////////////////////////////////////////////////////
 class request extends \bolt\plugin\singleton {
 
-	private $_accept = array();
+	private $_accept = "text/html";
 	private $_method = false;
     private $_action = false;
 	private $_get;       // $_GET

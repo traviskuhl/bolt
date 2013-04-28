@@ -243,6 +243,18 @@ class controller implements iController {
     }
 
     ////////////////////////////////////////////////////////////////////
+    /// @brief set response content type
+    /// @see \bolt\browser\response::setContentType
+    ///
+    /// @param $type
+    /// @return self
+    ////////////////////////////////////////////////////////////////////
+    public function setContentType($type) {
+        b::response()->setContentType($type);
+        return $this;
+    }
+
+    ////////////////////////////////////////////////////////////////////
     /// @brief get the response status in b::response
     /// @see \bolt\browser\response::getStatus
     ///
