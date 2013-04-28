@@ -127,7 +127,7 @@ class controllerTest extends bolt_test {
     public function testGetAccept() {
         $str = 'accept string';
         b::request()->setAccept($str);
-        $this->assertEquals(array($str), $this->tc->getAccept());
+        $this->assertEquals($str, $this->tc->getAccept());
     }
 
     public function testGetStatus() {

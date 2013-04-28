@@ -3,26 +3,38 @@
 namespace bolt\browser;
 use \b;
 
+/// plug into b::request();
 b::plug('request', '\bolt\browser\request');
 
 
+////////////////////////////////////////////////////////////////////
+/// @brief browser request class
+/// @extends \bolt\plugin\singleton
+///
+////////////////////////////////////////////////////////////////////
 class request extends \bolt\plugin\singleton {
 
 	private $_accept = array();
 	private $_method = false;
     private $_action = false;
-	private $_get;
-	private $_post;
-	private $_request;
+	private $_get;       // $_GET
+	private $_post;      // $_POST
+	private $_request;   // $_REQUEST
 	private $_headers;
 	private $_input = "";
-    private $_params = false;
+    private $_params = false; // route params
 
+    ////////////////////////////////////////////////////////////////////
+    /// @brief construct a new instance
+    ///
+    /// @return self
+    ////////////////////////////////////////////////////////////////////
 	public function __construct() {
 
 		// get from env
 		$this->_method = p("REQUEST_METHOD", "GET", $_SERVER);
-		$this->_accept = explode(',', p('_b_accept', p('HTTP_ACCEPT', false, $_SERVER), $_GET));
+        $a = explode(',', p('HTTP_ACCEPT', false, $_SERVER));
+		$this->_accept = array_shift($a);
 
 		// create a bucket of our params
 		$this->_get = b::bucket($_GET);
@@ -30,21 +42,191 @@ class request extends \bolt\plugin\singleton {
 		$this->_request = b::bucket($_REQUEST);
 		$this->_input = file_get_contents("php://input");
         $this->_params = b::bucket();
+        $this->_server = b::bucket(array_change_key_case($_SERVER));
 
         // if we can get headers
         if (function_exists('getallheaders')) {
             $this->_headers = b::bucket(array_change_key_case(getallheaders()));
         }
+        else {
+            $headers = array();
+            foreach ($_SERVER as $name => $value) {
+               if (substr($name, 0, 5) == 'HTTP_'){
+                   $headers[str_replace(' ', '-', strtolower(str_replace('_', ' ', substr($name, 5))))] = $value;
+               }
+           }
+           $this->_headers = b::bucket($headers);
+        }
 
 	}
 
-	public function run() {
+    ////////////////////////////////////////////////////////////////////
+    /// @brief MAGIC get variable. where $name is:
+    ///     get -> $_GET bucket
+    ///     post -> $_POST bucket
+    ///     request -> $_REQUEST bucket
+    ///     input -> $_input contensts
+    ///     server -> $_SERVER bucket
+    ///     params -> request params
+    ///     headers -> headers bucket
+    ///     default -> route params
+    ///
+    /// @param $name name of variable
+    /// @return mixed
+    ////////////////////////////////////////////////////////////////////
+    public function __get($name) {
+        switch($name) {
+            case 'get':
+                return $this->_get;
+            case 'post':
+                return $this->_post;
+            case 'request':
+                return $this->_request;
+            case 'server':
+                return $this->_server;
+            case 'params':
+                return $this->getParams();
+            case 'headers':
+                return $this->getHeaders();
+            case 'input':
+                return $this->getInput();
+            default:
+                return $this->_params->get($name);
+        };
+    }
+
+    ////////////////////////////////////////////////////////////////////
+    /// @brief set a route apram
+    ///
+    /// @param $name
+    /// @param $value
+    /// @return void
+    ////////////////////////////////////////////////////////////////////
+    public function __set($name, $value) {
+        $this->_params->set($name, $value);
+    }
+
+    ////////////////////////////////////////////////////////////////////
+    /// @brief get request params
+    ///
+    /// @param $type of params. where:
+    ///       get -> $_GET bucket
+    ///       post -> $_POST bucket
+    ///       request -> $_REQUEST bucket
+    ///       default -> route params bucket
+    /// @return object controller
+    ////////////////////////////////////////////////////////////////////
+    public function getParams($type=false) {
+        switch($type) {
+            case 'get': return $this->_get;
+            case 'post': return $this->_post;
+            case 'request': return $this->_request;
+            default: return $this->_params;
+        };
+    }
+
+    ////////////////////////////////////////////////////////////////////
+    /// @brief set route params
+    ///
+    /// @param route params
+    /// @return self
+    ////////////////////////////////////////////////////////////////////
+    public function setParams(\bolt\bucket $params) {
+        $this->_params = $params;
+        return $this;
+    }
+
+    ////////////////////////////////////////////////////////////////////
+    /// @brief get all headers
+    ///
+    /// @return \bolt\bucket headers
+    ////////////////////////////////////////////////////////////////////
+    public function getHeaders() {
+        return $this->_headers;
+    }
+
+    ////////////////////////////////////////////////////////////////////
+    /// @brief get input contents (php://input)
+    ///
+    /// @return string
+    ////////////////////////////////////////////////////////////////////
+    public function getInput() {
+        return $this->_input;
+    }
+
+    ////////////////////////////////////////////////////////////////////
+    /// @brief get the route action
+    ///
+    /// @return string route action
+    ////////////////////////////////////////////////////////////////////
+    public function getAction() {
+        return $this->_action;
+    }
+
+    ////////////////////////////////////////////////////////////////////
+    /// @brief set the route action
+    ///
+    /// @param $action string of route action
+    /// @return self
+    ////////////////////////////////////////////////////////////////////
+    public function setAction($action){
+        $this->_action = $action;
+        return $this;
+    }
+
+    ////////////////////////////////////////////////////////////////////
+    /// @brief get HTTP Method
+    ///
+    /// @return string of method
+    ////////////////////////////////////////////////////////////////////
+    public function getMethod() {
+        return $this->_method;
+    }
+
+    ////////////////////////////////////////////////////////////////////
+    /// @brief set the HTTP method
+    ///
+    /// @param $method set the http method
+    /// @return self
+    ////////////////////////////////////////////////////////////////////
+    public function setMethod($method){
+        $this->_method = $method;
+        return $this;
+    }
+
+    ////////////////////////////////////////////////////////////////////
+    /// @brief get the accept headers
+    ///
+    /// @return accept header string
+    ////////////////////////////////////////////////////////////////////
+    public function getAccept() {
+        return $this->_accept;
+    }
+
+    ////////////////////////////////////////////////////////////////////
+    /// @brief set the HTTP accept header
+    ///
+    /// @param $accept header
+    /// @return self
+    ////////////////////////////////////////////////////////////////////
+    public function setAccept($accept) {
+        $this->_accept = $accept;
+        return $this;
+    }
+
+    ////////////////////////////////////////////////////////////////////
+    /// @brief execute the request
+    ///
+    /// @param $path request path
+    /// @return executed response
+    ////////////////////////////////////////////////////////////////////
+	public function run($path=false) {
 
         // ask the router to look for classes
         b::route()->loadClassRoutes();
 
         // pathInfo
-        $pathInfo = trim(ltrim(PATH_INFO,'/'));
+        $pathInfo = trim(ltrim(($path ?: $this->server->get('path_info')),'/'));
 
         // run start
         $this->fire("run", array('pathInfo' => $pathInfo));
@@ -98,7 +280,7 @@ class request extends \bolt\plugin\singleton {
 
                 // loop
                 foreach ($p as $item) {
-                    $_params[] = (array_key_exists($item->name, $args) ? $args[$item->name] : $item->getDefaultValue());
+                    $_params[] = (array_key_exists($item->name, $args) ? $args[$item->name] : ($item->isDefaultValueAvailable() ? $item->getDefaultValue() : false));
                 }
 
                 // call our function
@@ -188,67 +370,8 @@ class request extends \bolt\plugin\singleton {
         $route->fire("after");
 
 		// set our response and run
-		return b::response()->run();
-
-	}
-
-	// shortcuts
-	public function __get($name) {
-		switch($name) {
-			case 'params':
-				return $this->getParams();
-			case 'headers':
-				return $this->getHeaders();
-			case 'input':
-				return $this->getInput();
-			default:
-				return false;
-		};
-	}
-
-	public function getParams($type=false) {
-		switch($type) {
-			case 'get': return $this->_get;
-			case 'post': return $this->_post;
-            case 'request': return $this->_requests;
-			default: return $this->_params;
-		};
-	}
-    public function setParams($params) {
-        $this->_params = $params;
-        return $this;
-    }
-
-	public function getHeaders() {
-		return $this->_headers;
-	}
-	public function getInput() {
-		return $this->_input;
-	}
-
-    public function getAction() {
-        return $this->_action;
-    }
-    public function setAction($action){
-        $this->_action = $action;
-        return $this;
-    }
-
-
-	public function getMethod() {
-		return $this->_method;
-	}
-	public function setMethod($method){
-		$this->_method = $method;
 		return $this;
-	}
 
-	public function getAccept() {
-		return $this->_accept;
-	}
-	public function setAccept($accept) {
-		$this->_accept = (array)$accept;
-		return $this;
 	}
 
     public static function initServer() {

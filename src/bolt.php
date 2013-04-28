@@ -352,7 +352,10 @@ final class b {
             b::load( self::$_modes['browser'] );
 
             // browser request
-            return b::request()->run();
+            b::request()->run();
+
+            // browser response
+            b::response()->run();
 
         }
 
