@@ -9,63 +9,6 @@ b::bolt()->setFallbacks('\bolt\browser\helpers');
 // helpers
 class helpers {
 
-    ////////////////////////////////////////////////
-    /// csrf
-    ////////////////////////////////////////////////
-    public static function csrf($do, $name, $cookieCheck=true) {
-
-        // what to do
-        $cname = b::md5($name);
-
-        // what to do
-        switch($do) {
-
-            // set
-            case 'set':
-                $cid = md5(uniqid("{$cname}-"));
-                $token = uniqid(b::randomString()."-");
-                $pl = array($token, $cid, IP);
-                if ($cookieCheck) {
-                    b::cookie()->set($cname, $pl, "+5 minutes", null, false, true);
-                    b::memcache()->set($cid, $pl);
-                    return $token;
-                }
-                else {
-                    b::memcache()->set($cid, $pl, (60*5));
-                    return "{$token}|{$cid}|".b::md5($cid);
-                }
-
-            // verify
-            case 'verify':
-//                if (bDevMode) { return true;}
-                $tok = p("_csrf");
-
-                // cookie check
-                if ($cookieCheck) {
-                    $cookie = b::cookie()->get($cname);
-                    if (!$cookie OR !is_array($cookie)) { return false; }
-                    list($token, $cid, $ip) = $cookie;
-                    if (!$token OR !$cid OR !$ip) { return false; }
-                }
-                else {
-                    list($token, $cid, $sig) = explode('|', $tok);
-                    if ($sig != b::md5($cid)) { return false;}
-                    $tok = $token;
-                    $ip = IP;
-                }
-                $ctok = b::memcache()->get($cid); b::memcache()->delete($cid);
-                if ($token != $tok OR $token != $ctok[0] OR $ctok[0] != $tok) { return false; }
-                if ($ip != IP OR IP != $ctok[2]) { return false; }
-                if ($cname) { b::cookie($cname)->delete(); }
-                return true;
-        }
-
-        // nope
-        return false;
-
-    }
-
-
 
     ////////////////////////////////////////////////
     /// @brief add url params to a url
