@@ -5,7 +5,7 @@ use \b;
 
 class regex extends parser {
 
-    public function match($path, $method) {
+    public function match($path) {
 
 
     }

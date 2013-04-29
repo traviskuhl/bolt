@@ -5,7 +5,7 @@ use \b;
 
 class token extends parser {
 
-    public function match($uri, $method) {
+    public function match($uri) {
 
         // loo through each of the paths
         $path = $this->getPath();
@@ -42,11 +42,6 @@ class token extends parser {
 
         // see if we can find something
         if (preg_match_all($regex, $uri, $matches)) {
-
-            // is the method the same
-            if ($this->getMethod() != $method AND $this->getMethod() != '*') {
-                return false;
-            }
 
             // match up our params
             foreach ($matches as $name => $match) {

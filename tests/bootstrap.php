@@ -7,6 +7,8 @@ define("bDevMode", true);
 define("bGlobalSettings", false);
 define("bLogLevel", 0);
 
+$_SERVER['HTTP_HOST'] = 'test.bolthq.com';
+
 // include our bolt
 include_once(dirname(__FILE__)."/../src/bolt.php");
 

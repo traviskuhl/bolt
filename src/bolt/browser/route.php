@@ -1,17 +1,21 @@
 <?php
 
 // namespace me
-namespace bolt\browser {
+namespace bolt\browser;
 use \b;
 
-// plug route
+// plug route & url into b
 b::plug(array(
     'route' => '\bolt\browser\route',
     'url' => 'route::url'
 ));
 
 
-// route
+////////////////////////////////////////////////////////////////////
+/// @brief browser route class
+/// @extends \bolt\plugin\singleton
+///
+////////////////////////////////////////////////////////////////////
 class route extends \bolt\plugin\singleton {
 
     // type is singleton
@@ -20,8 +24,29 @@ class route extends \bolt\plugin\singleton {
 
     // routes
     private $_routes = array();
+    private $_defaultParser = '\bolt\browser\route\token'; // default route parser
+    private $_baseUri = array(
+            'scheme' => false,
+            'host' => false,
+            'port' => false
+        );
 
-    // default
+    public function __construct() {
+        if (defined('SELF')) {
+            foreach (parse_url(SELF) as $k => $v) {
+                if (array_key_exists($k, $this->_baseUri)) {
+                    $this->_baseUri[$k] = $v;
+                }
+            }
+        }
+    }
+
+    ////////////////////////////////////////////////////////////////////
+    /// @brief default plugin method. 0 args -> self, > 0 args register
+    ///
+    /// @params mix
+    /// @return mixed
+    ////////////////////////////////////////////////////////////////////
     public function _default() {
         if (count(func_get_args()) == 0 ) {
             return $this;
@@ -31,11 +56,49 @@ class route extends \bolt\plugin\singleton {
         }
     }
 
-    // get routes
+    public function getBaseUri() {
+        return $this->_baseUri;
+    }
+    public function setBaseUri($baseUri) {
+        $this->_baseUri = $baseUri;
+        return $this;
+    }
+
+    ////////////////////////////////////////////////////////////////////
+    /// @brief set default route parser
+    ///
+    /// @param $class router class
+    /// @return self
+    ////////////////////////////////////////////////////////////////////
+    public function setDefaultParser($class) {
+        $this->_defaultParser = $class;
+        return $this;
+    }
+
+    ////////////////////////////////////////////////////////////////////
+    /// @brief get default route parser
+    ///
+    /// @return return default parser
+    ////////////////////////////////////////////////////////////////////
+    public function getDefaultParser() {
+        return $this->_defaultParser;
+    }
+
+    ////////////////////////////////////////////////////////////////////
+    /// @brief get the current registered routes
+    ///
+    /// @return array of route objects
+    ////////////////////////////////////////////////////////////////////
     public function getRoutes() {
         return $this->_routes;
     }
 
+    ////////////////////////////////////////////////////////////////////
+    /// @brief get a route by name
+    ///
+    /// @param $name name of route
+    /// @return route object
+    ////////////////////////////////////////////////////////////////////
     public function getRouteByName($name) {
         foreach ($this->_routes as $route) {
             if ($route->getName() == $name) {
@@ -45,32 +108,128 @@ class route extends \bolt\plugin\singleton {
         return false;
     }
 
-    // register
-    public function register($paths, $view=false, $method='*') {
+    ////////////////////////////////////////////////////////////////////
+    /// @brief register a new route
+    ///
+    /// @param $paths (string|array) or route paths
+    /// @param $class controller class (default b::config->router)
+    /// @return router object
+    ////////////////////////////////////////////////////////////////////
+    public function register($paths, $class=false) {
 
         // if paths is not an object
         if (!is_object($paths)) {
-            $cl = b::config()->get('router', '\bolt\browser\route\token')->value;
-            $paths = new $cl($paths, $view, $method);
+            $cl = $this->_defaultParser;
+            $paths = new $cl($paths, $class);
         }
 
-        // add to routes
-        $this->_routes[] = $paths;
+        // bad parent class
+        if (!in_array('bolt\browser\route\parser', class_parents($paths))) {
+            return false;
+        }
 
-
-        return $paths;
+        // add it
+        return ($this->_routes[] = $paths);
 
     }
 
+    ////////////////////////////////////////////////////////////////////
+    /// @brief match a route to a give path & method
+    ///
+    /// @param $path path string
+    /// @param $method requesting method
+    /// @return router object or false
+    ////////////////////////////////////////////////////////////////////
+    public function match($path, $method=false) {
+
+        // class
+        $controller = false;
+        $params = array();
+
+        // loop through each route and
+        // try to match it
+        foreach ($this->_routes as $route) {
+            if ($route->match($path) !== false) {
+                $controller = $route->getController();
+                $params = $route->getParams();
+                break;
+            }
+        }
+
+        if ($method AND $route->getMethod() AND !in_array($method, $route->getMethod())) {
+            return false;
+        }
+
+        // no view is bad
+        if (!$controller AND $path != '*') {
+            return $this->match('*', $method);
+        }
+
+        if (!$controller) {
+            return false;
+        }
+
+        b::log('[b::route] found route %s', array($controller));
+
+        // return what we foudn
+        return $route;
+
+    }
+
+    ////////////////////////////////////////////////////////////////////
+    /// @brief return a url string based on named route
+    ///
+    /// @param $name route name
+    /// @param $data route params
+    /// @param $params query parameters to add
+    /// @param $args array of args
+    /// @return string url
+    ////////////////////////////////////////////////////////////////////
+    public function url($name, $data=array(), $query=array(), $args=array()) {
+
+        if (substr($name, 0, 4) == 'http') {
+            return b::addUrlParams($name, $data);
+        }
+
+        // no url
+        if (!$this->getRouteByName($name)) {
+            return rtrim(strtolower(b::addUrlParams(rtrim($uri,'/')."/".ltrim($name,'/'), $params)),'/');
+        }
+
+        // short cut
+        $args['query'] = \http_build_str($query);
+
+        $parts = $this->_baseUri;
+
+        foreach ($args as $k => $v) {
+            $parts[$k] = $v;
+        }
+
+        // get our url
+        $path = $this->getRouteByName($name)->getPath();
+
+        foreach ($data as $k => $v) {
+            $path = str_replace('{'.$k.'}', $v, $path );
+        }
+
+        $parts['path'] = $path;
+
+        // return with params
+        return \http_build_url(false, $parts);
+
+    }
+
+    ////////////////////////////////////////////////////////////////////
+    /// @brief load all routes from declaired controller classes
+    ///
+    /// @return self
+    ////////////////////////////////////////////////////////////////////
     public function loadClassRoutes() {
         $classes = array();
 
         // get the files we've loaded
         foreach (get_declared_classes() as $class) {
-            if (strpos($class, '\\') === false) {continue;}   // ignore anything that's not namespaced
             $c = new \ReflectionClass($class);
-            $p = $c->getParentClass();
-
             if (
                 $c->isSubclassOf('bolt\browser\controller') AND
                 (
@@ -126,206 +285,4 @@ class route extends \bolt\plugin\singleton {
         return $this;
     }
 
-    // match
-    public function match($path=false, $method=false) {
-
-        // class
-        $controller = false;
-        $params = array();
-
-        // loop through each route and
-        // try to match it
-        foreach ($this->_routes as $route) {
-            if ($route->match($path, $method) !== false) {
-                $controller = $route->getController();
-                $params = $route->getParams();
-                break;
-            }
-        }
-
-        // no view is bad
-        if (!$controller AND $path != '*') {
-            return $this->match('*', $method);
-        }
-
-        if (!$controller) {
-            return false;
-        }
-
-        b::log('[b::route] found route %s', array($controller));
-
-        // return what we foudn
-        return $route;
-
-    }
-
-    // url
-    public function url($name, $data=array(), $params=array(), $uri=false) {
-
-        // no url
-        if (!$uri) {
-            $uri = URI;
-        }
-
-        // uri doesn't have a http://
-        if (substr($uri,0,4) != 'http') {
-            $uri = "http://$uri";
-        }
-
-        // not a sting
-        if (!is_string($name)) { $name = (string)$name; }
-
-        // no url
-        if (!$this->getRouteByName($name)) {
-            return rtrim(strtolower(b::addUrlParams(rtrim($uri,'/')."/".ltrim($name,'/'), $params)),'/');
-        }
-
-        // get our url
-        $path = $this->getRouteByName($name)->getPath();
-
-        foreach ($data as $k => $v) {
-            $path = str_replace('{'.$k.'}', $v, $path );
-        }
-
-        // base url
-        if (stripos($path, 'http') == false) {
-            $path = rtrim($uri,'/') . "/" . trim($path,'/');
-        }
-
-        // return with params
-        return rtrim(strtolower(b::addUrlParams($path, $params)),'/');
-
-    }
-
 }
-
-} // end bold namespace
-
-namespace bolt\browser\route {
-use \b;
-
-
-abstract class parser extends \bolt\event {
-
-    private $_path;
-    private $_controller;
-    private $_method = '*';
-    private $_action = false;
-    private $_name = false;
-    private $_weight = false;
-    private $_validators = array();
-    private $_params = array();
-    private $_daos = array();
-
-    final public function __construct($path, $controller, $method='*', $action=false) {
-        $this->_path = $path;
-        $this->_controller = $controller;
-        $this->_method = $method;
-
-        // before
-        $this->on('before', array($this, 'initDaos'));
-    }
-
-    public function __call($name, $args) {
-        if (substr($name,0,3) == 'set') {
-            $name = strtolower(substr($name,3));
-            if (property_exists($this, "_{$name}")) {
-                $this->{"_$name"} = $args[0];
-            }
-        }
-        else if (substr($name,0,3) == 'get') {
-            $name = strtolower(substr($name,3));
-            if (property_exists($this, "_{$name}")) {
-                return $this->{"_$name"};
-            }
-        }
-        else if (method_exists($this, $name)) {
-            return call_user_func_array(array($this, $name), $args);
-        }
-        return $this;
-    }
-
-    public function initDaos() {
-        if (count($this->_daos) == 0) {return;}
-        $resp = array();
-
-        // loop through each item
-        foreach ($this->_daos as $name => $model) {
-            $o = b::dao($model['class']);
-            $m = (isset($model['method']) ? $model['method'] : 'findById');
-            $args = (isset($model['args']) ? $model['args'] : array());
-            foreach ($args as $i => $value) {
-                if ($value{0} == '$') {
-                    $key = substr($value, 1);
-                    if (array_key_exists($key, $this->_params)) {
-                        $args[$i] = $this->_params[$key];
-                    }
-                }
-            }
-            $this->_params[$name] = call_user_func_array(array($o, $m), $args);
-        }
-
-    }
-
-    public function validate($name, $regex=false) {
-        if (is_array($name)) {
-            foreach ($name as $n => $r) {
-                $this->validate($n, $r);
-            }
-            return $this;
-        }
-        $this->_validators[$name] = trim($regex,' ()');
-        return $this;
-    }
-
-    public function getValidator($name) {
-        return (array_key_exists($name, $this->_validators) ? $this->_validators[$name] : '[^\/]+');
-    }
-
-    public function name($name) {
-        $this->_name = $name;
-        return $this;
-    }
-
-    public function method($method) {
-        $this->_method = $method;
-        return $this;
-    }
-
-    public function action($action) {
-        $this->_action = $action;
-        return $this;
-    }
-
-    public function dao($name, $class=false, $args=false) {
-        if (is_array($name)) {
-            if (is_string($name[0])) {
-                $name = array($name);
-            }
-            foreach ($name as $dao) {
-                $this->dao($dao[0], $dao[1], $dao[2]);
-            }
-            return $this;
-        }
-
-
-        $this->_daos[$name] = array('class' => $class, 'args' => $args);
-        return $this;
-    }
-
-    public function before($cb, $params) {
-        $this->on("before", $cb, $params);
-        return $this;
-    }
-
-    public function after($cb, $params) {
-        $this->on("after", $cb, $params);
-        return $this;
-    }
-
-    // match a string
-    abstract public function match($path, $method);
-
-}
-
-} // end route namespace

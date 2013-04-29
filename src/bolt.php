@@ -120,6 +120,7 @@ final class b {
 
             // routers
             "./bolt/browser/route.php",
+            "./bolt/browser/route/parser.php",
             "./bolt/browser/route/regex.php",
             "./bolt/browser/route/token.php",
 
