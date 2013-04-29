@@ -1,5 +1,7 @@
 language: php
 php:
   - 5.4
-before_script: pecl install pecl_http
+before_script:
+  - printf "\n" | pecl install pecl_http
+  - echo "extension=pecl_http.so" >> ~/.phpenv/versions/$(phpenv version-name)/etc/php.ini
 script: phpunit --no-configuration --bootstrap=./tests/bootstrap.php ./tests
