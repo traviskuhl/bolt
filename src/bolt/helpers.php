@@ -8,6 +8,17 @@ use \b;
 // helpers
 class helpers {
 
+    public function getDefinedSubClasses($parent) {
+        $classes = array();
+        foreach (get_declared_classes() as $class) {
+            $c = new \ReflectionClass($class);
+            if ($c->isSubclassOf($parent)) {
+                $classes[] = $c;
+            }
+        }
+        return $classes;
+    }
+
     // implemnets
     public function isInterfaceOf($obj, $interface) {
         return (is_object($obj) AND ($implements = class_implements($obj)) !== false AND in_array(ltrim($interface,'\\'), $implements));

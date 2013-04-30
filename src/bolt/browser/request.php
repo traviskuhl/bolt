@@ -365,6 +365,9 @@ class request extends \bolt\plugin\singleton {
         // set the controller
         b::response()->setController($resp);
 
+        // after request is finished
+        $this->fire("after");
+
         // call before
         $route->fire("after");
 

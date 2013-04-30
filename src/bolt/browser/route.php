@@ -226,63 +226,49 @@ class route extends \bolt\plugin\singleton {
     /// @return self
     ////////////////////////////////////////////////////////////////////
     public function loadClassRoutes() {
-        $classes = array();
-
-        // get the files we've loaded
-        foreach (get_declared_classes() as $class) {
-            $c = new \ReflectionClass($class);
-            if (
-                $c->isSubclassOf('bolt\browser\controller') AND
-                (
-                    ($c->hasProperty('routes') AND $c->getProperty('routes')->isStatic()) OR
-                    ($c->hasMethod('getRoutes') AND $c->getMethod('getRoutes')->isStatic())
-                )
-            ) {
-                $classes[] = $c;
-            }
-
-        }
+        $classes = b::getDefinedSubClasses('bolt\browser\controller');
 
         // register their routes
         foreach ($classes as $class) {
-            $route = array(); $dao = array();
+            if (($class->hasProperty('routes') AND $class->getProperty('routes')->isStatic()) OR
+            ($class->hasMethod('getRoutes') AND $class->getMethod('getRoutes')->isStatic())) {
 
+                $route = array(); $dao = array();
 
-            if ($class->hasProperty('routes')) {
-                $route = $class->getProperty('routes')->getValue();
-            }
-            else {
-                $method = $class->getMethod('getRoutes');
-                $route = call_user_func(array($method->class, $method->name));
-            }
-
-            // dao
-            if ($class->hasProperty('dao') AND $class->getProperty("dao")->isStatic()) {
-                $dao = $class->getProperty('dao')->getValue();
-            }
-
-            if (is_string($route)) {
-                $this->register($route, $class->getName());
-            }
-            else if (is_array($route)) {
-                if (isset($route['route']) ) {
-                    $route = array($route);
+                if ($class->hasProperty('routes')) {
+                    $route = $class->getProperty('routes')->getValue();
                 }
-                foreach ($route as $item) {
-                    $r = $this->register($item['route'], $class->getName());
-                    if (count($dao)) {
-                        $r->dao($dao);
+                else {
+                    $method = $class->getMethod('getRoutes');
+                    $route = call_user_func(array($method->class, $method->name));
+                }
+
+                // dao
+                if ($class->hasProperty('dao') AND $class->getProperty("dao")->isStatic()) {
+                    $dao = $class->getProperty('dao')->getValue();
+                }
+
+                if (is_string($route)) {
+                    $this->register($route, $class->getName());
+                }
+                else if (is_array($route)) {
+                    if (isset($route['route']) ) {
+                        $route = array($route);
                     }
-                    foreach ($item as $name => $value) {
-                        if ($name != 'route') {
-                            call_user_func(array($r, $name), $value);
+                    foreach ($route as $item) {
+                        $r = $this->register($item['route'], $class->getName());
+                        if (count($dao)) {
+                            $r->dao($dao);
+                        }
+                        foreach ($item as $name => $value) {
+                            if ($name != 'route') {
+                                call_user_func(array($r, $name), $value);
+                            }
                         }
                     }
                 }
             }
-
         }
-
         return $this;
     }
 

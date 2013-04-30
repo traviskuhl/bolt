@@ -203,6 +203,9 @@ class response extends \bolt\plugin {
         // handler
         $handler = $this->getOutputHandler();
 
+        // before
+        $this->fire('before');
+
         // type
         $type = $this->_contentType;
 
@@ -220,6 +223,9 @@ class response extends \bolt\plugin {
 
         // resp
         $resp = $handler->getContent($this->_controller);
+
+        // after
+        $this->fire('after', array('resp' => $resp));
 
         // respond
         return $resp;
