@@ -2,7 +2,7 @@
 ./tests/bolt.phar
 ./tests/misc
 ./tests/misc/*
-./test/coverage
-./test/coverage/*
+./tests/coverage
+./tests/coverage/*
 ./docs
 ./docs/*
