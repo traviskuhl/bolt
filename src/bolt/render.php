@@ -20,6 +20,11 @@ class render extends plugin {
         $this->helper('view', function($args, $vars){
           $view = b::view(array_shift($args));
           $view->setParams($vars);
+
+          if (isset($vars['controller'])) {
+            $view->setController($vars['controller']);
+          }
+
           return $view->render($args);
         });
 

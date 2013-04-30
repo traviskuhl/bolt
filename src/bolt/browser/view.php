@@ -55,13 +55,23 @@ class view implements iView {
     public function afterRender() {}
 
     public function __get($name) {
-        if ($name == 'params') {
-            return $this->_params;
-        }
-        return $this->_params->get($name);
+        return $this->getParam($name);
     }
     public function __set($name, $value) {
         $this->_params->set($name, $value);
+    }
+
+    public function getParam($name) {
+        if ($name == 'params') {
+            return $this->_params;
+        }
+        else if ($this->_params->exists($name)) {
+            return $this->_params->get($name);
+        }
+        else if ($this->_controller AND $this->_controller->getParams()->exists($name)) {
+            return $this->_controller->getParam($name);
+        }
+        return b::bucket();
     }
 
     public function getGuid() {

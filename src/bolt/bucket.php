@@ -8,6 +8,7 @@ b::plug('bucket', '\bolt\bucket');
 
 class bucket extends \bolt\plugin\factory implements \Iterator, \ArrayAccess {
 
+    private $_guid;
 	private $_parent;
 	private $_root;
 	private $_data = array();
@@ -40,6 +41,7 @@ class bucket extends \bolt\plugin\factory implements \Iterator, \ArrayAccess {
     /// @return void
     ////////////////////////////////////////////////////////////////////
 	public function __construct($data=array(), $root=false, $parent=false) {
+        $this->_guid = uniqid();
 		$this->_data = (is_array($data) ? $data : array());
 		$this->_parent = $parent;
 		$this->_root =  $root;
@@ -48,6 +50,10 @@ class bucket extends \bolt\plugin\factory implements \Iterator, \ArrayAccess {
     public function returnObject($return) {
         $this->_returnObject = $return;
         return $this;
+    }
+
+    public function getGuid() {
+        return $this->_guid;
     }
 
     ////////////////////////////////////////////////////////////////////
@@ -419,6 +425,10 @@ class bucket extends \bolt\plugin\factory implements \Iterator, \ArrayAccess {
 		}
 		return false;
 	}
+
+    public function implode($str) {
+        return implode($str, $this->asArray());
+    }
 
     ////////////////////////////////////////////////////////////////////
     /// @brief does a value exist

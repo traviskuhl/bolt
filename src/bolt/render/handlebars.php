@@ -70,7 +70,6 @@ class handlebars extends \bolt\plugin\singleton {
 
             return b::url($name, $params, $query);
 
-
           }
         )
       )
@@ -90,13 +89,17 @@ class handlebars extends \bolt\plugin\singleton {
       }
     }
 
+    if (!is_a($vars, '\bolt\bucket')) {
+      $vars = b::bucket($vars);
+    }
+
     // preprocess the text for echo calls
     if (preg_match_all('#\<\%=\s?([^%]+)\s?\%>#i', $str, $matches, PREG_SET_ORDER)) {
       foreach ($matches as $match) {
         $str = str_replace($match[0], call_user_func(function($call, $_vars, $helpers){
           if (substr($call,-1) != ';') { $call .= ';';}
           foreach ($_vars as $k => $v) {
-            $$k = $v;
+            $$k = (is_object($v) ? $v : b::bucket($v));
           }
           $str =  eval(trim('return '.$call));
           return $str;
@@ -104,9 +107,6 @@ class handlebars extends \bolt\plugin\singleton {
       }
     }
 
-    if (!is_a($vars, '\bolt\bucket')) {
-      $vars = b::bucket($vars);
-    }
 
     try {
       $str = $this->eng->render($str, $vars);

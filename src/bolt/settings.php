@@ -32,8 +32,19 @@ class settings extends plugin\factory {
             mkdir($folder, 0777, true);
         }
 
+        // data
+        $data = json_decode(file_get_contents($file), true);
+
+        // env
+        $env = "_".b::env();
+
+        if (isset($data[$env])) {
+            $data = b::mergeArray($data, $data[$env]);
+            unset($data[$env]);
+        }
+
         // make our bucket
-        $this->_bucket->set(json_decode(file_get_contents($file), true));
+        $this->_bucket->set($data);
 
         // save file
         $this->_file = $file;

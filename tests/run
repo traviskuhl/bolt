@@ -7,7 +7,7 @@ if (isset($opts['h'])) {
     exit("\nusage: ./run -c -d <dir> -h\n -c   run coverage test\n -d   directory/files to limit test\n\n");
 }
 
-if (`which phpunit` === trim("")) {
+if (trim(`which phpunit`) === "") {
     exit("Unable to find PHPUnit.\n".
          "We need PHPUnit to run our tests!\n\n".
          "You can install from PEAR:\n".

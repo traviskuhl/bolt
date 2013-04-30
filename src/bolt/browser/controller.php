@@ -287,8 +287,6 @@ class controller extends \bolt\event implements iController {
         // params from the request
         $params = b::request()->getParams();
 
-        // start out with params from teh request
-        $this->_params = $params;
 
         // before
         $this->fire('before');

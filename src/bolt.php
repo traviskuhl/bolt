@@ -42,7 +42,7 @@ foreach($bGlobals as $name => $default) {
 
 // dev mode?
 if ( bEnv === 'dev' ) {
-    error_reporting(E_ALL^E_DEPRECATED^E_STRICT);
+    error_reporting(E_ALL^E_DEPRECATED);
     ini_set("display_errors",1);
 }
 
@@ -77,6 +77,7 @@ final class b {
     public static $autoload = array();
 
     // our plugin instance
+    private static $_env = false;
     private static $_instance = false;
     private static $_loaded = array();
     private static $_settings = array(
@@ -149,14 +150,7 @@ final class b {
     // mode & env
     public static $_mode = 'browser';
 
-    ////////////////////////////////////////////////////////////
-    /// @brief return env setting
-    ///
-    /// @return bolt instance
-    ////////////////////////////////////////////////////////////
-    public static function env() {
-        return self::config()->get('global.env', 'prod');
-    }
+
 
     ////////////////////////////////////////////////////////////
     /// @brief return bolt instance
@@ -199,6 +193,18 @@ final class b {
         return array_keys(self::$_core);
     }
 
+    ////////////////////////////////////////////////////////////
+    /// @brief get/set env setting
+    ///
+    /// $env env setting
+    /// @return bolt instance
+    ////////////////////////////////////////////////////////////
+    public static function env($env=false) {
+        if ($env) {
+            self::$_env = $env;
+        }
+        return (self::$_env ?: bEnv);
+    }
 
     ////////////////////////////////////////////////////////////
     /// @brief initalize the bolt framework
