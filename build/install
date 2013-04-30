@@ -34,6 +34,36 @@ if (isset($opts['l'])) {
     $resp = file_get_contents("bolt-latest.tar.gz");
 }
 
+// symlink
+else if (isset($opts['s'])) {
+
+    // bolt
+    $bolt = realpath("../src/bolt.php");
+    $target = $pear."/bolt.php";
+
+    if (file_exists($target)) {
+        unlink($target);
+    }
+
+    // phar
+    symlink($bolt,$target);
+
+    // make sure
+    $dest = "{$share}/bolt/index.php";
+
+    // dir
+    if (!file_exists(dirname($dest))) {
+        mkdir(dirname($dest));
+    }
+
+    // do it
+    file_put_contents($dest, stub(file_get_contents("./stub/share.inc"), "bolt.php", ""));
+
+    // done
+    exit("bolt has been symliked to '{$bolt}'. Enjoy\n");
+
+}
+
 // get from remote
 else {
 

@@ -55,6 +55,7 @@ class Handlebars_Engine
      * @var Handlebars_Loader
      */
     private $_partialsLoader;
+    public $_partials = array();
 
     /**
      * @var Handlebars_Cache
@@ -100,6 +101,10 @@ class Handlebars_Engine
 
         if (isset($options['partials_loader'])) {
             $this->setPartialsLoader($options['partials_loader']);
+        }
+
+        if (isset($options['partials'])) {
+            $this->setPartials($options['partials']);
         }
 
         if (isset($options['cache'])) {
@@ -414,6 +419,19 @@ class Handlebars_Engine
     }
 
     /**
+      * Set partials for the current partials Loader instance.
+      *
+      * @throws Mustache_Exception_RuntimeException If the current Loader instance is immutable
+      *
+      * @param array $partials (default: array())
+      */
+     public function setPartials(array $partials = array())
+     {
+         $this->_partials = $partials;
+     }
+
+
+    /**
      * Load a partial by name with current partial loader
      *
      * @param string $name partial name
@@ -422,8 +440,19 @@ class Handlebars_Engine
      */
     public function loadPartial($name)
     {
-        $source = $this->getPartialsLoader()->load($name);
+        // $source = $this->getPartialsLoader()->load($name);
+
+
+        if (!array_key_exists($name, $this->_partials)) {
+            return false;
+        }
+        $source = file_get_contents($this->_partials[$name]);
+
+
+
         $tree = $this->_tokenize($source);
+
+
         return new Handlebars_Template($this, $tree, $source);
     }
 

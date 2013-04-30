@@ -47,11 +47,12 @@ interface iController {
 
 ////////////////////////////////////////////////////////////////////
 /// @brief base controlle class
+/// @extends \bolt\event
 ///
 /// @implements iController
 /// @return voud
 ////////////////////////////////////////////////////////////////////
-class controller implements iController {
+class controller extends \bolt\event implements iController {
 
     private $_guid = false;
     private $_layout = false;
@@ -289,6 +290,9 @@ class controller implements iController {
         // start out with params from teh request
         $this->_params = $params;
 
+        // before
+        $this->fire('before');
+
         // check
         if ($this->_fromInit AND b::isInterfaceOf($this->_fromInit, '\bolt\browser\iController')) {
             return $this->_fromInit;
@@ -361,6 +365,9 @@ class controller implements iController {
         if (is_string($resp)) {
             $this->setContent($resp);
         }
+
+        // after
+        $this->fire('after');
 
         // me
         return $resp;

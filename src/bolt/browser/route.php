@@ -191,15 +191,16 @@ class route extends \bolt\plugin\singleton {
             return b::addUrlParams($name, $data);
         }
 
-        // no url
-        if (!$this->getRouteByName($name)) {
-            return rtrim(strtolower(b::addUrlParams(rtrim($uri,'/')."/".ltrim($name,'/'), $params)),'/');
-        }
-
         // short cut
         $args['query'] = \http_build_str($query);
 
         $parts = $this->_baseUri;
+
+        // no url
+        if (!$this->getRouteByName($name)) {
+            $parts['path'] = $name;
+            return \http_build_url(false, $parts);
+        }
 
         foreach ($args as $k => $v) {
             $parts[$k] = $v;

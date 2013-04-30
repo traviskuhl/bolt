@@ -11,6 +11,11 @@ class handlebars extends \bolt\plugin\singleton {
 
   private $eng;
   private $_helpers = array();
+  private $_partials = array();
+
+  public function partial($name, $file) {
+    $this->_partials[$name] = $file;
+  }
 
   public function __construct() {
 
@@ -28,6 +33,7 @@ class handlebars extends \bolt\plugin\singleton {
           return htmlentities($value, ENT_QUOTES, 'UTF-8', false);
         }
       },
+      'partials' => $this->_partials,
       'helpers' => new \Handlebars_Helpers(array(
           'escape' => function($template, $context, $args, $text) {
             if (is_string($text)) {
@@ -72,11 +78,17 @@ class handlebars extends \bolt\plugin\singleton {
 
 
 
+
   }
 
 
   public function render($str, $vars=array()) {
 
+    foreach ($this->_partials as $name => $file) {
+      if (!array_key_exists($name, $this->eng->_partials)) {
+        $this->eng->_partials[$name] = $file;
+      }
+    }
 
     // preprocess the text for echo calls
     if (preg_match_all('#\<\%=\s?([^%]+)\s?\%>#i', $str, $matches, PREG_SET_ORDER)) {

@@ -15,13 +15,16 @@
 // OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ////////////////////////////////////////////////////
 
+// start
+define('bStart', microtime(true));
+
 // autoload
 spl_autoload_register(array('b', 'autoloader'));
 
 // globals
 $bGlobals = array(
     'bRoot' => dirname(__FILE__),
-    'bEnv' => 'prod',
+    'bEnv' => 'dev',
     'bTimeZone' => 'UTC',
     'bLogLevel' => 1,
     'bConfig' => "/etc/bolt/"
