@@ -23,10 +23,10 @@ class xhr extends \bolt\plugin\singleton {
         $body = $view->getContent();
 
         // holders
-        $js = $css = array();
+        $js = array();
 
         // script
-        $body = preg_replace("#<script([^>]+)(\>)#", "<script$1%%E%%", $body);
+        $body = preg_replace("#<script([^>]+)?(\>)#", "<script$1%%E%%", $body);
 
         // replace any </stript>'s'
         $body = str_replace(
@@ -49,26 +49,27 @@ class xhr extends \bolt\plugin\singleton {
 
         // if yes remove
         if ( preg_match_all("/((<[\s\/]*script\b[^>]*>)([^>]*)(<\/script>))/i", $body, $_js) ) {
-            $body = preg_replace("/((<[\s\/]*script\b[^>]*>)([^>]*)(<\/script>))/i", "", $body);
             $js = @$_js[3];
             if ($js) {
                 $js = array_map(function($str){ return str_replace(array("%%EE%%", "%%E%%"),">", $str); }, $js);
+                $body = str_replace(array("%%EE%%", "%%E%%"),">", $body);
+                foreach ($_js[0] as $l) {
+                    $body = str_replace($l, "", $body);
+                }
             }
         }
 
-        $body = str_replace(array("%%EE%%", "%%E%%"),">", $body);
+
 
         // give it up
         return json_encode(array(
             'status' => $view->getStatus(),
             'response' => array(
-                'html' => $body,
+                'content' => $body,
                 'data' => $view->getData(),
                 'bootstrap' => array(
                     'javascript' => $js,
-                    'css' => $css
-                ),
-                'uid' => uniqid("u")
+                )
             )
         ));
 

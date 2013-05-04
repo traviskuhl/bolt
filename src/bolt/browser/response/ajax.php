@@ -15,14 +15,17 @@ class ajax extends \bolt\plugin\singleton {
 
 
     //
-    public function getContent($view) {
+    public function getContent($controller) {
 
         b::response()->setContentType('text/javascript');
 
         // give it up
         return json_encode(array(
-            'status' => $view->getStatus(),
-            'response' => $view->getData()
+            'status' => $controller->getStatus(),
+            'response' => array(
+                'content' => $controller->getContent(),
+                'data' => $controller->getData()
+            )
         ));
 
     }

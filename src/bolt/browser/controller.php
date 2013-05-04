@@ -59,6 +59,7 @@ class controller extends \bolt\event implements iController {
     private $_params = false;
     private $_content = false;
     private $_fromInit = false;
+    private $_data = array();
 
     // starter variables
     protected $templateDir = false;
@@ -92,6 +93,20 @@ class controller extends \bolt\event implements iController {
     /// @return voud
     ////////////////////////////////////////////////////////////////////
     public function init() {}
+
+    ////////////////////////////////////////////////////////////////////
+    /// @brief called by render before build
+    ///
+    /// @return void
+    ////////////////////////////////////////////////////////////////////
+    protected function before() {}
+
+    ////////////////////////////////////////////////////////////////////
+    /// @brief called by render after build and render
+    ///
+    /// @return void
+    ////////////////////////////////////////////////////////////////////
+    protected function after() {}
 
     ////////////////////////////////////////////////////////////////////
     /// @brief MAGIC set a param. passthrough to bucket::set()
@@ -233,6 +248,15 @@ class controller extends \bolt\event implements iController {
         return !($this->_layout === false);
     }
 
+    public function setData($data) {
+        $this->_data = $data;
+        return $this;
+    }
+
+    public function getData() {
+        return $this->_data;
+    }
+
     ////////////////////////////////////////////////////////////////////
     /// @brief get the accept header from b::request
     /// @see \bolt\browser\request::getAccept
@@ -241,6 +265,18 @@ class controller extends \bolt\event implements iController {
     ////////////////////////////////////////////////////////////////////
     public function getAccept() {
         return b::request()->getAccept();
+    }
+
+    ////////////////////////////////////////////////////////////////////
+    /// @brief set the accept header from b::request
+    /// @see \bolt\browser\request::getAccept
+    ///
+    /// @param $header
+    /// @return self
+    ////////////////////////////////////////////////////////////////////
+    public function setAccept($header) {
+        b::response()->setAccept($header);
+        return $this;
     }
 
     ////////////////////////////////////////////////////////////////////
@@ -253,6 +289,16 @@ class controller extends \bolt\event implements iController {
     public function setContentType($type) {
         b::response()->setContentType($type);
         return $this;
+    }
+
+    ////////////////////////////////////////////////////////////////////
+    /// @brief get response content type
+    /// @see \bolt\browser\response::setContentType
+    ///
+    /// @return content type
+    ////////////////////////////////////////////////////////////////////
+    public function getContentType() {
+        return b::response()->getContentType();
     }
 
     ////////////////////////////////////////////////////////////////////
@@ -287,9 +333,10 @@ class controller extends \bolt\event implements iController {
         // params from the request
         $params = b::request()->getParams();
 
-
         // before
         $this->fire('before');
+
+        call_user_func(array($this, 'before'));
 
         // check
         if ($this->_fromInit AND b::isInterfaceOf($this->_fromInit, '\bolt\browser\iController')) {
@@ -363,6 +410,19 @@ class controller extends \bolt\event implements iController {
         if (is_string($resp)) {
             $this->setContent($resp);
         }
+
+        // see if there's a layout
+        if ($this->hasLayout()) {
+            $this->setContent(
+                    $this->getLayout()
+                        ->setParams(array('child' => $this->getContent()))
+                        ->render()
+            );
+        }
+
+
+
+        call_user_func(array($this, 'after'));
 
         // after
         $this->fire('after');

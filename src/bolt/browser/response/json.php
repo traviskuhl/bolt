@@ -17,20 +17,18 @@ class json extends \bolt\plugin\singleton {
     //
     public function getContent($view) {
 
-        b::response()->setContentType("text/javascript");
-
         $resp = json_encode(array(
             'status' => b::response()->getStatus(),
             'response' => $view->getContent()
         ));
 
-        // pretty
-        $resp = (p('_pretty') ? b::jsonPretty($resp) : $resp);
-
         // securet
-        if ($view->getAccept() == 'text/javascript;secure') {
+        if (stripos($view->getContentType(), ';secure') !== false) {
             $resp = 'while(1);'.$resp;
         }
+
+        // set response
+        b::response()->setContentType("text/javascript");
 
         // give it up
         return $resp;

@@ -143,8 +143,9 @@ class controllerTest extends bolt_test {
     }
 
     public function testRunDispatch() {
-        $this->tcd->run();
-        $this->assertEquals($this->tcd->getContent(), 'dispatch');
+        $c = new testControllerWithDispatch();
+        $c->run();
+        $this->assertEquals($c->getContent(), 'dispatch');
     }
 
     public function testRunStandardMethods() {
@@ -265,6 +266,9 @@ class testControllerWithDefaults extends \bolt\browser\controller {
         $this->initRun = true;
         $this->var = 1;
     }
+}
+
+class testControllerWithDispatch extends \bolt\browser\controller {
     public function dispatch() {
         $this->setContent("dispatch");
     }

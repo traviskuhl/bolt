@@ -16,20 +16,10 @@ class html extends \bolt\plugin\singleton {
     //
     public function getContent($controller) {
 
-        // child
-        $html = $controller->getContent();
-
-        // see if there's a layout
-        if ($controller->hasLayout()) {
-
-            $html = $controller
-                        ->getLayout()
-                            ->setParams(array('child' => $html))
-                            ->render();
-        }
+        b::response()->setContentType('text/html');
 
         // html
-        return $html;
+        return $controller->getContent();
 
     }
 

@@ -6,3 +6,4 @@
 ./tests/coverage/*
 ./docs
 ./docs/*
+*DS_Store

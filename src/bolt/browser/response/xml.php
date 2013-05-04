@@ -22,6 +22,8 @@ class xml extends \bolt\plugin\singleton {
 		// print
 		$g = new xmlGenerator($view->getContent());
 
+        b::response()->setContentType('application/xml');
+
         // set it
         return $g->render();
 
@@ -57,10 +59,6 @@ class xmlGenerator {
 	 */
 	private function _mapItemToDom($item,$key,&$root) {
 
-		// check for raw
-		if ( is_array($item) AND  array_key_exists('_raw',$item) ) {
-			unset($item['_raw']);
-		}
 
 		// attribute
 		if ( is_array($item) AND $key === '@' ) {
