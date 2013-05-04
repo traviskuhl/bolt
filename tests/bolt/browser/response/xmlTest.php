@@ -55,7 +55,7 @@ class responseXmlTest extends bolt_test {
                     'i' => null
                 )
             ));
-        $this->assertXmlStringEqualsXmlString('<a b="c" d="f"><g>h</g></a>', $r);
+        $this->assertXmlStringEqualsXmlString('<a b="c" d="f"><g>h</g><i/></a>', $r);
     }
 
     public function testGetContentValue() {

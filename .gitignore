@@ -1,9 +1,9 @@
-./build/bolt-test.tar.gz
-./tests/bolt.phar
-./tests/misc
-./tests/misc/*
-./tests/coverage
-./tests/coverage/*
-./docs
-./docs/*
+build/bolt-test.tar.gz
+tests/bolt.phar
+tests/misc
+tests/misc/*
+tests/coverage
+tests/coverage/*
+docs
+docs/*
 *DS_Store
