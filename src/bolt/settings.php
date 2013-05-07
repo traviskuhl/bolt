@@ -51,12 +51,6 @@ class settings extends plugin\factory {
 
     }
 
-    // save
-    public function save() {
-        if ($this->_file) {
-            file_put_contents($this->_file, $this->_bucket->asJson());
-        }
-    }
 
     // __get
     public function __get($name) {

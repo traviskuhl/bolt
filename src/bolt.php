@@ -26,13 +26,13 @@ $bGlobals = array(
     'bRoot' => dirname(__FILE__),
     'bEnv' => 'dev',
     'bTimeZone' => 'UTC',
-    'bLogLevel' => 1,
+    'bLogLevel' => 0,
     'bConfig' => "/etc/bolt/"
 );
 
 // check env for some bolt variables
 foreach($bGlobals as $name => $default) {
-    if (!defined($name) AND getenv($name)) {
+    if (!defined($name) AND getenv($name) !== false) {
         define($name, getenv($name));
     }
     else if (!defined($name)) {

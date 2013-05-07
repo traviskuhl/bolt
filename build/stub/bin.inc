@@ -29,29 +29,13 @@ if ('cli' === php_sapi_name()) {
     b::init(array(
         'mode' => 'cli',
         'load' => array(
+            bRoot."/bolt/client.php",
             bRoot."/bolt/client/*.php"
         )
     ));
 
-    // get our settings
-    $home = p('SUDO_HOME', p('HOME', false, $_SERVER), $_SERVER);
-    $user = p('SUDO_USER', p('USER', false, $_SERVER), $_SERVER);
-
-    // home
-    if ($home === false) {
-        $home = "/home/{$user}";
-    }
-    if (!file_exists("{$home}/.bolt")) {
-        mkdir("{$home}/.bolt/");
-    }
-
-    // settings
-    b::setSettings('client', "{$home}/.bolt/settings.json");
-
-    // when we're done, save settings
-    b::on('destruct', function(){
-        b::getSettings('client')->save();
-    });
+    // start a bolt client
+    b::client()->start();
 
     // run
     b::run();

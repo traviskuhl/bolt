@@ -59,6 +59,11 @@ else if (isset($opts['s'])) {
     // do it
     file_put_contents($dest, stub(file_get_contents("./stub/share.inc"), "bolt.php", ""));
 
+    $dest = "{$bin}/bolt";
+
+    // bin
+    file_put_contents($dest, stub(file_get_contents("./stub/bin.inc"), "bolt.php", ""));
+
     // done
     exit("bolt has been symliked to '{$bolt}'. Enjoy\n");
 
