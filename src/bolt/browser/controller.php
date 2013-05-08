@@ -411,6 +411,7 @@ class controller extends \bolt\event implements iController {
             $this->setContent($resp);
         }
 
+
         // see if there's a layout
         if ($this->hasLayout()) {
             $this->setContent(
@@ -419,8 +420,6 @@ class controller extends \bolt\event implements iController {
                         ->render()
             );
         }
-
-
 
         call_user_func(array($this, 'after'));
 

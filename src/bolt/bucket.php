@@ -453,7 +453,7 @@ class bucket extends \bolt\plugin\factory implements \Iterator, \ArrayAccess {
         else if ($idx === 'last') {
             $idx = key(array_slice($this->_data, -1));
         }
-		return $this->getValue($idx);
+		return $this->get($idx);
 	}
 
     ////////////////////////////////////////////////////////////////////
@@ -500,7 +500,7 @@ class bucket extends \bolt\plugin\factory implements \Iterator, \ArrayAccess {
     /// @return value
     ////////////////////////////////////////////////////////////////////
     public function offsetGet($offset) {
-        return isset($this->_data[$offset]) ? $this->_data[$offset] : null;
+        return isset($this->_data[$offset]) ? $this->get($offset) : null;
     }
 
     ////////////////////////////////////////////////////////////////////
@@ -520,7 +520,7 @@ class bucket extends \bolt\plugin\factory implements \Iterator, \ArrayAccess {
     ////////////////////////////////////////////////////////////////////
     function current() {
         $var = current($this->_data);
-        return $var;
+        return (is_array($var) ? b::bucket($var) : $var);
     }
 
     ////////////////////////////////////////////////////////////////////
