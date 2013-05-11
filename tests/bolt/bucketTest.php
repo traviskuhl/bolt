@@ -176,7 +176,7 @@ class bucketTest extends bolt_test {
         $this->assertFalse(isset($this->bucket[$id]));
     }
     public function testOffsetGet() {
-        $this->assertTrue($this->bucket['bool']);
+        $this->assertTrue($this->bucket['bool']->value);
     }
     public function testArrayAccess() {
         $data = array('one','two','three');

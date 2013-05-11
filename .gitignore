@@ -1,7 +1,7 @@
 build/bolt-test.tar.gz
 tests/bolt.phar
-tests/misc
-tests/misc/*
+tests/other
+tests/other/*
 tests/coverage
 tests/coverage/*
 docs
