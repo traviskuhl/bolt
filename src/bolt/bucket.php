@@ -174,6 +174,55 @@ class bucket extends \bolt\plugin\factory implements \Iterator, \ArrayAccess {
         return $this->asJson();
     }
 
+    ////////////////////////////////////////////////////////////////////
+    /// @package   Config_Lite
+    /// @author    Patrick C. Engel <pce@php.net>
+    /// @copyright 2010-2011 <pce@php.net>
+    /// @license   http://www.gnu.org/copyleft/lesser.html  LGPL License 2.1
+    ////////////////////////////////////////////////////////////////////
+    /// @brief get the bucket as an ini string
+    ///
+    /// @param $key key to get first
+    /// @return ini string
+    ////////////////////////////////////////////////////////////////////
+    public function asIni($key=false) {
+        $data = ($key ? $this->get($key)->asArray() : $this->asArray());
+        $content = '';
+        $sections = '';
+        $globals  = '';
+        if (!empty($data)) {
+            // 2 loops to write `globals' on top, alternative: buffer
+            foreach ($data as $section => $item) {
+                if (!is_array($item)) {
+                    $value    = $item;
+                    $globals .= $section . ' = "' . $value .'"'."\n";
+                }
+            }
+            $content .= $globals;
+            foreach ($data as $section => $item) {
+                if (is_array($item)) {
+                    $sections .= "\n[" . $section . "]\n";
+                    foreach ($item as $key => $value) {
+                        if (is_array($value)) {
+                            foreach ($value as $arrkey => $arrvalue) {
+                                $arrvalue  = $arrvalue;
+                                $arrkey    = $key . '[' . (is_int($arrkey) ? "" : $arrkey) . ']';
+                                $sections .= $arrkey . ' = "' . $arrvalue.'"'
+                                            ."\n";
+                            }
+                        } else {
+                            $value     = $value;
+                            $sections .= $key . ' = "' . $value .'"'."\n";
+                        }
+                    }
+                }
+            }
+            $content .= $sections;
+        }
+        return $content;
+    }
+
+
     public function isEmpty() {
         return (count($this->_data) == 0 ? true : false);
     }
@@ -266,7 +315,7 @@ class bucket extends \bolt\plugin\factory implements \Iterator, \ArrayAccess {
     /// @param $value value for variable
     /// @return self
     ////////////////////////////////////////////////////////////////////
-	public function set($name, $value=false) {
+	public function set($name, $value=null) {
 		if (is_array($name)) {
 			foreach ($name as $k => $v) {
 				$this->set($k, $v);
@@ -437,7 +486,7 @@ class bucket extends \bolt\plugin\factory implements \Iterator, \ArrayAccess {
     /// @return bool if it exists
     ////////////////////////////////////////////////////////////////////
 	public function exists($name) {
-		return (array_key_exists($name, $this->_data));
+		return ($this->getValue($name, false) !== false);
 	}
 
     ////////////////////////////////////////////////////////////////////

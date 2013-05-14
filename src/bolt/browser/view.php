@@ -45,10 +45,11 @@ class view extends \bolt\event implements iView {
     // some things we're going to need
     private $_guid = false;
     private $_content = false;
-    private $_data = array();
     private $_controller;
     private $_file = false;
     private $_render = 'handlebars';
+    private $_properties = array();
+    private $_data = array();
 
     // bucketproxy needs to find
     protected $_params;
@@ -116,7 +117,8 @@ class view extends \bolt\event implements iView {
     /// @return void
     ////////////////////////////////////////////////////////////////////
     public function __set($name, $value) {
-        $this->_params->set($name, $value);
+        $this->_properties[] = $name;
+        $this->{$name} = $value;
     }
 
     ////////////////////////////////////////////////////////////////////
@@ -132,10 +134,13 @@ class view extends \bolt\event implements iView {
         else if ($this->_params->exists($name)) {
             return $this->_params->get($name);
         }
-        else if ($this->_controller AND $this->_controller->getParams()->exists($name)) {
+        else if ($this->_controller AND $this->_controller->exists($name)) {
             return $this->_controller->getParam($name);
         }
-        return b::bucket();
+        else if (array_key_exists($name, $this->_properties)) {
+            return $this->{$name};
+        }
+        return false;
     }
 
     ////////////////////////////////////////////////////////////////////
@@ -269,13 +274,22 @@ class view extends \bolt\event implements iView {
         // before render
         call_user_func(array($this, 'before'));
 
+        // add any set data to the params load
+        foreach ($this->_properties as $name) {
+            $this->_params->set($name, $this->{$name});
+        }
+
         // add our view to the vars
         $this->_params->self = $this;
 
         if ($this->_file !== false) {
+            $dir = false;
+            if ($this->_file{0} != '/') {
+                $dir = ($this->_controller ? $this->_controller->getTemplateDir() : b::config()->getValue('project.templates')) . "/";
+            }
             $this->setContent(b::render(array(
                 'render' => $this->_render,
-                'file' => $this->_file,
+                'file' => $dir.$this->_file,
                 'controller' => $this->_controller,
                 'vars' => $this->_params
             )));

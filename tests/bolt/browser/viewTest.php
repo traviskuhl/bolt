@@ -36,23 +36,23 @@ class viewTest extends bolt_test {
 
     public function testMagicGet() {
         $this->assertEquals(1, $this->v->test->value);
-        $this->assertFalse($this->v->nope->value);
+        $this->assertFalse($this->v->nope);
     }
     public function testMagicSet() {
-        $this->assertFalse($this->v->test1->value);
+        $this->assertFalse($this->v->test1);
         $this->v->test1 = 1;
-        $this->assertEquals(1, $this->v->test1->value);
-        $this->assertFalse($this->v->test2->value);
+        $this->assertEquals(1, $this->v->test1);
+        $this->assertFalse($this->v->test2);
     }
     public function testGetParamsParams() {
         $this->assertInstanceOf('bolt\bucket', $this->v->params);
     }
     public function testGetParamsController() {
-        $this->assertEquals(1, $this->v->testC1->value);
+        $this->assertEquals(1, $this->v->testC1);
     }
     public function testGetParamsParam() {
         $this->assertEquals(1, $this->v->test->value);
-        $this->assertFalse($this->v->test2->value);
+        $this->assertFalse($this->v->test2);
     }
     public function testGetParams() {
         $this->assertInstanceOf('bolt\bucket', $this->v->getParams());

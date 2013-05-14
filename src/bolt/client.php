@@ -5,7 +5,7 @@ use \b;
 
 b::plug('client', '\bolt\client');
 
-class client extends \bolt\plugin\singelton {
+class client extends \bolt\plugin\singleton {
 
     public function start() {
 
@@ -21,14 +21,43 @@ class client extends \bolt\plugin\singelton {
             mkdir("{$home}/.bolt/");
         }
 
-        // settings
-        b::setSettings('client', "{$home}/.bolt/settings.json");
+    }
 
-        // when we're done, save settings
-        b::on('destruct', function(){
-            b::getSettings('client')->save();
-        });
+    public function getUser() {
+        return p('SUDO_USER', p('USER', false, $_SERVER), $_SERVER);
+    }
 
+    protected function defaultPackage() {
+        return array(
+            'name' => false,
+            'version' => '1.0',
+            'description' => '',
+            'keywords' => array(),
+            'homepage' => "",
+            'license' => "",
+            "authors" => array(),
+            "require" => array(
+                "php" => ">=5.3.0"
+            ),
+            "dependencies" => array(),
+            "files" => array(
+            ),
+            "directories" => array(
+                "assets" => "assets",
+                "templates" => "templates",
+                "partials" => "templates/_partials",
+                "controllers" => "controllers",
+                "views" => "views",
+                "dao" => "dao",
+                "lib" => "lib"
+            ),
+            "settings" => array(
+
+            ),
+            "config" => array(
+                "root" => false
+            )
+        );
     }
 
 }

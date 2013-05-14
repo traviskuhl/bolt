@@ -5,45 +5,54 @@ use \b;
 
 b::command('init', '\bolt\client\init', array(
         'flags' => array(
-
+            array('yes|y', 'Say yes to everything')
         ),
         'options' => array(
-
+            array("hostnames")
         ),
     ));
 
 class init extends \bolt\cli\command {
 
-    public function run($packageFile=false) {
-        $root = realpath(__DIR__);
-        $package = false;
+
+    public function run($packageFile=false, $root=false) {
+        $package = $src = false;
+
+        // where are we now
+        $pwd = getcwd();
+
+        // make sure config is writeable
+        if (!is_writable(bConfig)) {
+            return $this->err("Bolt configuration directory (".bConfig.") is not writeable.");
+        }
 
         // figure out what package we have
         // a local package
-        if (file_exists($packageFile) AND is_readable($packageFile)) {
-            $root = realpath(dirname($packageFile));
+        if (file_exists($packageFile) AND is_file($packageFile) AND is_readable($packageFile)) {
             $package = json_decode(file_get_contents($packageFile), true);
+            $root = realpath(".");
+        }
+        else if (is_dir($packageFile) AND !$root) {
+            return $this->err("A folder name '$packageFile' already exists in '$pwd'.");
+        }
+        else {
+            if (stripos($packageFile, '/') === false AND $this->yes === false AND $this->askYesNo("You project name doesn't have a namespace (:namespace/:project). Continue") === false ) {
+                return $this->err("Stopping. Try adding a namespace");
+            }
+            $package = b::client()->defaultPackage();
+            $package['name'] = $packageFile;
+            $root = $root ? realpath($root) : "{$pwd}/{$packageFile}";
         }
 
         if (!is_array($package)) {
             return $this->err("Unable to parse package file (".$packageFile.").");
         }
 
-        // where are we now
-        $pwd = getcwd();
-
-        // get dir root
-        if (isset($package['directories']['_root'])) {
-            if (substr($package['directories']['_root'], 0, 2) == './') {
-                $package['directories']['_root'] = substr($package['directories']['_root'], 2);
-            }
-
-            $root = rtrim($root,'/').'/'.$package['directories']['_root'];
-        }
-
         // create root
         if (!file_exists($root)) {
-            mkdir($root, 0700, true);
+            mkdir($root, 0755, true);
+            chown($root, b::client()->getUser());
+            chgrp($root, b::client()->getUser());
         }
 
         // still no root
@@ -51,19 +60,28 @@ class init extends \bolt\cli\command {
             return $this->err("Unable to find or create root ({$root}).");
         }
 
+        // root
+        $package['config']['root'] = $root;
+
         // move to root
         chdir($root);
 
         // see if root has salt.txt
         if (!file_exists("./salt.txt")) {
-            if ($this->askYesNo('There is no salt file in. Would you like us to create one?')) {
-                file_put_contents("./salt.txt", b::randomString(100));
+            if ($this->yes === true OR $this->askYesNo('There is no salt file in. Would you like us to create one?') ) {
+                $package['config']['salt'] = b::randomString(100);
             }
+        }
+        else {
+            $package['config']['salt'] = trim(file_get_contents("./salt.txt"));
         }
 
         // write our settings file
         if (isset($package['settings'])) {
             file_put_contents("settings.json", json_encode($package['settings']));
+            chmod("settings.json", 0666);
+            chown("settings.json", b::client()->getUser());
+            chgrp("settings.json", b::client()->getUser());
         }
 
         // loop through and write any directories
@@ -73,13 +91,15 @@ class init extends \bolt\cli\command {
                 if (is_string($dir)) {
                     $dir = array(
                         'path' => $dir,
-                        'mode' => 0700,
-                        'user' => false,
-                        'group' => false
+                        'mode' => false,
+                        'user' => b::client()->getUser(),
+                        'group' => b::client()->getUser()
                     );
                 }
                 if (file_exists($dir['path'])) { continue; }
-                mkdir($dir['path'], $dir['mode'], true);
+
+                mkdir($dir['path'], ( (isset($dir['mode']) AND $dir['mode']) ? $dir['mode'] : 0755), true);
+
                 if (isset($dir['user']) AND $dir['user']) {
                     chown($dir['path'], $dir['user']);
                 }
@@ -89,27 +109,46 @@ class init extends \bolt\cli\command {
             }
         }
 
+        // directories to add to config
+        foreach (array('controllers','templates','partials','views','assets') as $dir) {
+            if (array_key_exists($dir, $package['directories'])) {
+                $package['config'][$dir] = $root . "/" . $package['directories'][$dir];
+            }
+        }
+
         $pconfig = bConfig . $package['name'] . '.ini';
 
         // make our package config file
-        if (!file_exists(basename($pconfig))) {
-            mkdir(basename($pconfig));
+        if (!file_exists(dirname($pconfig))) {
+            mkdir(dirname($pconfig), 0755, true);
+        }
+
+        $ini = b::bucket($package['config'])->asIni();
+
+        // lok
+        $fp = fopen($pconfig, "wr+");
+
+        // write our config
+        if (flock($fp, LOCK_EX)) {
+            ftruncate($fp, 0);
+            fwrite($fp, $ini);
+            fflush($fp);
+            flock($fp, LOCK_UN);
+        }
+        else {
+            return $this->err("Unable to write global config file.");
         }
 
         // add our package
         b::config()->get('global')->set($package['name'], array(
-            'hostname' => array(),
-            'load' => array(
-                $root
-            ),
-            'salt' => realpath("./salt.txt"),
-            'settings' => realpath("./settings.json"),
+            'hostname' => ($this->hostnames ? explode(",", $this->hostnames) : array()),
             'config' => $pconfig
         ));
 
         // to
-        $ini = b::config()->toIniFile('global');
+        $ini = b::config()->asIni('global');
 
+        // fp
         $fp = fopen(bConfig."/config.ini", "r+");
 
         if (flock($fp, LOCK_EX)) {
@@ -122,8 +161,20 @@ class init extends \bolt\cli\command {
             return $this->err("Unable to write global config file.");
         }
 
+        // unset our server sepecifc stuff
+        unset($package['config']);
 
+        // write our package file back
+        file_put_contents("package.json", json_encode($package));
+        chmod("package.json", 0666);
+        chown("package.json", b::client()->getUser());
+        chgrp("package.json", b::client()->getUser());
+
+        //
+        return $this->out("New project created! Enjoy!\n");
 
     }
+
+
 
 }

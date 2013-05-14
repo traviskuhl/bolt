@@ -23,6 +23,7 @@ class route extends \bolt\plugin\singleton {
     public static $TYPE = "singleton";
 
     // routes
+    private $_route = false;
     private $_routes = array();
     private $_defaultParser = '\bolt\browser\route\token'; // default route parser
     private $_baseUri = array(
@@ -91,6 +92,15 @@ class route extends \bolt\plugin\singleton {
     ////////////////////////////////////////////////////////////////////
     public function getRoutes() {
         return $this->_routes;
+    }
+
+    ////////////////////////////////////////////////////////////////////
+    /// @brief get the matched route
+    ///
+    /// @return  route object
+    ////////////////////////////////////////////////////////////////////
+    public function getRoute() {
+        return $this->_route;
     }
 
     ////////////////////////////////////////////////////////////////////
@@ -171,8 +181,9 @@ class route extends \bolt\plugin\singleton {
 
         b::log('[b::route] found route %s', array($controller));
 
+
         // return what we foudn
-        return $route;
+        return ($this->_route = $route);
 
     }
 
@@ -186,6 +197,7 @@ class route extends \bolt\plugin\singleton {
     /// @return string url
     ////////////////////////////////////////////////////////////////////
     public function url($name, $data=array(), $query=array(), $args=array()) {
+        $prefix = "/";
 
         if (substr($name, 0, 4) == 'http') {
             return b::addUrlParams($name, $data);
@@ -196,9 +208,14 @@ class route extends \bolt\plugin\singleton {
 
         $parts = $this->_baseUri;
 
+        // are we in index.php
+        if (substr(parse_url(SELF, PHP_URL_PATH), 0, 11) == '/index.php/') {
+            $prefix = "/index.php/";
+        }
+
         // no url
         if (!$this->getRouteByName($name)) {
-            $parts['path'] = $name;
+            $parts['path'] = $prefix . ltrim($name, '/');
             return \http_build_url(false, $parts);
         }
 
@@ -213,7 +230,7 @@ class route extends \bolt\plugin\singleton {
             $path = str_replace('{'.$k.'}', $v, $path );
         }
 
-        $parts['path'] = $path;
+        $parts['path'] = $prefix . ltrim($path, '/');
 
         // return with params
         return \http_build_url(false, $parts);

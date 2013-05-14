@@ -268,7 +268,6 @@ final class b {
             // start our assumeing we'll use the global project
             $project = b::config()->getValue('global.defaultProject');
 
-
             // figure out if we have a hostname that can
             // service this request
             foreach (b::config()->get('global')->asArray() as $key => $value) {
@@ -301,7 +300,14 @@ final class b {
             }
 
             // everything else is config
-            $args['config'] = $project;
+            if (isset($project['config'])) {
+                b::config()->import($project['config'], array('key' => 'project'));
+            }
+
+            // root
+            if (b::config()->exists('project.root')) {
+                $args['load'][] = b::config()->getValue('project.root');
+            }
 
         }
 
@@ -467,10 +473,11 @@ final class b {
                 if ($dir->isFile() AND $dir->getExtension() == 'php') {
                     $files[] = $dir->getPathname();
                 }
-                else if ($dir->isDir() AND !$dir->isDot()) {
+                else if ($dir->isDir() AND !$dir->isDot() AND $dir->getFileName() != 'tests' ) {
                     $dirs[] = $dir->getPathname();
                 }
             }
+
             foreach ($dirs as $dir) {
                 self::_resursiveDirectorySerach($dir, $files);
             }

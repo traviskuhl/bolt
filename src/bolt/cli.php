@@ -53,7 +53,7 @@ class cli extends plugin {
 
         // no command
         if ($cmd === false) {
-            return $this->help();
+            return $this->unknown();
         }
 
         // create our class
@@ -93,6 +93,8 @@ class cli extends plugin {
         // parse
         $a->parse();
 
+        $_argv = array_filter(array_slice($a->getInvalidArguments(), 1), function($v){ return !($v{0} == '-'); });
+
         // set argv
         $o->setArgv($_argv);
 
@@ -102,10 +104,8 @@ class cli extends plugin {
 
     }
 
-    public function help() {
-
-        var_dump('help');
-
+    public function unknown() {
+        return $this->error("Unknown Command");
     }
 
     // ask

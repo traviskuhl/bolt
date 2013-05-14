@@ -36,7 +36,7 @@ class controllerTest extends bolt_test {
     }
 
     public function testInit() {
-        $this->assertTrue($this->tc->initRun->value);
+        $this->assertTrue($this->tc->initRun);
     }
 
     public function testGetGuid() {
@@ -45,7 +45,7 @@ class controllerTest extends bolt_test {
 
     public function testMagicSet() {
         $this->tc->var = 1;
-        $this->assertEquals($this->tc->getParam('var')->value, 1);
+        $this->assertEquals($this->tc->var, 1);
     }
 
     public function testMagicGetRequest() {
@@ -58,7 +58,7 @@ class controllerTest extends bolt_test {
 
     public function testMagicGetParam() {
         $this->tc->var = 1;
-        $this->assertEquals($this->tc->var->value, 1);
+        $this->assertEquals($this->tc->var, 1);
     }
 
     public function testSetContentString() {
@@ -92,17 +92,17 @@ class controllerTest extends bolt_test {
     }
 
     public function testGetParam() {
-        $this->assertFalse($this->tc->getParam('novar')->value, false);
-        $this->assertEquals($this->tcd->getParam('var')->value, 1);
+        $this->assertFalse($this->tc->novar, false);
+        $this->assertEquals($this->tcd->var, 1);
         $this->tc->var = 1;
-        $this->assertEquals($this->tc->getParam('var')->value, 1);
+        $this->assertEquals($this->tc->var, 1);
     }
 
     public function testGetParamValue() {
         $this->assertFalse($this->tc->getParamValue('novar'), false);
-        $this->assertEquals($this->tcd->getParamValue('var'), 1);
+        $this->assertEquals($this->tcd->var, 1);
         $this->tc->var = 1;
-        $this->assertEquals($this->tc->getParamValue('var'), 1);
+        $this->assertEquals($this->tc->var, 1);
     }
 
     public function testSetLayoutString() {

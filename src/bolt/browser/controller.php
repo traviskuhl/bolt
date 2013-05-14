@@ -60,6 +60,7 @@ class controller extends \bolt\event implements iController {
     private $_content = false;
     private $_fromInit = false;
     private $_data = array();
+    private $_properties = array();
 
     // starter variables
     protected $templateDir = false;
@@ -79,6 +80,11 @@ class controller extends \bolt\event implements iController {
         // run init() and save return value
         // for check on run()
         $this->_fromInit = $this->init();
+
+        // no template dir
+        if ($this->templateDir === false AND b::config()->exists('project.templates') ) {
+            $this->templateDir = b::config()->getValue('project.templates');
+        }
 
         // check if a layout property is set
         if ($this->layout) {
@@ -117,7 +123,8 @@ class controller extends \bolt\event implements iController {
     /// @return self
     ////////////////////////////////////////////////////////////////////
     public function __set($name, $value) {
-        $this->_params->set($name, $value);
+        $this->_properties[] = $name;
+        $this->{$name} = $value;
         return $this;
     }
 
@@ -137,7 +144,15 @@ class controller extends \bolt\event implements iController {
             case 'response':
                 return b::response();
             default:
-              return $this->_params->get($name);
+                if ($this->_params->exists($name)) {
+                    return $this->_params->get($name);
+                }
+                else if (array_key_exists($name, $this->_properties)) {
+                    return $this->{$name};
+                }
+                else {
+                    return false;
+                }
         };
     }
 
@@ -199,7 +214,19 @@ class controller extends \bolt\event implements iController {
     /// @return mixed value
     ////////////////////////////////////////////////////////////////////
     public function getParam($name, $default=false) {
+        if (in_array($name, $this->_properties)) {
+            return $this->{$name};
+        }
         return $this->_params->get($name);
+    }
+
+    public function exists($name) {
+        if (in_array($name, $this->_properties)) {
+            return true;
+        }
+        else {
+            return $this->_params->exists($name);
+        }
     }
 
     ////////////////////////////////////////////////////////////////////
@@ -405,12 +432,12 @@ class controller extends \bolt\event implements iController {
         // go ahead an execute
         $resp = call_user_func_array(array($this, $func), $args);
 
+
         // if response is a view
         // render it
         if (is_string($resp)) {
             $this->setContent($resp);
         }
-
 
         // see if there's a layout
         if ($this->hasLayout()) {
@@ -442,6 +469,12 @@ class controller extends \bolt\event implements iController {
     /// @return self
     ////////////////////////////////////////////////////////////////////
     public function renderTemplate($file, $vars=array(), $render=false) {
+
+        // add any set data to the params load
+        foreach ($this->_properties as $name) {
+            $vars[$name] = $this->{$name};
+        }
+
         $this->setContent(b::render(array(
                 'render' => $render,
                 'file' => $this->getTemplateDir()."/".$file,
@@ -461,6 +494,12 @@ class controller extends \bolt\event implements iController {
     /// @return self
     ////////////////////////////////////////////////////////////////////
     public function renderString($str, $vars=array(), $render=false) {
+
+        // add any set data to the params load
+        foreach ($this->_properties as $name) {
+            $vars[$name] = $this->{$name};
+        }
+
         $this->setContent(b::render(array(
                 'render' => $render,
                 'string' => $str,
@@ -478,6 +517,11 @@ class controller extends \bolt\event implements iController {
     /// @return rendered view
     ////////////////////////////////////////////////////////////////////
     public function render($view) {
+
+        // add any set data to the params load
+        foreach ($this->_properties as $name) {
+            $this->_params->set($name, $this->{$name});
+        }
 
         // string
         if (is_string($view) AND class_exists($view, true)) {

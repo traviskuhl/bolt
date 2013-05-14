@@ -11,7 +11,7 @@ class singleton extends \bolt\event {
     public function __call($name, $args) {
     	if (method_exists($this, $name)) {
     		return call_user_func_array(array($this, $name), $args);
-    	}    	
+    	}
         return $this;
     }
 

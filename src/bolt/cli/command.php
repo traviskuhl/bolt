@@ -76,6 +76,10 @@ abstract class command  {
             $o = $a->getOption($name);
             return $o['default'];
         }
+        if ($a->getFlag($name)) {
+            $o = $a->getFlag($name);
+            return $o['default'];
+        }
         return false;
     }
 

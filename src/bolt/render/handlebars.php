@@ -6,6 +6,8 @@ use \b;
 // render
 b::render()->plug('handlebars', '\bolt\render\handlebars');
 
+//
+
 // handlebars
 class handlebars extends \bolt\plugin\singleton {
 
@@ -42,12 +44,17 @@ class handlebars extends \bolt\plugin\singleton {
             return false;
           },
           'url' => function($template, $context, $args, $text) {
+
             if (empty($args)) {return;}
 
             // get all our context params an see if they exist in the string
             if (preg_match_all('#\$([a-zA-Z0-9_\.]+)#', $args, $matches, PREG_SET_ORDER)) {
               foreach ($matches as $match) {
-                $args = str_replace($match[0], $context->get('controller')->getParamValue($match[1]), $args);
+                $val = $context->get($match[1]);
+                if (!$val AND $context->get('controller')) {
+                  $val = $context->get('controller')->getParamValue($match[1]);
+                }
+                $args = str_replace($match[0], $val, $args);
               }
             }
 

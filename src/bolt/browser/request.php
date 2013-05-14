@@ -252,6 +252,16 @@ class request extends \bolt\plugin\singleton {
         // controller
         $reps = false;
 
+        // register any partials, if we have a dir in config
+        if (b::config()->exists('project.partials')) {
+            $dir = b::config()->getValue("project.partials");
+            foreach (glob("{$dir}/*.html") as $file) {
+                $name = str_replace('.template.html', '', basename($file));
+                b::render()->handlebars->partial($name, $file);
+            }
+        }
+
+
         // call before
         $route->fire("before");
 

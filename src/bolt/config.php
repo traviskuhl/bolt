@@ -43,6 +43,10 @@ class config extends plugin\singleton {
         return $this->_bucket->asArray();
     }
 
+    public function asIni($key=false){
+        return $this->_bucket->asIni($key);
+    }
+
     // import
     public function import($file, $args=array()) {
         $parts = explode(".", $file);
@@ -142,48 +146,6 @@ class config extends plugin\singleton {
         return $data;
     }
 
-    /*
-    * @package   Config_Lite
-    * @author    Patrick C. Engel <pce@php.net>
-    * @copyright 2010-2011 <pce@php.net>
-    * @license   http://www.gnu.org/copyleft/lesser.html  LGPL License 2.1
-    */
-    public function toIniFile($key=false) {
-        $data = ($key ? $this->_bucket->get($key)->asArray() : $this->_bucket->asArray());
-        $content = '';
-        $sections = '';
-        $globals  = '';
-        if (!empty($data)) {
-            // 2 loops to write `globals' on top, alternative: buffer
-            foreach ($data as $section => $item) {
-                if (!is_array($item)) {
-                    $value    = $item;
-                    $globals .= $section . ' = "' . $value .'"'."\n";
-                }
-            }
-            $content .= $globals;
-            foreach ($data as $section => $item) {
-                if (is_array($item)) {
-                    $sections .= "\n[" . $section . "]\n";
-                    foreach ($item as $key => $value) {
-                        if (is_array($value)) {
-                            foreach ($value as $arrkey => $arrvalue) {
-                                $arrvalue  = $arrvalue;
-                                $arrkey    = $key . '[' . (is_int($arrkey) ? "" : $arrkey) . ']';
-                                $sections .= $arrkey . ' = "' . $arrvalue.'"'
-                                            ."\n";
-                            }
-                        } else {
-                            $value     = $value;
-                            $sections .= $key . ' = "' . $value .'"'."\n";
-                        }
-                    }
-                }
-            }
-            $content .= $sections;
-        }
-        return $content;
 
-    }
 
 }
