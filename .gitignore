@@ -7,3 +7,4 @@ tests/coverage/*
 docs
 docs/*
 *DS_Store
+*.fuse_*
