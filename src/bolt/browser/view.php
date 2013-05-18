@@ -455,10 +455,11 @@ class view extends \bolt\event implements iView {
     /// @return self
     ////////////////////////////////////////////////////////////////////
     public function renderTemplate($file, $vars=array(), $render=false) {
-        return $this->render(array(
+        return b::render(array(
             'file' => $file,
             'vars' => $vars,
-            'render' => $render
+            'render' => $render,
+            'self' => $this
         ));
     }
 
@@ -472,11 +473,12 @@ class view extends \bolt\event implements iView {
     /// @return self
     ////////////////////////////////////////////////////////////////////
     public function renderString($str, $vars=array(), $render=false) {
-        return $this->render(array(
-                'string' => $str,
-                'vars' => $vars,
-                'render' => $render
-            ));
+        return b::render(array(
+            'string' => $str,
+            'vars' => $vars,
+            'render' => $render,
+            'self' => $this
+        ));
     }
 
 }

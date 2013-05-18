@@ -98,8 +98,8 @@ final class b {
 
         // template renders
         'render'          => "./bolt/render.php",
-        'render-mustache' => "./bolt/render/mustache.php",
-        'render-markdown' => "./bolt/render/markdown.php",
+        // 'render-mustache' => "./bolt/render/mustache.php",
+        // 'render-markdown' => "./bolt/render/markdown.php",
         'render-handlebars' => "./bolt/render/handlebars.php",
 
         // source
@@ -252,6 +252,13 @@ final class b {
         // config
         if (defined('bConfig') AND bConfig !== false AND file_exists(bConfig."/config.ini")) {
           b::config()->import(bConfig."/config.ini", array('key' => 'global'));
+        }
+
+        // include
+        if (b::config()->exists("global.autoload")) {
+            foreach (b::config()->get("global.autoload") as $dir) {
+                self::$autoload[] = $dir;
+            }
         }
 
         // if we are init from the server
@@ -530,6 +537,12 @@ final class b {
                 else if (file_exists($root.$class.".php")) {
                     self::$_loaded[] = realpath($root.$class.".php");
                     return include_once($root.$class.".php");
+                }
+                else if (strpos($class, '_') !== false) {
+                    $class = str_replace("_", "/", $class). ".php";
+                    if (file_exists($root.$class)) {
+                        return include_once($root.$class);
+                    }
                 }
             }
         }

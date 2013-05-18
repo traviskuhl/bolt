@@ -29,5 +29,8 @@ define('bRoot', 'phar://bolt.phar/');
 // include bolt
 require("phar://bolt.phar/bolt.php");
 
+// add to auto load
+b::$_autoload[] = bPear."/bolt";
+
 // and done
 __HALT_COMPILER();

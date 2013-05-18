@@ -21,11 +21,8 @@ class handlebars extends \bolt\plugin\singleton {
 
   public function __construct() {
 
-    // include
-    require bRoot.'/vendor/Handlebars/Autoloader.php';
-
-    // auto load
-    \Handlebars_Autoloader::register(bRoot.'/vendor/');
+    // // auto load
+    // \Handlebars_Autoloader::register(bPear.'/bolt/vendor/');
 
     // engine
     $this->eng = new \Handlebars_Engine(array(
