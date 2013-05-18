@@ -135,6 +135,7 @@ final class b {
             "./bolt/browser/response/ajax.php",
             "./bolt/browser/response/html.php",
             "./bolt/browser/response/xml.php",
+            "./bolt/browser/response/javascript.php",
         ),
         'cli' => array(
             // cli
@@ -293,10 +294,7 @@ final class b {
             $project = b::config()->get('global')->get($project)->asArray();
 
             if (isset($project['load'])) {
-                $args['load'] = $project['load']; unset($project['load']);
-            }
-            if (isset($project['settings'])) {
-                $args['settings'] = $project['settings']; unset($project['settings']);
+                b::load($project['load']);
             }
 
             // everything else is config
@@ -309,11 +307,23 @@ final class b {
                 $args['load'][] = b::config()->getValue('project.root');
             }
 
+            //
+            if (b::config()->exists('project.settings')) {
+                self::$_settings['project'] = b::settings( b::config()->project->settings->value );
+            }
+
+
         }
 
+
         // global load
-        if (b::config()->get('global.load')->value) {
+        if (b::config()->exists('global.load')) {
             b::load(b::config()->get('global.load')->asArray());
+        }
+
+        // project
+        if (b::config()->exists('project.load')) {
+            $args['load'] += b::config()->get('project.load')->asArray();
         }
 
         // config
@@ -324,9 +334,6 @@ final class b {
         // settings or default project
         if (isset($args['settings'])) {
             self::$_settings['project'] = (is_a($args['settings'], '\bolt\settings') ? $args['settings'] : b::settings($args['settings']));
-        }
-        else {
-            self::$_settings['project'] = b::bucket();
         }
 
         // load
@@ -395,6 +402,7 @@ final class b {
             $name = implode(".", $parts);
         }
         $obj = (array_key_exists($type, self::$_settings) ? self::$_settings[$type] : self::$_settings['project']);
+
         return $obj->get($name, $default);
     }
 

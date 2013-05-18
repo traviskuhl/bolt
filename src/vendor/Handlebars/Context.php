@@ -93,6 +93,29 @@ class Handlebars_Context
         return $value;
     }
 
+    public function merge($vars) {
+        $cur = count($this->stack) - 1;
+
+
+        foreach ($vars as $k => $v){
+            if (is_string($v)) {
+                $vars[$k] = ($this->get($v) ?: $v);
+            }
+        }
+
+        if (is_array($this->stack[$cur])) {
+            foreach ($vars as $n => $v) {
+                $this->stack[$cur][$n] = $v;
+            }
+        }
+        else if (is_object($this->stack[$cur])) {
+            foreach ($vars as $n => $v) {
+                $this->stack[$cur]->$n = $v;
+            }
+        }
+
+    }
+
     /**
      * Get a avariable from current context
      * Supported types :
@@ -124,7 +147,7 @@ class Handlebars_Context
             prev($this->stack);
             $level--;
         }
-        $current = current($this->stack);
+        $current = $oc = current($this->stack);
         if (!$variableName) {
             if ($strict) {
                 throw new InvalidArgumentException('can not find variable in context');
@@ -142,8 +165,9 @@ class Handlebars_Context
             }
         }
 
+
         if (is_object($current) AND is_a($current, '\bolt\bucket\bString')) {
-            $current = $current->value;
+            $current = (string)$current->value;
         }
 
 

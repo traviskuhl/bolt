@@ -92,7 +92,20 @@ class Handlebars_Helpers
         $this->add(
             'each',
             function ($template, $context, $args, $source) {
+                $vars = array();
+                if (strpos(trim($args), ' ') !== false) {
+                    $parts = explode(' ', trim($args));
+                    $args = array_shift($parts);
+                    $vars = json_decode(trim(implode(" ", $parts)), true);
+                }
                 $tmp = $context->get($args);
+                // if (is_array($vars)) {
+                //     foreach ($vars as $n => $v) {
+                //         $tmp[$n] = $v;
+                //     }
+                // }
+
+
                 $buffer = '';
                 if (is_array($tmp) || $tmp instanceof Traversable) {
                     foreach ($tmp as $var) {
@@ -125,6 +138,23 @@ class Handlebars_Helpers
                 $buffer = $template->render($context);
                 $context->pop();
                 return $buffer;
+            }
+        );
+
+        $this->add(
+            'bind',
+            function ($template, $context, $args, $source) {
+                $vars = array();
+                if (substr(trim($args), 0, 1) == '{') {
+                    $vars = json_decode(trim($args), true);
+                }
+                else {
+                    $parts = explode(' ', trim($args));
+                    $name = array_shift($parts);
+                    $val = trim(implode(" ", $parts));
+                    $vars = array($name => $val);
+                }
+                $context->merge($vars);
             }
         );
 

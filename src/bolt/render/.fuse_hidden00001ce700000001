@@ -48,10 +48,10 @@ class handlebars extends \bolt\plugin\singleton {
             $class = trim(array_shift($parts), '"\'');
             $params = array();
 
-            if (trim($text) AND is_array(json_decode(trim($text), true))) {
+            if (trim($text)) {
               $params += array_merge($params, json_decode(trim($text), true));
             }
-            else if ($parts) {
+            else {
               $params = json_decode(trim(implode(" ", $parts)), true);
             }
 
@@ -105,8 +105,6 @@ class handlebars extends \bolt\plugin\singleton {
                 }
                 // no val
                 if (!$val) { return ""; }
-                if (!is_object($val)) { $val = b::bucket($val); }
-
                 ${$match[1]} = $val;
               }
             }

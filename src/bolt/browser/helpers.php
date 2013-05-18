@@ -9,6 +9,10 @@ b::bolt()->setFallbacks('\bolt\browser\helpers');
 // helpers
 class helpers {
 
+    static function buildUrl($parts, $start=false, $opts=HTTP_URL_REPLACE) {
+        return \http_build_url($start, $parts, $opts);
+    }
+
 
     ////////////////////////////////////////////////
     /// @brief add url params to a url

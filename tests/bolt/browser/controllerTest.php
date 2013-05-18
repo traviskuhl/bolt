@@ -203,15 +203,15 @@ class controllerTest extends bolt_test {
     }
 
     public function testRenderStringView() {
-        $this->assertEquals('test view', $this->tc->render('testView'));
+        $this->assertEquals('test view', $this->tc->renderView('testView'));
     }
 
     public function testRenderView() {
-        $this->assertEquals('test view', $this->tc->render(new testView()));
+        $this->assertEquals('test view', $this->tc->renderView(new testView()));
     }
 
     public function testRenderNonView() {
-        $this->assertEquals(false, $this->tc->render('unknown class'));
+        $this->assertEquals(false, $this->tc->renderView('unknown class'));
     }
 
 }

@@ -10,8 +10,8 @@ class json extends \bolt\plugin\singleton {
 
     // accept or header
     public static $contentType = array(
-        100 => 'text/javascript',
-        200 => 'text/javascript;secure'
+        100 => 'application/json',
+        200 => 'application/json;secure'
     );
 
     //
@@ -28,7 +28,7 @@ class json extends \bolt\plugin\singleton {
         }
 
         // set response
-        b::response()->setContentType("text/javascript");
+        b::response()->setContentType("application/json");
 
         // give it up
         return $resp;

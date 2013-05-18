@@ -26,6 +26,9 @@ class bucket extends \bolt\plugin\factory implements \Iterator, \ArrayAccess {
         if (is_array($args)) {
             return new bucket($args);
         }
+        else if (is_object($args)) {
+            return $args;
+        }
         else {
             return new bucket\bString(false, $args, false);
         }
@@ -271,6 +274,9 @@ class bucket extends \bolt\plugin\factory implements \Iterator, \ArrayAccess {
 		else if (is_array($this->_data[$name])) {
 			$return =  new bucket($this->_data[$name], $name, $this);
 		}
+        else if (is_object($this->_data[$name])) {
+            $return = $this->_data[$name];
+        }
         else {
 		  $return = new bucket\bString($name, $this->_data[$name], $this);
         }
@@ -616,9 +622,11 @@ class bucket extends \bolt\plugin\factory implements \Iterator, \ArrayAccess {
 }
 
 namespace bolt\bucket {
+use \b;
 
 class bString {
 
+    private $_original = false;
     private $_value = false;
     private $_parent = false;
     private $_key = false;
@@ -635,7 +643,7 @@ class bString {
     /// @return void
     ////////////////////////////////////////////////////////////////////
     public function __construct($key, $value, $parent) {
-        $this->_value = $value;
+        $this->_value = $this->_original = $value;
         $this->_key = $key;
         $this->_parent = $parent;
     }
@@ -654,8 +662,11 @@ class bString {
         if ($name == 'value') {
             return $this->_value;
         }
-        else if (in_array($name, $this->_modifiers)) {
-            return call_user_func(array($this, $name));
+        else if ($name == 'original') {
+            return $this->_original;
+        }
+        else if (method_exists($this, $name)) {
+            return $this->$name();
         }
         return $this->get();
     }
@@ -695,27 +706,52 @@ class bString {
     }
 
     // string functions
+    public function ago() {
+        $this->_value = b::ago($this->_value);
+        return $this;
+    }
+
+    public function date($fmt) {
+        $this->_value = date($fmt, $this->_value);
+        return $this;
+    }
+
+    public function strip_tags() {
+        $this->_value = strip_tags($this->_value);
+        return $this;
+    }
+
+    public function short($len, $onwords=true, $append=false) {
+        $this->_value = b::short($this->_value, $len, $onwords, $append);
+        return $this;
+    }
     public function encode($q=ENT_QUOTES) {
-        return htmlentities($this->_value, $q, 'utf-8', false);
+        $this->_value = htmlentities($this->_value, $q, 'utf-8', false);
+        return $this;
     }
     public function decode($q=ENT_QUOTES) {
-        return html_entity_decode($this->_value, $q, 'utf-8');
+        $this->_value = html_entity_decode($this->_value, $q, 'utf-8');
+        return $this;
     }
     public function toUpper() {
-        return strtoupper($this->_value);
+        $this->_value = strtoupper($this->_value);
+        return this;
     }
     public function toLower() {
-        return strtolower($this->_value);
+        $this->_value = strtolower($this->_value);
+        return $this;
     }
     public function ucfirst() {
-        return ucfirst($this->_value);
+        $this->_value = ucfirst($this->_value);
+        return $this;
     }
     public function cast($type) {
         settype($this->_value, $type);
         return $this;
     }
     public function totime() {
-        return strtotime($this->_value);
+        $this->_value = strtotime($this->_value);
+        return $this;
     }
 
     public function exists() {

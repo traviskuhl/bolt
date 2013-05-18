@@ -57,6 +57,18 @@ class request extends \bolt\plugin\singleton {
            $this->_headers = b::bucket($headers);
         }
 
+        // when we run
+        b::on('run', function(){
+
+            // register settings
+            // register a global rendering value
+            b::render()
+                ->variable('settings', array('project' => b::getSettings('project')))
+                ->variable('config', array('project' => b::config()->project, 'global' => b::config()->global))
+                ->variable('env', b::env());
+
+        });
+
 	}
 
     ////////////////////////////////////////////////////////////////////

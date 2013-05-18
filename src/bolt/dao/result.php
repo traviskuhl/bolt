@@ -5,9 +5,9 @@ use \b;
 
 interface iResult {}
 
-class result implements iResult {
+class result implements iResult, \Iterator, \ArrayAccess {
 
-    // private    
+    // private
     private $_guid; /// guid for unique objects
     private $_class = false;
     private $_loaded = false;
@@ -18,7 +18,7 @@ class result implements iResult {
     private $_items = array();
 
     public static function create($class, $items=array(), $key='id') {
-        return new result($class, $items, $key);                
+        return new result($class, $items, $key);
     }
 
     ////////////////////////////////////////////////////////////////////
@@ -105,11 +105,16 @@ class result implements iResult {
     /// @return self
     ////////////////////////////////////////////////////////////////////
     public function setItems($items, $key='id') {
-        foreach ($items as $item) {
-            if (!is_a($item, $this->_class)) {
-                $item = b::dao($this->_class)->set($item);
-            }            
-            $this->_items[(string)$item->getValue($key)] = $item;
+        foreach ($items as $name => $item) {
+            if ($key === false) {
+                $this->_items[$name] = $item;
+            }
+            else {
+                if (!is_a($item, $this->_class)) {
+                    $item = b::dao($this->_class)->set($item);
+                }
+                $this->_items[(string)$item->getValue($key)] = $item;
+            }
         }
         $this->_loaded = true;
         return $this;
@@ -161,6 +166,113 @@ class result implements iResult {
 
     public function getPages() {
         return ($this->_limit ? ceil($this->_total / $this->_limit) : 0);
+    }
+
+
+    ////////////////////////////////////////////////////////////////////
+    /// @brief set a value at index
+    ///
+    /// @param $offset offset value to set
+    /// @param $value value
+    /// @return self
+    ////////////////////////////////////////////////////////////////////
+    public function offsetSet($offset, $value) {
+        if (is_null($offset)) {
+            $this->_items[] = $value;
+        } else {
+            $this->_items[$offset] = $value;
+        }
+        return $this;
+    }
+
+    ////////////////////////////////////////////////////////////////////
+    /// @brief check if an offset exists
+    ///
+    /// @param $offset offset name
+    /// @return bool if offset exists
+    ////////////////////////////////////////////////////////////////////
+    public function offsetExists($offset) {
+        return isset($this->_items[$offset]);
+    }
+
+    ////////////////////////////////////////////////////////////////////
+    /// @brief unset an offset
+    ///
+    /// @param $offset offset name
+    /// @return self
+    ////////////////////////////////////////////////////////////////////
+    public function offsetUnset($offset) {
+        unset($this->_items[$offset]);
+        return $this;
+    }
+
+    ////////////////////////////////////////////////////////////////////
+    /// @brief get an offset value
+    ///
+    /// @param $offset offset name
+    /// @return value
+    ////////////////////////////////////////////////////////////////////
+    public function offsetGet($offset) {
+        return isset($this->_items[$offset]) ? $this->_items[$offset] : null;
+    }
+
+    ////////////////////////////////////////////////////////////////////
+    /// @brief rewind array pointer
+    ///
+    /// @return self
+    ////////////////////////////////////////////////////////////////////
+    function rewind() {
+        reset($this->_items);
+        return $this;
+    }
+
+    ////////////////////////////////////////////////////////////////////
+    /// @brief current array pointer
+    ///
+    /// @return self
+    ////////////////////////////////////////////////////////////////////
+    function current() {
+        $var = current($this->_items);
+        return (is_array($var) ? b::bucket($var) : $var);
+    }
+
+    ////////////////////////////////////////////////////////////////////
+    /// @brief array key pointer
+    ///
+    /// @return key
+    ////////////////////////////////////////////////////////////////////
+    function key() {
+          $var = key($this->_items);
+        return $var;
+    }
+
+    ////////////////////////////////////////////////////////////////////
+    /// @brief advance array pointer
+    ///
+    /// @return current value
+    ////////////////////////////////////////////////////////////////////
+    function next() {
+        $var = next($this->_items);
+        return $var;
+    }
+
+    ////////////////////////////////////////////////////////////////////
+    /// @brief is the current array pointer valid
+    ///
+    /// @return current value
+    ////////////////////////////////////////////////////////////////////
+    function valid() {
+        $var = $this->current() !== false;
+        return $var;
+    }
+
+    ////////////////////////////////////////////////////////////////////
+    /// @brief get count of data
+    ///
+    /// @return count
+    ////////////////////////////////////////////////////////////////////
+    function count() {
+        return count($this->_items);
     }
 
 }

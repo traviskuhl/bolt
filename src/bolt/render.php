@@ -16,17 +16,7 @@ class render extends plugin {
     private $_globals = array();
 
     public function __construct() {
-        // render ehlper
-        $this->helper('view', function($args, $vars){
-          $view = b::view(array_shift($args));
-          $view->setParams($vars);
 
-          if (isset($vars['controller'])) {
-            $view->setController($vars['controller']);
-          }
-
-          return $view->render($args);
-        });
 
     }
 
@@ -40,9 +30,11 @@ class render extends plugin {
 
     public function helper($name, $callback) {
       $this->_helpers[$name] = array($callback);
+      return $this;
     }
     public function variable($name, $var) {
       $this->_globals[$name] = $var;
+      return $this;
     }
 
     public function view($view, $params=array()) {
@@ -69,11 +61,11 @@ class render extends plugin {
         $file = (isset($args['file']) ? $args['file'] : false);;
         $string = (isset($args['string']) ? $args['string'] : false);;
         $vars = (isset($args['vars']) ? $args['vars'] : array());
-        $controller = (isset($args['controller']) ? $args['controller'] : false);
+        $self = (isset($args['self']) ? $args['self'] : false);
 
-        if ($controller) {
-            $vars['controller'] = $controller;
-           foreach ($controller->getParams() as $key => $param)  {
+        if ($self) {
+            $vars['self'] = $self;
+           foreach ($self->getParams() as $key => $param)  {
                if (!array_key_exists($key, $vars)) {
                    $vars[$key] = $param;
                }
@@ -90,6 +82,7 @@ class render extends plugin {
             return call_user_func_array($helper[0], array(func_get_args(), $vars));
           };
         }
+
 
         // if we have a file, lets try to load it
         if ($file) {
@@ -120,6 +113,7 @@ class render extends plugin {
             }, $file, $vars);
 
         }
+
 
         // pass to the render
         return $render->render($string, $vars);
