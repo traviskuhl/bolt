@@ -735,7 +735,7 @@ class bString {
     }
     public function toUpper() {
         $this->_value = strtoupper($this->_value);
-        return this;
+        return $this;
     }
     public function toLower() {
         $this->_value = strtolower($this->_value);

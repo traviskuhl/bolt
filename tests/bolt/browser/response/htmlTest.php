@@ -19,13 +19,12 @@ class responseHtmlTest extends bolt_test {
             ->removeInstance('response');
 
         $this->r = new \bolt\browser\response\html();
-        $this->c = new \bolt\browser\controller();
 
         $this->status = 200;
         $this->html = "this is a test";
 
-        $this->c->setContent($this->html);
-        $this->c->setStatus($this->status);
+        $this->r->setContent($this->html);
+        $this->r->setStatus($this->status);
 
     }
 
@@ -34,11 +33,8 @@ class responseHtmlTest extends bolt_test {
     }
 
     public function testGetContent() {
-        $r = $this->r->getContent($this->c);
-
-        $this->assertEquals($this->html, $r);
-
-        $this->assertEquals('text/html', b::response()->getContentType());
+        $this->assertEquals($this->html, $this->r->handle());
+        $this->assertEquals('text/html', $this->r->getContentType());
 
     }
 

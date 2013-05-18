@@ -6,7 +6,7 @@ use \b as b;
 b::response()->plug('json', '\bolt\browser\response\json');
 
 // json
-class json extends \bolt\plugin\singleton {
+class json extends handler {
 
     // accept or header
     public static $contentType = array(
@@ -15,20 +15,21 @@ class json extends \bolt\plugin\singleton {
     );
 
     //
-    public function getContent($view) {
+    public function handle() {
+
 
         $resp = json_encode(array(
-            'status' => b::response()->getStatus(),
-            'response' => $view->getContent()
+            'status' => $this->getStatus(),
+            'response' => $this->getContent()
         ));
 
         // securet
-        if (stripos($view->getContentType(), ';secure') !== false) {
+        if (stripos($this->getContentType(), ';secure') !== false) {
             $resp = 'while(1);'.$resp;
         }
 
         // set response
-        b::response()->setContentType("application/json");
+        $this->setContentType("application/json");
 
         // give it up
         return $resp;

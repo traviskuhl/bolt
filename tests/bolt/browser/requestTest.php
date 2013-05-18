@@ -12,7 +12,8 @@ class requestTest extends bolt_test {
         ));
 
         // reset route instance each time
-        b::bolt()->removeInstance('route')->removeInstance('request');
+        b::bolt()->removeInstance('route')
+                ->removeInstance('request');
 
         $_GET = array('getvar' => 1);
         $_POST = array('postvar' => 1);
@@ -126,13 +127,13 @@ class requestTest extends bolt_test {
     public function testRunPassedPath() {
         b::route('test_route', 'reqTestController');
         $this->assertInstanceOf('\bolt\browser\request', $this->r->run('test_route'));
-        $this->assertInstanceOf('reqTestController', b::response()->getController());
+        $this->assertEquals('reqTestController', $this->r->getRoute()->getController());
     }
 
     public function testRunServerPath() {
         b::route($_SERVER['PATH_INFO'], 'reqTestController');
         $this->assertInstanceOf('\bolt\browser\request', $this->r->run());
-        $this->assertInstanceOf('reqTestController', b::response()->getController());
+        $this->assertEquals('reqTestController', $this->r->getRoute()->getController());
     }
 
     public function testRunClosure() {
@@ -142,8 +143,8 @@ class requestTest extends bolt_test {
             return 'test';
         });
         $this->assertInstanceOf('\bolt\browser\request', $this->r->run('test_route'));
-        $this->assertInstanceOf('\bolt\browser\controller', b::response()->getController());
-        $this->assertEquals('test', b::response()->getController()->getContent('test'));
+        $this->assertInstanceOf('Closure', $this->r->getRoute()->getController());
+        $this->assertEquals('test', $this->r->getContent());
     }
 
     public function testRunClosureWithParams() {
@@ -153,25 +154,7 @@ class requestTest extends bolt_test {
             $test->assertEquals(1, $novar);
         });
         $this->assertInstanceOf('\bolt\browser\request', $this->r->run("test_route/{$param}"));
-        $this->assertInstanceOf('\bolt\browser\controller', b::response()->getController());
-    }
-
-    public function testRunView() {
-        b::route('test_route', 'reqTestView');
-        $this->assertInstanceOf('\bolt\browser\request', $this->r->run('test_route'));
-        $this->assertEquals('test', b::response()->getController()->getContent('test'));
-    }
-
-    public function testRunControllerPassthrough() {
-        b::route('test_route', 'testControllerPassthrough');
-        $this->assertInstanceOf('\bolt\browser\request', $this->r->run('test_route'));
-        $this->assertInstanceOf('reqTestController', b::response()->getController());
-    }
-
-    public function testRunControllerPassthroughView() {
-        b::route('test_route', 'testControllerPassthroughView');
-        $this->assertInstanceOf('\bolt\browser\request', $this->r->run('test_route'));
-        $this->assertEquals('test', b::response()->getController()->getContent('test'));
+        $this->assertInstanceOf('Closure', $this->r->getRoute()->getController());
     }
 
 }

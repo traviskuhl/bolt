@@ -6,7 +6,7 @@ use \b as b;
 b::response()->plug('javascript', '\bolt\browser\response\javascript');
 
 // json
-class javascript extends \bolt\plugin\singleton {
+class javascript extends handler {
 
     // accept or header
     public static $contentType = array(
@@ -14,12 +14,12 @@ class javascript extends \bolt\plugin\singleton {
     );
 
     //
-    public function getContent($controller) {
+    public function handle() {
 
-        b::response()->setContentType('text/javascript');
+        $this->setContentType('text/javascript');
 
         // javascript
-        return $controller->getContent();
+        return $this->getContent();
 
     }
 

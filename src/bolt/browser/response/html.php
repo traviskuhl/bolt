@@ -6,7 +6,7 @@ use \b as b;
 b::response()->plug('html', '\bolt\browser\response\html');
 
 // json
-class html extends \bolt\plugin\singleton {
+class html extends handler {
 
     // accept or header
     public static $contentType = array(
@@ -14,12 +14,13 @@ class html extends \bolt\plugin\singleton {
     );
 
     //
-    public function getContent($controller) {
+    public function handle() {
 
-        b::response()->setContentType('text/html');
+        // set some content type
+        $this->setContentType('text/html');
 
         // html
-        return $controller->getContent();
+        return $this->getContent();
 
     }
 

@@ -19,15 +19,14 @@ class responseXhrTest extends bolt_test {
             ->removeInstance('response');
 
         $this->r = new \bolt\browser\response\xhr();
-        $this->c = new \bolt\browser\controller();
 
         $this->html = 'this is html';
         $this->data = array('1'=>'2');
         $this->status = 200;
 
-        $this->c->setContent($this->html);
-        $this->c->setData($this->data);
-        $this->c->setStatus($this->status);
+        $this->r->setContent($this->html);
+        $this->r->setData($this->data);
+        $this->r->setStatus($this->status);
 
     }
 
@@ -36,7 +35,7 @@ class responseXhrTest extends bolt_test {
     }
 
     public function testGetContentNoScript() {
-        $r = $this->r->getContent($this->c);
+        $r = $this->r->handle();
 
         $this->assertEquals(json_encode(array(
                 'status' => $this->status,
@@ -49,7 +48,7 @@ class responseXhrTest extends bolt_test {
                 )
             )), $r);
 
-        $this->assertEquals('text/javascript', b::response()->getContentType());
+        $this->assertEquals('text/javascript', $this->r->getContentType());
 
     }
 
@@ -59,9 +58,9 @@ class responseXhrTest extends bolt_test {
         $script = 'var some_javas_script = true;';
         $this->html = "<script>{$script}</script> with more html";
 
-        $this->c->setContent($this->html);
+        $this->r->setContent($this->html);
 
-        $r = $this->r->getContent($this->c);
+        $r = $this->r->handle();
 
         $this->assertEquals(json_encode(array(
                 'status' => $this->status,
@@ -74,7 +73,7 @@ class responseXhrTest extends bolt_test {
                 )
             )), $r);
 
-        $this->assertEquals('text/javascript', b::response()->getContentType());
+        $this->assertEquals('text/javascript', $this->r->getContentType());
 
     }
 

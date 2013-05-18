@@ -19,13 +19,13 @@ class responseAjaxTest extends bolt_test {
             ->removeInstance('response');
 
         $this->r = new \bolt\browser\response\ajax();
-        $this->c = new \bolt\browser\controller();
+
 
         $this->data = array('1'=>'2');
         $this->status = 200;
 
-        $this->c->setData($this->data);
-        $this->c->setStatus($this->status);
+        $this->r->setData($this->data);
+        $this->r->setStatus($this->status);
 
     }
 
@@ -34,17 +34,15 @@ class responseAjaxTest extends bolt_test {
     }
 
     public function testGetContent() {
-        $r = $this->r->getContent($this->c);
-
         $this->assertEquals(json_encode(array(
                 'status' => $this->status,
                 'response' => array(
                     'content' => false,
                     'data' => $this->data
                 )
-            )), $r);
+            )), $this->r->handle());
 
-        $this->assertEquals('text/javascript', b::response()->getContentType());
+        $this->assertEquals('text/javascript', $this->r->getContentType());
 
     }
 

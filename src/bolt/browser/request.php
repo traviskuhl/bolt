@@ -22,6 +22,8 @@ class request extends \bolt\plugin\singleton {
 	private $_headers;
 	private $_input = "";
     private $_params = false; // route params
+    private $_route = false;
+    private $_content = false;
 
     ////////////////////////////////////////////////////////////////////
     /// @brief construct a new instance
@@ -115,6 +117,10 @@ class request extends \bolt\plugin\singleton {
     ////////////////////////////////////////////////////////////////////
     public function __set($name, $value) {
         $this->_params->set($name, $value);
+    }
+
+    public function getRoute() {
+        return $this->_route;
     }
 
     ////////////////////////////////////////////////////////////////////
@@ -225,6 +231,10 @@ class request extends \bolt\plugin\singleton {
         return $this;
     }
 
+    public function getContent() {
+        return $this->_content;
+    }
+
     ////////////////////////////////////////////////////////////////////
     /// @brief execute the request
     ///
@@ -260,6 +270,9 @@ class request extends \bolt\plugin\singleton {
             if ($_route !== false AND $_route !== null) {
                 $route = $_route;
             }
+
+        // globalize route
+        $this->_route = $route;
 
         // controller
         $reps = false;
@@ -322,13 +335,6 @@ class request extends \bolt\plugin\singleton {
             $resp = b::controller()->setContent($resp);
         }
 
-        // it's a viewo
-        if (b::isInterfaceOf($resp, '\bolt\browser\iView')) {
-            $view = $resp;
-            $resp = new \bolt\browser\controller();
-            $resp->setContent($view->render());
-        }
-
         // if response isn't a controller interface
         // we need to stop
         if (!b::isInterfaceOf($resp, '\bolt\browser\iController')) {
@@ -379,13 +385,8 @@ class request extends \bolt\plugin\singleton {
 
         }
 
-        // run isn't a controller object we stop
-        if (!b::isInterfaceOf($resp, '\bolt\browser\iController')) {
-            return false;
-        }
-
         // set the controller
-        b::response()->setController($resp);
+        $this->_content = $run;
 
         // after request is finished
         $this->fire("after");

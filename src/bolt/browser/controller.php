@@ -35,13 +35,6 @@ class controllerFactory extends \bolt\plugin {
 /// @interface
 ////////////////////////////////////////////////////////////////////
 interface iController {
-    public function init();                 // called when stating controller
-    public function getTemplateDir();       // return template directory
-    public function getParams();            // return params bucket
-    public function getParam($name, $default=false);             // get single param from params bucket
-    public function getParamValue($name, $default=false);        // get native value of param from bucket
-    public function getGuid();              // get unique id of controller
-    public function getLayout();            // return layout view
     public function run();                  // execute the controller
 }
 
@@ -54,31 +47,15 @@ interface iController {
 ////////////////////////////////////////////////////////////////////
 class controller extends \bolt\browser\view implements iController {
 
-
+    // render
     private $_content = false;
-    private $_fromInit = false;
     private $_data = array();
     private $_properties = array();
+    private $_hasRendered = false;
 
     // starter variables
     protected $templateDir = false;
     protected $layout = false;
-
-    ////////////////////////////////////////////////////////////////////
-    /// @brief construct a controller object. not object must be give
-    ///         a unique id stored in $this->_guid
-    ///
-    ///
-    /// @return object controller
-    ////////////////////////////////////////////////////////////////////
-    final public function __construct() {
-        parent::__construct();  // construct our parent view
-
-        // run init() and save return value
-        // for check on run()
-        $this->_fromInit = $this->init();
-
-    }
 
     ////////////////////////////////////////////////////////////////////
     /// @brief get the accept header from b::request
@@ -151,15 +128,10 @@ class controller extends \bolt\browser\view implements iController {
     ///
     /// @return mixed response
     ////////////////////////////////////////////////////////////////////
-    public function run() {
+    final public function build() {
 
         // params from the request
         $params = b::request()->getParams();
-
-        // before
-        $this->fire('before');
-
-        call_user_func(array($this, 'before'));
 
         // check
         if ($this->_fromInit AND b::isInterfaceOf($this->_fromInit, '\bolt\browser\iController')) {
@@ -228,21 +200,21 @@ class controller extends \bolt\browser\view implements iController {
         // go ahead an execute
         $resp = call_user_func_array(array($this, $func), $args);
 
-
         // if response is a view
         // render it
         if (is_string($resp)) {
             $this->setContent($resp);
         }
 
-        call_user_func(array($this, 'after'));
+    }
 
-        // after
-        $this->fire('after');
-
-        // me
-        return $resp;
-
+    ////////////////////////////////////////////////////////////////////
+    /// @brief execute the controller
+    ///
+    /// @return mixed response
+    ////////////////////////////////////////////////////////////////////
+    public function run() {
+        return $this->render();
     }
 
 }

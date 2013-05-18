@@ -67,17 +67,6 @@ class responseTest extends bolt_test {
     }
 
 
-    public function testGetSetController() {
-        $c = new respTestController();
-        $this->assertFalse($this->r->getController());
-        $this->assertInstanceOf('\bolt\browser\response', $this->r->setController($c));
-        $this->assertInstanceOf('respTestController', $this->r->getController());
-    }
-
-    public function testSetControllerFail() {
-        $this->assertFalse($this->r->setController('no_a_controller'));
-    }
-
     public function testGetOutputHandler() {
         $this->r->plug('test', 'respTestOutputHandler');
         $this->r->plug('test2', 'respTestOutputHandler2');
@@ -86,10 +75,10 @@ class responseTest extends bolt_test {
     }
 
     public function testRun() {
-        $c = new respTestController();
+        $this->r->setContent('test');
         $this->r->plug('test', 'respTestOutputHandler');
-        $this->r->setContentType('test')->setController($c);
-        $this->assertEquals('test', $this->r->run());
+        $this->r->setContentType('test');
+        $this->assertEquals('test2', $this->r->run());
     }
 
 }
@@ -100,20 +89,20 @@ class respTestController extends \bolt\browser\controller {
     }
 }
 
-class respTestOutputHandler extends \bolt\plugin\factory {
+class respTestOutputHandler extends \bolt\browser\response\handler {
     public static $contentType = array(
         100 => 'test',
     );
-    public function getContent($c) {
-        return $c->getContent();
+    public function handle() {
+        return $this->getContent().'2';
     }
 }
 
-class respTestOutputHandler2 extends \bolt\plugin\factory {
+class respTestOutputHandler2 extends\bolt\browser\response\handler {
     public static $contentType = array(
         1 => 'test',
     );
-    public function getContent($c) {
+    public function handle() {
 
     }
 }

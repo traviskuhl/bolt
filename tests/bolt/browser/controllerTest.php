@@ -39,91 +39,6 @@ class controllerTest extends bolt_test {
         $this->assertTrue($this->tc->initRun);
     }
 
-    public function testGetGuid() {
-        $this->assertTrue((strlen($this->tc->getGuid()) > 0));
-    }
-
-    public function testMagicSet() {
-        $this->tc->var = 1;
-        $this->assertEquals($this->tc->var, 1);
-    }
-
-    public function testMagicGetRequest() {
-        $this->assertInstanceOf('bolt\browser\request', $this->tc->request);
-    }
-
-    public function testMagicGetResponse() {
-        $this->assertInstanceOf('bolt\browser\response', $this->tc->response);
-    }
-
-    public function testMagicGetParam() {
-        $this->tc->var = 1;
-        $this->assertEquals($this->tc->var, 1);
-    }
-
-    public function testSetContentString() {
-        $str = "this is a string";
-        $this->tc->setContent($str);
-        $this->assertEquals($this->tc->getContent(), $str);
-    }
-
-    public function testSetContentView() {
-        $str = "this is a string";
-        $view = new \bolt\browser\view();
-        $view->setContent($str);
-        $this->tc->setContent($view);
-        $this->assertEquals($this->tc->getContent(), $str);
-    }
-
-    public function testGetContent() {
-        $this->assertFalse($this->tc->getContent());
-        $str = "this is a string";
-        $this->tc->setContent($str);
-        $this->assertEquals($this->tc->getContent(), $str);
-    }
-
-    public function testGetTemplateDir() {
-        $this->assertFalse($this->tc->getTemplateDir());
-        $this->assertEquals($this->tcd->getTemplateDir(), 'folder');
-    }
-
-    public function testGetParams() {
-        $this->assertInstanceOf('\bolt\bucket', $this->tc->getParams());
-    }
-
-    public function testGetParam() {
-        $this->assertFalse($this->tc->novar, false);
-        $this->assertEquals($this->tcd->var, 1);
-        $this->tc->var = 1;
-        $this->assertEquals($this->tc->var, 1);
-    }
-
-    public function testGetParamValue() {
-        $this->assertFalse($this->tc->getParamValue('novar'), false);
-        $this->assertEquals($this->tcd->var, 1);
-        $this->tc->var = 1;
-        $this->assertEquals($this->tc->var, 1);
-    }
-
-    public function testSetLayoutString() {
-        $this->assertFalse($this->tc->getLayout());
-        $this->tc->setLayout('file');
-        $this->assertInstanceOf('bolt\browser\view', $this->tc->getLayout());
-    }
-
-    public function testSetLayoutView() {
-        $view = new \bolt\browser\view();
-        $guid = $view->getGuid();
-        $this->tc->setLayout($view);
-        $this->assertInstanceOf('bolt\browser\view', $this->tc->getLayout());
-        $this->assertEquals($guid, $this->tc->getLayout()->getGuid());
-    }
-
-    public function testHasLayout() {
-        $this->assertFalse($this->tc->hasLayout());
-        $this->assertTrue($this->tcd->hasLayout());
-    }
-
     public function testGetAccept() {
         $str = 'accept string';
         b::request()->setAccept($str);
@@ -142,76 +57,55 @@ class controllerTest extends bolt_test {
         $this->assertEquals($status, b::response()->getStatus());
     }
 
-    public function testRunDispatch() {
+    public function testRun() {
+        $c = new testControlleNoMethod();
+        $this->assertEquals('', $c->run());
+    }
+
+    public function testBuildDispatch() {
         $c = new testControllerWithDispatch();
-        $c->run();
+        $c->build();
         $this->assertEquals($c->getContent(), 'dispatch');
     }
 
-    public function testRunStandardMethods() {
+    public function testBuildStandardMethods() {
         $methods = array('get','post','put','delete','head');
         foreach ($methods as $method) {
             b::request()->setMethod($method);
-            $this->tc->run();
+            $this->tc->build();
             $this->assertEquals($method, $this->tc->getContent());
         }
     }
 
-    public function testRunUnknownMethod() {
+    public function testBuildUnknownMethod() {
         b::request()->setMethod('unknown');
         $o = new testControlleNoMethod();
-        $this->assertEquals($o, $o->run());
+        $this->assertEquals($o, $o->build());
     }
 
-    public function testRunActionMethods() {
+    public function testBuildActionMethods() {
         $action = 'Action';
         $methods = array('get','post','put','delete','head');
         b::request()->setAction($action);
         foreach ($methods as $method) {
             b::request()->setMethod($method);
-            $this->tc->run();
+            $this->tc->build();
             $this->assertEquals($method.$action, $this->tc->getContent());
         }
     }
 
-    public function testRunWithParams() {
+    public function testBuildWithParams() {
         b::request()->setParams(b::bucket(array('param' => 1)));
         $o = new testControllerWithParam();
-        $o->run();
+        $o->build();
         $this->assertEquals(1, $o->getContent());
     }
 
-    public function testRunWithDefaultParams() {
+    public function testBuildWithDefaultParams() {
         b::request()->setMethod('post');
         $o = new testControllerWithParam();
-        $o->run();
+        $o->build();
         $this->assertEquals('default', $o->getContent());
-    }
-
-    public function testRenderTemplate() {
-        $tmpl = INC."/test.template.php";
-        $vars = array();
-        $this->tc->renderTemplate($tmpl, $vars);
-        $this->assertEquals("test template", $this->tc->getContent());
-    }
-
-    public function testRenderString() {
-        $str = 'test string';
-        $vars = array();
-        $this->tc->renderString($str, $vars);
-        $this->assertEquals($str, $this->tc->getContent());
-    }
-
-    public function testRenderStringView() {
-        $this->assertEquals('test view', $this->tc->renderView('testView'));
-    }
-
-    public function testRenderView() {
-        $this->assertEquals('test view', $this->tc->renderView(new testView()));
-    }
-
-    public function testRenderNonView() {
-        $this->assertEquals(false, $this->tc->renderView('unknown class'));
     }
 
 }

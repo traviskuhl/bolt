@@ -6,7 +6,7 @@ use \b as b;
 b::response()->plug('xhr', '\bolt\browser\response\xhr');
 
 // json
-class xhr extends \bolt\plugin\singleton {
+class xhr extends handler {
 
     // accept or header
     public static $contentType = array(
@@ -15,12 +15,12 @@ class xhr extends \bolt\plugin\singleton {
 
 
     //
-    public function getContent($view) {
+    public function handle() {
 
-        b::response()->setContentType("text/javascript");
+        $this->setContentType("text/javascript");
 
         // body
-        $body = $view->getContent();
+        $body = $this->getContent();
 
         // holders
         $js = array();
@@ -63,10 +63,10 @@ class xhr extends \bolt\plugin\singleton {
 
         // give it up
         return json_encode(array(
-            'status' => $view->getStatus(),
+            'status' => $this->getStatus(),
             'response' => array(
                 'content' => $body,
-                'data' => $view->getData(),
+                'data' => $this->getData(),
                 'bootstrap' => array(
                     'javascript' => $js,
                 )

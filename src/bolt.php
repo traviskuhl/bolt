@@ -379,7 +379,7 @@ final class b {
             b::request()->run();
 
             // browser response
-            exit(b::response()->run());
+            exit(b::response()->setContent(b::request()->getContent())->run());
 
         }
 

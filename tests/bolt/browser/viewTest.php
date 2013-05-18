@@ -15,7 +15,7 @@ class viewTest extends bolt_test {
         ));
 
         $this->v = new viewTestView(array('test' => 1));
-        $this->v->setController(new viewTestController);
+        $this->v->setParent(new viewTestController());
 
     }
 
@@ -35,7 +35,8 @@ class viewTest extends bolt_test {
     }
 
     public function testMagicGet() {
-        $this->assertEquals(1, $this->v->test->value);
+        $this->assertEquals(1, $this->v->testP);
+        $this->assertFalse($this->v->test);
         $this->assertFalse($this->v->nope);
     }
     public function testMagicSet() {
@@ -47,12 +48,12 @@ class viewTest extends bolt_test {
     public function testGetParamsParams() {
         $this->assertInstanceOf('bolt\bucket', $this->v->params);
     }
-    public function testGetParamsController() {
-        $this->assertEquals(1, $this->v->testC1);
+    public function testGetParamsParent() {
+        $this->assertEquals(1, $this->v->getParam('testC1')->value);
     }
     public function testGetParamsParam() {
-        $this->assertEquals(1, $this->v->test->value);
-        $this->assertFalse($this->v->test2);
+        $this->assertEquals(1, $this->v->getParam('test')->value);
+        $this->assertFalse($this->v->getParam('test2')->value);
     }
     public function testGetParams() {
         $this->assertInstanceOf('bolt\bucket', $this->v->getParams());
@@ -72,27 +73,16 @@ class viewTest extends bolt_test {
         $this->assertTrue(is_string($this->v->getGuid()));
     }
 
-    public function testGetController() {
-        $this->assertInstanceOf('viewTestController', $this->v->getController());
-    }
-
-    public function testSetController() {
-        $c = new viewTestController();
-        $this->assertFalse( $this->v->getController()->getGuid() == $c->getGuid() );
-        $this->v->setController($c);
-        $this->assertEquals($c->getGuid(), $this->v->getController()->getGuid());
-    }
-
     public function testGetSetContent() {
         $this->assertFalse($this->v->getContent());
         $this->v->setContent('test');
         $this->assertEquals('test', $this->v->getContent());
     }
 
-    public function testGetSetFile() {
-        $this->assertFalse($this->v->getFile());
-        $this->v->setFile('test');
-        $this->assertEquals('test', $this->v->getFile());
+    public function testGetSetTemplate() {
+        $this->assertFalse($this->v->getTemplate());
+        $this->v->setTemplate('test');
+        $this->assertEquals('/test', $this->v->getTemplate());
     }
 
     public function testGetSetRenderer() {
@@ -139,7 +129,7 @@ class viewTestController extends \bolt\browser\controller {
 }
 
 class viewTestView extends \bolt\browser\view {
-
+    public $testP = 1;
 }
 
 

@@ -9,7 +9,7 @@ use \DOMCDATASection;
 b::response()->plug('xml', '\bolt\browser\response\xml');
 
 // json
-class xml extends \bolt\plugin\singleton {
+class xml extends handler {
 
     // accept or header
     public static $contentType = array(
@@ -17,12 +17,12 @@ class xml extends \bolt\plugin\singleton {
     );
 
     //
-    public function getContent($view) {
+    public function handle() {
 
 		// print
-		$g = new xmlGenerator($view->getContent());
+		$g = new xmlGenerator($this->getContent());
 
-        b::response()->setContentType('application/xml');
+        $this->setContentType('application/xml');
 
         // set it
         return $g->render();

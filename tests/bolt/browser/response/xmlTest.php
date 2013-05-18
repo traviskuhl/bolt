@@ -19,13 +19,8 @@ class responseXmlTest extends bolt_test {
             ->removeInstance('response');
 
         $this->r = new \bolt\browser\response\xml();
-        $this->c = new \bolt\browser\controller();
-
         $this->status = 200;
-
-
-
-        $this->c->setStatus($this->status);
+        $this->r->setStatus($this->status);
 
     }
 
@@ -38,13 +33,13 @@ class responseXmlTest extends bolt_test {
 
         $this->assertXmlStringEqualsXmlString("<a>b</a>", $r);
 
-        $this->assertEquals('application/xml', b::response()->getContentType());
+        $this->assertEquals('application/xml', $this->r->getContentType());
 
     }
 
     public function _setContent($content) {
-        $this->c->setContent($content);
-        return $this->r->getContent($this->c);
+        $this->r->setContent($content);
+        return $this->r->handle();
     }
 
     public function testGetContentAttribute() {

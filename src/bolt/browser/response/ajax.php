@@ -6,25 +6,25 @@ use \b as b;
 b::response()->plug('ajax', '\bolt\browser\response\ajax');
 
 // json
-class ajax extends \bolt\plugin\singleton {
+class ajax extends handler {
 
     // accept or header
     public static $contentType = array(
         100 => 'text/javascript;text/ajax'
     );
 
-
     //
-    public function getContent($controller) {
+    public function handle() {
 
-        b::response()->setContentType('text/javascript');
+        // reset content type
+        $this->setContentType('text/javascript');
 
         // give it up
         return json_encode(array(
-            'status' => $controller->getStatus(),
+            'status' => $this->getStatus(),
             'response' => array(
-                'content' => $controller->getContent(),
-                'data' => $controller->getData()
+                'content' => $this->getContent(),
+                'data' => $this->getData()
             )
         ));
 

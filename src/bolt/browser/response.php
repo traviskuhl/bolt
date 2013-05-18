@@ -16,10 +16,11 @@ class response extends \bolt\plugin {
 	// we're a singleton
     public static $TYPE = 'singleton';
 
-	private $_controller = false;
     private $_headers;
     private $_status = 200;
     private $_contentType = false;
+    private $_content = false;
+    private $_data = array();
 
     ////////////////////////////////////////////////////////////////////
     /// @brief construct a response
@@ -46,8 +47,6 @@ class response extends \bolt\plugin {
                 return $this->_status;
             case 'contentType':
                 return $this->_contentType;
-            case 'controller':
-                return $this->_controller;
             case 'headers':
                 return $this->_headers;
         };
@@ -68,6 +67,15 @@ class response extends \bolt\plugin {
             case 'contentType':
                 $this->_contentType = $value;
         };
+    }
+
+    public function setContent($content) {
+        $this->_content = $content;
+        return $this;
+    }
+
+    public function getContent() {
+        return $this->_content;
     }
 
     ////////////////////////////////////////////////////////////////////
@@ -121,29 +129,25 @@ class response extends \bolt\plugin {
 	}
 
     ////////////////////////////////////////////////////////////////////
-    /// @brief get response controller. must implement \bolt\browser\iController
-    /// @see \bolt\browser\controller
+    /// @brief set response data
     ///
-    /// @return response controller object
+    /// @param $data
+    /// @return self
     ////////////////////////////////////////////////////////////////////
-    public function getController() {
-        return $this->_controller;
+    public function setData($data) {
+        $this->_data = $data;
+        return $this;
     }
 
     ////////////////////////////////////////////////////////////////////
-    /// @brief set response controller. must implement \bolt\browser\iController
-    /// @see \bolt\browser\controller
+    /// @brief get response data
     ///
-    /// @param $controller
-    /// @return self;
+    /// @return response data
     ////////////////////////////////////////////////////////////////////
-    public function setController($controller) {
-        if (!b::isInterfaceOf($controller, '\bolt\browser\iController')) {
-            return false;
-        }
-        $this->_controller = $controller;
-        return $this;
+    public function getData() {
+        return $this->_data;
     }
+
 
     ////////////////////////////////////////////////////////////////////
     /// @brief get the plguin that can response to request
@@ -151,9 +155,6 @@ class response extends \bolt\plugin {
     /// @return response plugin
     ////////////////////////////////////////////////////////////////////
     public function getOutputHandler() {
-
-        // our controller
-        $cont = $this->_controller;
 
         // content type
         if ($this->_contentType === false) {
@@ -200,19 +201,39 @@ class response extends \bolt\plugin {
     ////////////////////////////////////////////////////////////////////
 	public function run() {
 
-        // handler
-        $handler = $this->getOutputHandler();
-
         // before
         $this->fire('before');
 
-        // type
+        // handler
+        $handler = $this->getOutputHandler();
+
+        $content = $this->_content;
+        $status = $this->_status;
+        $data = $this->_data;
         $type = $this->_contentType;
+
+        // is there a handler
+        if ($handler) {
+
+            // set some things for the handler
+            $handler
+                ->setContentType($this->_contentType)
+                ->setStatus($this->_status)
+                ->setData($this->_data)
+                ->setContent($this->_content);
+
+            $content = $handler->handle();
+
+            $status = $handler->getStatus();
+            $data = $handler->getData();
+            $type = $handler->getContentType();
+
+        }
 
         // print a content type
         if (!headers_sent()) {
 
-            header("Content-Type: {$type}", true, $this->getStatus());
+            header("Content-Type: {$type}", true, $status);
 
         	// print all headers
             $this->_headers->map(function($name, $value){
@@ -221,14 +242,11 @@ class response extends \bolt\plugin {
 
         }
 
-        // resp
-        $resp = $handler->getContent($this->_controller);
-
         // after
-        $this->fire('after', array('resp' => $resp));
+        $this->fire('after', array('resp' => $content));
 
         // respond
-        return $resp;
+        return $content;
 
 	}
 

@@ -19,13 +19,12 @@ class responsePlainTest extends bolt_test {
             ->removeInstance('response');
 
         $this->r = new \bolt\browser\response\plain();
-        $this->c = new \bolt\browser\controller();
 
         $this->status = 200;
         $this->text = "this is a test";
 
-        $this->c->setContent($this->text);
-        $this->c->setStatus($this->status);
+        $this->r->setContent($this->text);
+        $this->r->setStatus($this->status);
 
     }
 
@@ -34,11 +33,11 @@ class responsePlainTest extends bolt_test {
     }
 
     public function testGetContent() {
-        $r = $this->r->getContent($this->c);
+        $r = $this->r->handle();
 
         $this->assertEquals($this->text, $r);
 
-        $this->assertEquals('text/plain', b::response()->getContentType());
+        $this->assertEquals('text/plain', $this->r->getContentType());
 
     }
 

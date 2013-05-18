@@ -45,17 +45,18 @@ class view extends \bolt\event implements iView {
     // some things we're going to need
     private $_guid = false;
     private $_content = false;
-    private $_file = false;
+    private $_template = false;
     private $_render = 'handlebars';
     private $_properties = array();
-    private $_layout = array();
+    private $_layout = false;
     private $_parent = false;
+    private $_hasRendered = false;
+    private $_params;
 
     // static
+    protected $_fromInit = false;
     protected $layout = false;
-
-    // bucketproxy needs to find
-    protected $_params;
+    protected $template = false;
 
     ////////////////////////////////////////////////////////////////////
     /// @brief contruct a new view
@@ -73,6 +74,9 @@ class view extends \bolt\event implements iView {
         if ($this->layout) {
             $this->setLayout($this->layout);
         }
+        if ($this->template) {
+            $this->setTemplate($this->template);
+        }
 
         // any properties
         $ref = new \ReflectionClass($this);
@@ -84,7 +88,7 @@ class view extends \bolt\event implements iView {
         }
 
         // init
-        $this->init();
+        $this->_fromInit = $this->init();
 
     }
 
@@ -151,9 +155,6 @@ class view extends \bolt\event implements iView {
         else if (array_key_exists($name, $this->_properties)) {
             return $this->{$name};
         }
-        else if ($this->_parent->exists($name)) {
-            return $this->_parent->getParam($name);
-        }
         return false;
     }
 
@@ -180,17 +181,14 @@ class view extends \bolt\event implements iView {
         if (!$name) {
             return b::bucket();
         }
-        else if ($name == 'params') {
-            return $this->_params;
-        }
         else if ($this->_params->exists($name)) {
             return $this->_params->get($name, $default);
         }
-        else if ($this->_param AND $this->_param->exists($name)) {
-            return $this->_param->getParam($name, $default);
+        else if (in_array($name, $this->_properties)) {
+            return b::bucket($this->{$name});
         }
-        else if (array_key_exists($name, $this->_properties)) {
-            return $this->{$name};
+        else if ($this->_parent AND $this->_parent->exists($name)) {
+            return $this->_parent->getParam($name, $default);
         }
         return ($default === null ? b::bucket() : $default);
     }
@@ -227,6 +225,9 @@ class view extends \bolt\event implements iView {
 
     public function exists($name) {
         if (in_array($name, $this->_properties)) {
+            return true;
+        }
+        else if ($this->_parent AND $this->_parent->exists($name)) {
             return true;
         }
         return $this->_params->exists($name);
@@ -269,10 +270,12 @@ class view extends \bolt\event implements iView {
     ////////////////////////////////////////////////////////////////////
     public function setLayout($layout) {
         if (is_string($layout)) {
-            $file = b::config()->getValue("project.templates")."/".$layout;
             $layout = b::view()
-                        ->setFile($file)
-                        ->setController($this);
+                        ->setTemplate($layout)
+                        ->setParent($this);
+        }
+        if (!b::isInterfaceOf($layout, '\bolt\browser\iView')) {
+            return $this;
         }
         $this->_layout = $layout;
         return $this;
@@ -302,8 +305,11 @@ class view extends \bolt\event implements iView {
     /// @param $file path to file
     /// @return self
     ////////////////////////////////////////////////////////////////////
-    public function setFile($file) {
-        $this->_file = $file;
+    public function setTemplate($file) {
+        if (!file_exists($file)) {
+            $file = b::config()->getValue("project.templates")."/".$file;
+        }
+        $this->_template = $file;
         return $this;
     }
 
@@ -312,8 +318,8 @@ class view extends \bolt\event implements iView {
     ///
     /// @return view file
     ////////////////////////////////////////////////////////////////////
-    public function getFile() {
-        return $this->_file;
+    public function getTemplate() {
+        return $this->_template;
     }
 
     ////////////////////////////////////////////////////////////////////
@@ -337,6 +343,15 @@ class view extends \bolt\event implements iView {
     }
 
     ////////////////////////////////////////////////////////////////////
+    /// @brief has the view been rendered
+    ///
+    /// @return renderer
+    ////////////////////////////////////////////////////////////////////
+    public function hasRendered() {
+        return $this->_hasRendered;
+    }
+
+    ////////////////////////////////////////////////////////////////////
     /// @brief render the given view
     ///
     /// @param $args array of argumnets
@@ -349,10 +364,16 @@ class view extends \bolt\event implements iView {
             $this->{$name} = $value;
         }
 
+        // before
+        $this->fire('before');
+
+        // before render
+        call_user_func(array($this, 'before'));
+
         // build args
         $_args = array();
 
-        // reflect
+        // reflect on build to see what to run
         $ref = new \ReflectionMethod($this, 'build');
 
         if ($ref->getNumberOfParameters() > 0) {
@@ -376,12 +397,6 @@ class view extends \bolt\event implements iView {
         // call build
         call_user_func_array(array($this, 'build'), $_args);
 
-        // before
-        $this->fire('before');
-
-        // before render
-        call_user_func(array($this, 'before'));
-
         // add any set data to the params load
         foreach ($this->_properties as $name) {
             $this->_params->set($name, $this->{$name});
@@ -390,15 +405,11 @@ class view extends \bolt\event implements iView {
         // add our view to the vars
         $this->_params->self = $this;
 
-        if ($this->_file !== false) {
-            $dir = false;
-            if ($this->_file{0} != '/') {
-                $dir = ($this->_controller ? $this->_controller->getTemplateDir() : b::config()->getValue('project.templates')) . "/";
-            }
 
+        if ($this->_template !== false) {
             $this->setContent(b::render(array(
                 'render' => $this->_render,
-                'file' => $dir.$this->_file,
+                'file' => $this->_template,
                 'self' => $this,
                 'vars' => $this->_params
             )));
@@ -412,11 +423,23 @@ class view extends \bolt\event implements iView {
             )));
         }
 
+        // layout
+        if ($this->hasLayout()) {
+            $this->setContent(
+                    $this->getLayout()
+                        ->setParent($this)
+                        ->setParams(array('child' => $this->getContent()))
+                        ->render()
+                );
+        }
+
         // after render
         call_user_func(array($this,'after'));
 
         // after
         $this->fire('after');
+
+        $this->_hasRendered = true;
 
         return $this->getContent();
     }

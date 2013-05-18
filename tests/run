@@ -1,7 +1,7 @@
 #!/usr/bin/env php
 <?php
 
-$opts = getopt("hcd:");
+$opts = getopt("hcd:f:");
 
 if (isset($opts['h'])) {
     exit("\nusage: ./run -c -d <dir> -h\n -c   run coverage test\n -d   directory/files to limit test\n\n");
@@ -25,6 +25,9 @@ $cmd = 'phpunit --bootstrap="'.$root.'/bootstrap.php" ';
 // report
 if (isset($opts['c'])) {
     $cmd .= ' --coverage-html '.$root.'/coverage';
+}
+if (isset($opts['f'])) {
+    $cmd .= ' --filter '.$opts['f'];
 }
 
 $cmd .= ' '.$in;
