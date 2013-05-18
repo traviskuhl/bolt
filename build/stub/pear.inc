@@ -30,7 +30,7 @@ define('bRoot', 'phar://bolt.phar/');
 require("phar://bolt.phar/bolt.php");
 
 // add to auto load
-b::$_autoload[] = bPear."/bolt";
+b::$autoload[] = bPear."/bolt/vendor";
 
 // and done
 __HALT_COMPILER();
