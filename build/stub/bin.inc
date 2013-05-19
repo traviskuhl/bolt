@@ -18,12 +18,18 @@
 /// Build: %SHA% / %DATE%
 /// Compiled: %CDATE%
 
-// include bolt
-require("%PHAR%");
 
-// if we're in cli, load it
-// otherwise we're just including the phar
+// we need to be in cli mode for this to work
 if ('cli' === php_sapi_name()) {
+
+    // install
+    if (file_exists("bolt-install.php") OR (count($argv) > 1 AND $argv[1] == 'install')) {
+        include 'bolt-install.php';
+        exit;
+    }
+
+    // include bolt
+    require("%PHAR%");
 
     // init our bolt instance
     b::init(array(
