@@ -122,6 +122,14 @@ if (isset($opts['pear'])) {
     $glob = glob("*.tgz");
     $tar = array_shift($glob);
 
+    // if this is a test build
+    if (isset($opts['t'])) {
+        `mv $tar $cwd`;
+        chdir($cwd);
+        `sudo rm -r $tmp`;
+        exit("TEST PEAR BUILD DONE $tar");
+    }
+
     // move tar to www
     `mv $tar /var/www/bolt/pear`;
 
