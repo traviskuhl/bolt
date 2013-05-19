@@ -1,0 +1,16 @@
+[
+    {
+        "repo": {
+            "uri": "git://github.com/traviskuhl/handlebars.php.git",
+            "branch": "master"
+        },
+        "lib": "src/Handlebars"
+    },
+    {
+        "repo": {
+            "uri":"git://github.com/jlogsdon/php-cli-tools.git",
+            "branch": "master"
+        },
+        "lib": "lib/cli"
+    }
+]

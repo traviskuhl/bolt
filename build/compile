@@ -91,6 +91,9 @@ $tar->create(array("./bolt.phar"));
 $tar->addString("bin.inc", stub('stub/bin.inc', $vars));
 $tar->addString("share.inc", stub('stub/share.inc', $vars));
 
+// add depend json
+$tar->addString("depend.json", file_get_contents("depend.json"));
+
 // archive
 if (!isset($opts['nostore'])) {
 
