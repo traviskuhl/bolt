@@ -1,0 +1,14 @@
+<?php
+
+// get our depend file from build
+$depend = json_decode(file_get_contents("../build/depend.json"), true);
+
+// vendor
+mkdir("../vendor");
+
+// loop through
+foreach ($depend as $pkg) {
+    // get it and palce it in tmp
+    $cmd = "git clone {$pkg['repo']['uri']} -b {$pkg['repo']['branch']} ../vendor";
+    echo `$cmd`;
+}

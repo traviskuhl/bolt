@@ -58,6 +58,8 @@ class render extends plugin {
 
     private function _render($render, $args) {
 
+        $this->fire('before');
+
         $file = (isset($args['file']) ? $args['file'] : false);;
         $string = (isset($args['string']) ? $args['string'] : false);;
         $vars = (isset($args['vars']) ? $args['vars'] : array());

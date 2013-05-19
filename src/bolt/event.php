@@ -7,22 +7,29 @@ abstract class event {
     private $_events = array();
 
     // on
-    public function on($name, $callback, $args=array()) {
+    public function on($name, $callback, $args=array(), $once=false) {
         b::log("[b::event] attached %s", array($name));
         if (!array_key_exists($name, $this->_events)){ $this->_events[$name] = array(); }
         $eid = uniqid();
-        $this->_events[$name][] = array('callback' => $callback, 'args' => $args, 'eid' => $eid);
+        $this->_events[$name][$eid] = array('callback' => $callback, 'args' => $args, 'eid' => $eid, 'once' => $once);
         return $eid;
+    }
+
+    public function once($name, $callback, $args=array()) {
+        return $this->on($name, $callback, $args, true);
     }
 
     public function fire($name, $args=array()) {
         if (array_key_exists($name, $this->_events)) {
-            foreach ($this->_events[$name] as $event) {
+            foreach ($this->_events[$name] as $eid => $event) {
                 if (is_callable($event['callback'])) {
                     $args['args'] = $event['args'];
                     $args['eid'] = $event['eid'];
                     $args['this'] = $this;
                     call_user_func($event['callback'], $args);
+                    if ($event['once']) {
+                        unset($this->_events[$name][$eid]);
+                    }
                 }
             }
         }
@@ -38,6 +45,12 @@ abstract class event {
 
         b::log("[b::event] fired from {$class} named {$name}");
 
+    }
+
+    public function removeEvent($name, $eid) {
+        if (isset($this->_events[$name][$eid])) {
+            unset($this->_events[$name][$eid]);
+        }
     }
 
     public function getEvents($name=false) {

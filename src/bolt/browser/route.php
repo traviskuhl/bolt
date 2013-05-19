@@ -10,6 +10,36 @@ b::plug(array(
     'url' => 'route::url'
 ));
 
+// add our url helper
+b::render()->once('before', function() {
+    b::render()->handlebars->helper('url', function($template, $context, $args, $text) {
+        if (empty($args)) {return;}
+        if (preg_match_all('#\$([a-zA-Z0-9_\.]+)#', $args, $matches, PREG_SET_ORDER)) {
+            foreach ($matches as $match) {
+                $val = $context->get($match[1]);
+                if (!$val AND $context->get('controller')) {
+                    $val = $context->get('controller')->getParamValue($match[1]);
+                }
+                $args = str_replace($match[0], $val, $args);
+            }
+        }
+        $parts = explode(",", trim($args));
+        if (count($parts) == 0) return;
+        $name = trim(array_shift($parts));
+        $params = array();
+        $query = array();
+        foreach ($parts as $part) {
+            list($key, $value) = explode("=", trim($part));
+            if ($key == 'query') {
+                $query = json_decode($value, true);
+            }
+            else {
+                $params[$key] = $value;
+            }
+        }
+        return b::url($name, $params, $query);
+    });
+});
 
 ////////////////////////////////////////////////////////////////////
 /// @brief browser route class

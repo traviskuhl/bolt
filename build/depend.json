@@ -1,5 +1,6 @@
 [
     {
+        "name": "handlebars",
         "repo": {
             "uri": "git://github.com/traviskuhl/handlebars.php.git",
             "branch": "master"
@@ -7,6 +8,7 @@
         "lib": "src/Handlebars"
     },
     {
+        "name": "cli",
         "repo": {
             "uri":"git://github.com/jlogsdon/php-cli-tools.git",
             "branch": "master"

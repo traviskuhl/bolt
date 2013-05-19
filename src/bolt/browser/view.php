@@ -6,6 +6,26 @@ use \b;
 // plug view into bolt
 b::plug('view', '\bolt\browser\viewFactory');
 
+// add our render helper on run
+b::on('run', function() {
+    b::render()->handlebars->helper('view', function($template, $context, $args, $text) {
+        $parts = explode(' ', $args);
+        $class = trim(array_shift($parts), '"\'');
+        $params = array();
+        if (trim($text) AND is_array(json_decode(trim($text), true))) {
+            $params += array_merge($params, json_decode(trim($text), true));
+        }
+        else if ($parts) {
+            $params = json_decode(trim(implode(" ", $parts)), true);
+        }
+        $v =  b::view($class)->setParams($params);
+        if ($context->get('controller')) {
+            $v->setController($context->get('controller'));
+        }
+        return $v->render();
+    });
+});
+
 ////////////////////////////////////////////////////////////////////
 /// @brief factory generator for view class
 /// @extends \bolt\plugin\singleton

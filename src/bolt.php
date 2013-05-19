@@ -98,8 +98,6 @@ final class b {
 
         // template renders
         'render'          => "./bolt/render.php",
-        // 'render-mustache' => "./bolt/render/mustache.php",
-        // 'render-markdown' => "./bolt/render/markdown.php",
         'render-handlebars' => "./bolt/render/handlebars.php",
 
         // source
