@@ -4,7 +4,7 @@
 $version = "%VERSION%";
 
 // open dependency file
-$depend = json_decode("%DEPEND%", true);
+$depend = json_decode('%DEPEND%', true);
 
 // tmp
 $tmp = sys_get_temp_dir()."/".time();
@@ -28,6 +28,6 @@ foreach ($depend as $pkg) {
 unlink(__FILE__);
 
 // done
-echo "Bolt Install Complete\n\n";
+echo "Install Complete";
 echo "You can start using bolt now.\n";
 exit;

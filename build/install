@@ -24,6 +24,11 @@ if (version_compare(PHP_VERSION, 5.3) === -1) {
     exit("Your version of PHP (".PHP_VERSION.") is not compatable with bolt.php\n");
 }
 
+// pear
+if (!class_exists("PEAR", true)) {
+    exit("You don't seem to have Pear installed. We need us some Pear!\n");
+}
+
 // try to include Archive/Tar.php
 if ((include "Archive/Tar.php") === false) {
     exit("You don't seem to have Archive_Tar available in your include_dir. Try installing with `pear install Archive_Tar`\n");

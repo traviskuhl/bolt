@@ -27,9 +27,7 @@
       <file name="bolt" role="script" />
       <file name="bolt.phar" role="php"/>
       <file name="bolt-install.php" role="php"/>
-      <dir name="bolt">
-        <file name="index.php" role="www"/>
-      </dir>
+      <file baseinstalldir="/bolt" name="index.php" role="www"/>
     </dir>
   </contents>
   <dependencies>

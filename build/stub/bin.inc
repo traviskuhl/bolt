@@ -22,9 +22,16 @@
 // we need to be in cli mode for this to work
 if ('cli' === php_sapi_name()) {
 
+    // pear
+    require "PEAR.php";
+
     // install
-    if (file_exists("bolt-install.php") OR (count($argv) > 1 AND $argv[1] == 'install')) {
-        include 'bolt-install.php';
+    if (file_exists(PEAR_INSTALL_DIR."/bolt-install.php")) {
+        echo "Bolt Install\n";
+        echo str_repeat("-", 30);
+        echo "\n\nThis your first time using bolt. We need\n";
+        echo "setup a few things. Just hold tight...\n\n";
+        include PEAR_INSTALL_DIR."/bolt-install.php";
         exit;
     }
 
