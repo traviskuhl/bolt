@@ -22,8 +22,8 @@
   <api>%BUILD%</api>
  </version>
  <stability>
-  <release>beta</release>
-  <api>beta</api>
+  <release>%BRANCH%</release>
+  <api>%BRANCH%</api>
  </stability>
  <license uri="http://www.opensource.org/licenses/mit-license.php">MIT</license>
  <notes>-</notes>
