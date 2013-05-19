@@ -29,7 +29,7 @@ if ('cli' === php_sapi_name()) {
     }
 
     // include bolt
-    require("%PHAR%");
+    require("bolt.phar");
 
     // init our bolt instance
     b::init(array(

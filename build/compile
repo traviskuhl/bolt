@@ -96,6 +96,7 @@ if (isset($opts['pear'])) {
     // create some files
     rename("./bolt.phar", "{$tmp}/bolt.phar");
     file_put_contents("{$tmp}/bolt", $bin);
+    file_put_contents("{$tmp}/index.php", $share);
 
     $data = array(
             'date' => date("Y-m-d"),
@@ -107,7 +108,7 @@ if (isset($opts['pear'])) {
         );
 
     // post install
-    file_put_contents("{$tmp}/bolt-install", stub('stub/bolt-install.inc', $data));
+    file_put_contents("{$tmp}/bolt-install.php", stub('stub/bolt-install.inc', $data));
 
     // package
     file_put_contents("{$tmp}/package.xml", stub('stub/package.xml',$data));
