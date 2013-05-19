@@ -13,12 +13,18 @@ require 'AWSSDKforPHP/aws.phar';
 use Aws\S3\S3Client;
 use Aws\Common\Enum\Region;
 
-$cwd = getcwd();
+$cwd = getcwd(); $cfg = array();
 
-$cfg = json_decode(file_get_contents($_SERVER['HOME']."/.boltbuild"), true);
+// user
+$u = (isset($_SERVER['SUDO_HOME']) ? $_SERVER['SUDO_HOME'] : $_SERVER['HOME']);
+$cfgFile = "$u/.boltbuild";
 
-if (!$cfg) {
-    exit("Unable to load cfg from {$_SERVER['HOME']}/.boltbuild\n");
+// if there's a config file
+if (file_exists($cfgFile)) {
+    $cfg = json_decode(file_get_contents($cfgFile), true);
+    if (!is_array($cfg)) {
+        exit("Unable to load cfg from {$cfgFile}\n");
+    }
 }
 
 $ver = get_version();
