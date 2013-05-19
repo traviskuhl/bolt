@@ -3,6 +3,15 @@
 // version
 $version = "%VERSION%";
 
+echo "\n";
+echo str_repeat("-", 30);
+echo "Bolt Install\n";
+echo str_repeat("-", 30);
+echo "\nThis your first time using bolt. We need\n";
+echo "setup a few things. Just hold tight...\n";
+echo str_repeat("-", 30);
+echo "\nAND GO!...\n";
+
 // open dependency file
 $depend = json_decode('%DEPEND%', true);
 
@@ -28,6 +37,6 @@ foreach ($depend as $pkg) {
 unlink(__FILE__);
 
 // done
-echo "Install Complete";
+echo str_repeat("-", 30);
+echo "\nInstall Complete!!\n";
 echo "You can start using bolt now.\n";
-exit;

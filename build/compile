@@ -128,7 +128,7 @@ if (isset($opts['pear'])) {
         `mv $tar $cwd`;
         chdir($cwd);
         `sudo rm -r $tmp`;
-        exit("TEST PEAR BUILD DONE $tar");
+        exit("TEST PEAR BUILD DONE $tar\n");
     }
 
     // move tar to www

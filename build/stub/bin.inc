@@ -27,16 +27,12 @@ if ('cli' === php_sapi_name()) {
 
     // install
     if (file_exists(PEAR_INSTALL_DIR."/bolt-install.php")) {
-        echo "Bolt Install\n";
-        echo str_repeat("-", 30);
-        echo "\n\nThis your first time using bolt. We need\n";
-        echo "setup a few things. Just hold tight...\n\n";
         include PEAR_INSTALL_DIR."/bolt-install.php";
         exit;
     }
 
     // include bolt
-    require("bolt.phar");
+    require "bolt.phar";
 
     // init our bolt instance
     b::init(array(
@@ -46,9 +42,6 @@ if ('cli' === php_sapi_name()) {
             bRoot."/bolt/client/*.php"
         )
     ));
-
-    // start a bolt client
-    b::client()->start();
 
     // run
     b::run();

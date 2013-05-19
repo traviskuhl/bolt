@@ -5,6 +5,11 @@ use \b;
 
 b::plug('client', '\bolt\client');
 
+// when we run
+b::on("run", function(){
+    b::client()->start();
+});
+
 class client extends \bolt\plugin\singleton {
 
     public function start() {
