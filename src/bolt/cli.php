@@ -21,11 +21,6 @@ class cli extends plugin {
     // construct and include our ventor
     public function __construct() {
 
-        // load the cli
-        require bRoot.'/vendor/cli/cli.php';
-
-        // register the autoloader
-        \cli\register_autoload();
 
     }
 

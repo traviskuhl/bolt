@@ -529,6 +529,7 @@ final class b {
         if (is_array($autoload)) {
             foreach ($autoload as $root) {
                 $root = rtrim($root, '/').'/';
+
                 if (is_callable($root)) {
                     return call_user_func($root, $class);
                 }
