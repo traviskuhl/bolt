@@ -21,7 +21,6 @@ class cli extends plugin {
     // construct and include our ventor
     public function __construct() {
 
-
     }
 
     public function _default() {
@@ -118,29 +117,27 @@ class cli extends plugin {
     }
 
     public function line() {
-        return call_user_func_array('\cli\line', func_get_args());
+        echo call_user_func_array('sprintf', func_get_args())."\n";
     }
 
     public function err() {
-        return call_user_func_array('\cli\err', func_get_args());
-        exit;
+        exit(call_user_func_array(array($this,'line'), func_get_args()));
     }
 
     public function out() {
-        return call_user_func_array('\cli\out', func_get_args());
-        exit;
+        echo call_user_func_array('sprintf', func_get_args());
     }
 
     public function dots() {
-        return call_user_func_array(array('\cli\Dots', '__construct'), func_get_args());
+     //   return call_user_func_array(array('\cli\Dots', '__construct'), func_get_args());
     }
 
     public function spinner() {
-        return call_user_func_array(array('\cli\Spinner', '__construct'), func_get_args());
+       // return call_user_func_array(array('\cli\Spinner', '__construct'), func_get_args());
     }
 
     public function progress() {
-        return call_user_func_array(array('\cli\progress\Bar', '__construct'), func_get_args());
+    //    return call_user_func_array(array('\cli\progress\Bar', '__construct'), func_get_args());
     }
 
 }

@@ -56,6 +56,9 @@ date_default_timezone_set(bTimeZone);
 ////////////////////////////////////////////////////////////
 final class b {
 
+    const VERSION = "1.0.0";
+    const BUILD = "";
+
     // general constants
     const SecondsInHour = 120;
     const SecondsInDay = 86400;

@@ -1,7 +1,7 @@
 #!/usr/bin/php
 <?php
 
-$opts = getopt("tn", array("nostore"));
+$opts = getopt("tn", array("nostore", "pear"));
 
 set_include_path(get_include_path().":/Applications/MAMP/bin/php/php5.3.6/lib/php/");
 date_default_timezone_set("UTC");
@@ -13,11 +13,15 @@ require 'AWSSDKforPHP/aws.phar';
 use Aws\S3\S3Client;
 use Aws\Common\Enum\Region;
 
+$cwd = getcwd();
+
 $cfg = json_decode(file_get_contents($_SERVER['HOME']."/.boltbuild"), true);
 
 if (!$cfg) {
     exit("Unable to load cfg from {$_SERVER['HOME']}/.boltbuild\n");
 }
+
+$ver = get_version();
 
 // phar
 $phar = new Phar('bolt.phar', 0, 'bolt.phar');
@@ -54,7 +58,7 @@ foreach (iterator_to_array($regex) as $file) {
     $content = stripWhitespace(file_get_contents($file[0]));
 
     // version
-    $content = preg_replace("/const VERSION = '.*?';/", "const VERSION = '".$version."';", $content);
+    $content = preg_replace("/const BUILD = '.*?';/", "const BUILD = '".$version."';", $content);
 
     // add it
     $phar->addFromString($path, $content);
@@ -73,6 +77,61 @@ $phar->stopBuffering();
 // no phar
 unset($phar);
 
+// bin & share
+$bin = stub('stub/bin.inc', $vars);
+$share = stub('stub/share.inc', $vars);
+
+// build a pear package
+if (isset($opts['pear'])) {
+
+    // create a tmp director for pear
+    $tmp = "/tmp/".time(); mkdir($tmp);
+
+    // create some files
+    rename("./bolt.phar", "{$tmp}/bolt.phar");
+    file_put_contents("{$tmp}/bolt", $bin);
+
+    $data = array(
+            'date' => date("Y-m-d"),
+            'time' => date("H:i:s"),
+            'version' => $ver,
+            'build' => $ver,
+            'depend' => file_get_contents("./depend.json")
+        );
+
+    // post install
+    file_put_contents("{$tmp}/BoltInstall", stub('stub/pear-install.inc', $data));
+
+    // package
+    file_put_contents("{$tmp}/package.xml", stub('stub/package.xml',$data));
+
+    // tar
+    chdir($tmp);
+
+    // package
+    echo `pear package`;
+
+    //tar
+    $glob = glob("*.tgz");
+    $tar = array_shift($glob);
+
+    // move tar to www
+    `mv $tar /var/www/bolt/pear`;
+
+    chdir("/var/www/bolt/pear");
+
+    // add to pirum
+    echo `sudo pirum add . $tar`;
+
+    // go back
+    chdir($cwd);
+
+    `sudo rm -r $tmp`;
+
+    exit("DONE! added $tar\n\n");
+
+}
+
 // chmod
 chmod("bolt.phar", 0755);
 
@@ -88,8 +147,8 @@ $tar = new Archive_Tar("./bolt-latest.tar.gz", 'gz');
 // create
 $tar->create(array("./bolt.phar"));
 
-$tar->addString("bin.inc", stub('stub/bin.inc', $vars));
-$tar->addString("share.inc", stub('stub/share.inc', $vars));
+$tar->addString("bin.inc", $bin);
+$tar->addString("share.inc", $share);
 
 // add depend json
 $tar->addString("depend.json", file_get_contents("depend.json"));
@@ -123,6 +182,11 @@ rename("bolt-latest.tar.gz", "./latest/bolt-latest.tar.gz");
 
 // goodbye sucka
 exit("DONE!\n\n");
+
+function get_version() {
+    include("../src/bolt.php");
+    return b::VERSION;
+}
 
 
 function stub($file, $vars=array()) {
