@@ -1,6 +1,6 @@
 <?php
 
-namespace bolt;
+namespace bolt {
 use \b;
 
 b::plug('client', '\bolt\client');
@@ -64,5 +64,12 @@ class client extends \bolt\plugin\singleton {
             )
         );
     }
+}
 
+}
+
+namespace bolt\client {
+    class command extends \bolt\cli\command {
+
+    }
 }

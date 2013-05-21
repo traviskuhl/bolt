@@ -11,7 +11,7 @@ b::command('settings', '\bolt\client\settings', array(
         )
     ));
 
-class settings extends \bolt\cli\command {
+class settings {
 
 
     public function set() {

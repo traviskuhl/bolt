@@ -3,18 +3,21 @@
 namespace bolt\client;
 use \b;
 
-b::command('config', '\bolt\client\config', array(
-        'set' => array(
-            'flags' => array(
-                array("global|g", "Set variable as global")
-            )
-        )
-    ));
 
 class config extends \bolt\cli\command {
 
+    public static $commands = array(
+        'set' => array(
+            'arguments' => array(
+                'vars' => array('multiple' => true)
+            )
+        )
+    );
 
     public function run() {
+
+
+        var_dump(func_get_args()); die;
 
         // get config data
         $config = b::config()->asArray();
@@ -24,7 +27,10 @@ class config extends \bolt\cli\command {
     }
 
 
-    public function set() {
+    public function set($vars) {
+
+        var_dump(func_get_args()); die;
+
         if (count($this->getArgv()) == 0) {
             return $this->list();
         }

@@ -6,7 +6,9 @@ use \b as b;
 // plugin
 b::plug('cli', '\bolt\cli');
 
-b::load(array('./bolt/cli/command.php'));
+// use a package package
+require "Console/CommandLine.php";
+use \Console_CommandLine;
 
 // source
 class cli extends plugin {
@@ -18,84 +20,74 @@ class cli extends plugin {
     // hold our commands
     private $_commands = array();
 
-    // construct and include our ventor
-    public function __construct() {
 
-    }
-
-    public function _default() {
-        $args = func_get_args();
-        if (count($args) == 0) {
-            return $this;
-        }
-        else if (array_key_exists($args[0], $this->getPlugins())) {
-            return call_user_func_array(array($this, 'call'), $args);
-        }
-        else {
-            return call_user_func_array(array($this, 'addCommand'), $args);
-        }
-    }
-
-
+    // 
     public function run() {
+        global $argv;
 
-        // figure out our command
-        list($cmd, $subCmd, $_argv) = b::command()->match();
+        // look for all commands
+        $commands = b::getDefinedSubClasses('\bolt\cli\command');
+        $options = false;
 
-        // setup our arguments
-        $a = b::cli()->arguments();
+        // parser
+        $parser = new Console_CommandLine();
 
-        // no command
-        if ($cmd === false) {
-            return $this->unknown();
-        }
+        // loop through
+        foreach ($commands as $cmd) {
 
-        // create our class
-        $o = new $cmd['class']();
+            // desc
+            $name = ($cmd->hasProperty('name') AND $cmd->getProperty('name')->isStatic()) ? $cmd->getProperty('name')->getValue() : $cmd->getShortName();
+            $desc = ($cmd->hasProperty('desc') AND $cmd->getProperty('desc')->isStatic()) ? $cmd->getProperty('desc')->getValue() : false;
+            $alias = ($cmd->hasProperty('alias') AND $cmd->getProperty('alias')->isStatic()) ? $cmd->getProperty('alias')->getValue() : array();
+            $opts = ($cmd->hasProperty('options') AND $cmd->getProperty('options')->isStatic()) ? $cmd->getProperty('options')->getValue() : array();
+            $opts = ($cmd->hasProperty('args') AND $cmd->getProperty('args')->isStatic()) ? $cmd->getProperty('args')->getValue() : array();
+        
+            $commands = ($cmd->hasProperty('commands') AND $cmd->getProperty('commands')->isStatic()) ? $cmd->getProperty('commands')->getValue() : array();
 
-        if (!$subCmd OR !method_exists($o, $subCmd)) {
-            $subCmd = 'run';
-        }
+            if (!$cmd->hasMethod('run')) {continue;}
 
-        // run
-        $flags = $options = array();
+            // add the command
+            $c = $parser->addCommand($name, array(
+                    'description' => $desc,
+                    'aliases' => $alias
+                ));
 
-        // subCmd
-        if (array_key_exists($subCmd, $cmd)) {
-            $flags = p_raw('flags', array(), $cmd[$subCmd]);
-            $options = p_raw('options', array(), $cmd[$subCmd]);
-        }
-        else if ($subCmd == 'run') {
-            $flags = p_raw('flags', array(), $cmd);
-            $options = p_raw('options', array(), $cmd);
-        }
-
-        // add flags and they set
-        foreach ($flags as $flag) {
-            if (is_string($flag[0]) AND stripos($flag[0], '|') !== false) {
-                $flag[0] = explode('|', $flag[0]);
+            // add
+            foreach ($opts as $oName => $opt) {
+                $c->addOption($oName, $opt);
             }
-            call_user_func_array(array($a, 'addFlag'), $flag);
-        }
-        foreach ($options as $opt) {
-            if (is_string($opt[0]) AND stripos($opt[0], '|') !== false) {
-                $opt[0] = explode('|', $opt[0]);
+
+            $run = $cmd->getMethod('run');
+
+            // arguments
+            foreach ($args as $aName => $opts) {
+                $c->addArgument($aName, $opts);
             }
-            call_user_func_array(array($a, 'addOption'), $opt);
+
+            // add commands
+            foreach ($commands as $subName => $subOpts) {
+                if ($cmd->hasMethod($subName)) {
+                    $sub = $parser->addCommand(implode(':',array($name, $subName)), array(
+                            'description' => p('description', false, $subOpts),
+                            'aliases' => p('alias', array(), $subOpts)
+                        ));
+                    if (isset($subOpts['options'])) {
+                        foreach ($subOpts as $sName => $opt) {
+                            $sub->addOption($sName, $opt);
+                        }
+                    }
+                    if (isset($subOpts['args'])) {
+                        foreach ($args as $aName => $opts) {
+                            $c->addArgument($aName, $opts);
+                        }
+                    }
+                }
+            }
+
         }
 
-        // parse
-        $a->parse();
-
-        $_argv = array_filter(array_slice($a->getInvalidArguments(), 1), function($v){ return !($v{0} == '-'); });
-
-        // set argv
-        $o->setArgv($_argv);
-
-        // run
-        return call_user_func_array(array($o, $subCmd), $_argv);
-
-
+        var_dump($parser); die;
+   
     }
 
     public function unknown() {
@@ -117,27 +109,14 @@ class cli extends plugin {
     }
 
     public function line() {
-        echo call_user_func_array('sprintf', func_get_args())."\n";
+        if (is_array(func_get_arg(0))) {
+            foreach (func_get_arg(0) as $line) {
+                echo call_user_func_array(array($this, 'line'), $line);
+            }
+            return;
+        }
+        else {
+            echo call_user_func_array('sprintf', func_get_args())."\n";
+        }
     }
-
-    public function err() {
-        exit(call_user_func_array(array($this,'line'), func_get_args()));
-    }
-
-    public function out() {
-        echo call_user_func_array('sprintf', func_get_args());
-    }
-
-    public function dots() {
-     //   return call_user_func_array(array('\cli\Dots', '__construct'), func_get_args());
-    }
-
-    public function spinner() {
-       // return call_user_func_array(array('\cli\Spinner', '__construct'), func_get_args());
-    }
-
-    public function progress() {
-    //    return call_user_func_array(array('\cli\progress\Bar', '__construct'), func_get_args());
-    }
-
 }

@@ -3,20 +3,19 @@
 namespace bolt\client;
 use \b;
 
-b::command('init', '\bolt\client\init', array(
-        'flags' => array(
-            array('yes|y', 'Say yes to everything')
-        ),
-        'options' => array(
-            array("hostnames")
-        ),
-    ));
+class init extends command {
 
-class init extends \bolt\cli\command {
+    // name
+    public static $name = 'init';
 
+    public static $options = array(
+            'hostnames' => array('long_name'=> '--hostname', 'action' => 'StoreString')
+        );
 
     public function run($packageFile=false, $root=false) {
         $package = $src = false;
+
+        var_dump($packageFile, $root, $this->hostname); die;
 
         // where are we now
         $pwd = getcwd();

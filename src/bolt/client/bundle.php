@@ -3,16 +3,8 @@
 namespace bolt\client;
 use \b;
 
-b::command('bundle', '\bolt\client\bundle', array(
-        'install' => array(
 
-        ),
-        'package' => array(
-
-        )
-    ));
-
-class bundle extends \bolt\cli\command {
+class bundle{
 
 
     public function install($plugin) {
