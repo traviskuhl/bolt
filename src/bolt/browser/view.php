@@ -64,8 +64,8 @@ class view extends \bolt\event implements iView {
 
     // some things we're going to need
     private $_guid = false;
-    private $_content = false;
-    private $_template = false;
+    private $_content = null;
+    private $_template = null;
     private $_render = 'handlebars';
     private $_properties = array();
     private $_layout = false;
@@ -171,6 +171,9 @@ class view extends \bolt\event implements iView {
     public function __get($name) {
         if ($name == 'params') {
             return $this->_params;
+        }
+        else if ($name == 'cookies') {
+            return b::cookie();
         }
         else if (array_key_exists($name, $this->_properties)) {
             return $this->{$name};
@@ -326,7 +329,10 @@ class view extends \bolt\event implements iView {
     /// @return self
     ////////////////////////////////////////////////////////////////////
     public function setTemplate($file) {
-        if (!file_exists($file)) {
+        if ($file === false) {
+            $this->_template = false;
+        }
+        else if (!file_exists($file)) {
             $file = b::config()->getValue("project.templates")."/".$file;
         }
         $this->_template = $file;
@@ -341,6 +347,16 @@ class view extends \bolt\event implements iView {
     public function getTemplate() {
         return $this->_template;
     }
+
+    ////////////////////////////////////////////////////////////////////
+    /// @brief has a template
+    ///
+    /// @return bool
+    ////////////////////////////////////////////////////////////////////
+    public function hasTemplate() {
+        return $this->_template !== null;
+    }
+
 
     ////////////////////////////////////////////////////////////////////
     /// @brief set renderer
@@ -426,7 +442,7 @@ class view extends \bolt\event implements iView {
         $this->_params->self = $this;
 
 
-        if ($this->_template !== false) {
+        if ($this->_template !== false AND $this->_content === null) {
             $this->setContent(b::render(array(
                 'render' => $this->_render,
                 'file' => $this->_template,
@@ -434,7 +450,7 @@ class view extends \bolt\event implements iView {
                 'vars' => $this->_params
             )));
         }
-        else if ($this->_render) {
+        else if ($this->_render AND $this->_content === null) {
             $this->setContent(b::render(array(
                 'render' => $this->_render,
                 'string' => $this->_content,

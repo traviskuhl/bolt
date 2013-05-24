@@ -323,7 +323,8 @@ class request extends \bolt\plugin\singleton {
 
         // if response isn't an object
         if (!is_object($resp)) {
-            $resp = b::controller()->setContent($resp);
+            $c = new \bolt\browser\controller;
+            $resp = $c->setContent($resp);
         }
 
         // if response isn't a controller interface

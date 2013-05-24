@@ -74,13 +74,13 @@ class viewTest extends bolt_test {
     }
 
     public function testGetSetContent() {
-        $this->assertFalse($this->v->getContent());
+        $this->assertEquals(null, $this->v->getContent());
         $this->v->setContent('test');
         $this->assertEquals('test', $this->v->getContent());
     }
 
     public function testGetSetTemplate() {
-        $this->assertFalse($this->v->getTemplate());
+        $this->assertEquals(null, $this->v->getTemplate());
         $this->v->setTemplate('test');
         $this->assertEquals('/test', $this->v->getTemplate());
     }

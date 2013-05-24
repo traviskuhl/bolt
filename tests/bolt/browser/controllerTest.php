@@ -22,12 +22,9 @@ class controllerTest extends bolt_test {
 
     }
 
-    public function testFactory() {
-        $this->assertInstanceOf('bolt\browser\controller', b::controller());
-    }
 
     public function testControllerInterface() {
-        $this->assertTrue(in_array('bolt\browser\iController', class_implements(b::controller())));
+        $this->assertTrue(in_array('bolt\browser\iController', class_implements($this->tc)));
     }
 
     public function testContructSetLayout() {

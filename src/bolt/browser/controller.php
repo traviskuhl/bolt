@@ -3,31 +3,6 @@
 namespace bolt\browser;
 use \b;
 
-// plug into bolt
-b::plug('controller', '\bolt\browser\controllerFactory');
-
-////////////////////////////////////////////////////////////////////
-/// @brief factory to generate a controller class
-///
-/// @param $class controller class
-/// @return object controller
-////////////////////////////////////////////////////////////////////
-class controllerFactory extends \bolt\plugin {
-
-    // type is singleton
-    // since this is really a plugin dispatch
-    public static $TYPE = "factory";
-
-    // factory
-    public static function factory($class='\bolt\browser\controller') {
-
-
-        // lets do it
-        return new $class();
-
-    }
-
-}
 
 ////////////////////////////////////////////////////////////////////
 /// @brief controller interface
@@ -199,6 +174,40 @@ class controller extends \bolt\browser\view implements iController {
 
         // go ahead an execute
         $resp = call_user_func_array(array($this, $func), $args);
+
+        // no template
+        if (!$this->hasTemplate()) {
+            $root = b::config()->getValue("project.templates");
+            $parts = explode(DIRECTORY_SEPARATOR, str_replace('\\', DIRECTORY_SEPARATOR, $m->getDeclaringClass()->name));
+            $path = array();
+            $stop = false; $i = 0;
+            foreach (array_reverse($parts) as $part) {
+                $path[] = $part;
+                $file = $root."/".implode("/", array_reverse($path)).".template.php";
+                if (file_exists($file)) {
+                    $this->setTemplate($file); break;
+                }
+            }
+        }
+
+        // no template
+        if (!$this->hasLayout()) {
+            $root = b::config()->getValue("project.templates")."/layouts";
+            $parts = explode(DIRECTORY_SEPARATOR, str_replace('\\', DIRECTORY_SEPARATOR, $m->getDeclaringClass()->getParentClass()->name));
+            $path = array();
+            $stop = false; $i = 0;
+            foreach (array_reverse($parts) as $part) {
+                $path[] = $part;
+                $file = $root."/".implode("/", array_reverse($path)).".template.php";
+                if (file_exists($file)) {
+                    $this->setLayout($file); break;
+                }
+            }
+            $file = b::config()->getValue("project.templates")."/layout.template.php";
+            if (file_exists($file)) {
+                $this->setLayout($file);
+            }
+        }
 
         // if response is a view
         // render it
