@@ -4,22 +4,23 @@ namespace bolt\browser;
 use \b;
 
 
-////////////////////////////////////////////////////////////////////
-/// @brief controller interface
-///
-/// @interface
-////////////////////////////////////////////////////////////////////
+/**
+ * controller interface
+ *
+ * @interface
+ */
 interface iController {
-    public function run();                  // execute the controller
+    public function build(); // build
+    public function run();  // execute the controller
 }
 
-////////////////////////////////////////////////////////////////////
-/// @brief base controlle class
-/// @extends \bolt\event
-///
-/// @implements iController
-/// @return voud
-////////////////////////////////////////////////////////////////////
+/**
+ * base controlle class
+ * @extends \bolt\event
+ *
+ * @implements iController
+ * @return voud
+ */
 class controller extends \bolt\browser\view implements iController {
 
     // render
@@ -32,77 +33,77 @@ class controller extends \bolt\browser\view implements iController {
     protected $templateDir = false;
     protected $layout = false;
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief get the accept header from b::request
-    /// @see \bolt\browser\request::getAccept
-    ///
-    /// @return accept header value
-    ////////////////////////////////////////////////////////////////////
+    /**
+     * get the accept header from b::request
+     * @see \bolt\browser\request::getAccept
+     *
+     * @return accept header value
+     */
     public function getAccept() {
         return b::request()->getAccept();
     }
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief set the accept header from b::request
-    /// @see \bolt\browser\request::getAccept
-    ///
-    /// @param $header
-    /// @return self
-    ////////////////////////////////////////////////////////////////////
+    /**
+     * set the accept header from b::request
+     * @see \bolt\browser\request::getAccept
+     *
+     * @param $header
+     * @return self
+     */
     public function setAccept($header) {
         b::response()->setAccept($header);
         return $this;
     }
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief set response content type
-    /// @see \bolt\browser\response::setContentType
-    ///
-    /// @param $type
-    /// @return self
-    ////////////////////////////////////////////////////////////////////
+    /**
+     * set response content type
+     * @see \bolt\browser\response::setContentType
+     *
+     * @param $type
+     * @return self
+     */
     public function setContentType($type) {
         b::response()->setContentType($type);
         return $this;
     }
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief get response content type
-    /// @see \bolt\browser\response::setContentType
-    ///
-    /// @return content type
-    ////////////////////////////////////////////////////////////////////
+    /**
+     * get response content type
+     * @see \bolt\browser\response::setContentType
+     *
+     * @return content type
+     */
     public function getContentType() {
         return b::response()->getContentType();
     }
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief get the response status in b::response
-    /// @see \bolt\browser\response::getStatus
-    ///
-    /// @return status
-    ////////////////////////////////////////////////////////////////////
+    /**
+     * get the response status in b::response
+     * @see \bolt\browser\response::getStatus
+     *
+     * @return status
+     */
     public function getStatus() {
         return b::response()->getStatus();
     }
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief set the response status in b::response
-    /// @see \bolt\browser\response::setStatus
-    ///
-    /// @param $status (int) http status
-    /// @return \bolt\bucket params
-    ////////////////////////////////////////////////////////////////////
+    /**
+     * set the response status in b::response
+     * @see \bolt\browser\response::setStatus
+     *
+     * @param $status (int) http status
+     * @return \bolt\bucket params
+     */
     public function setStatus($status) {
         b::response()->setStatus($status);
         return $this;
     }
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief execute the controller
-    ///
-    /// @return mixed response
-    ////////////////////////////////////////////////////////////////////
+    /**
+     * execute the controller
+     *
+     * @return mixed response
+     */
     final public function build() {
 
         // params from the request
@@ -175,18 +176,16 @@ class controller extends \bolt\browser\view implements iController {
         // go ahead an execute
         $resp = call_user_func_array(array($this, $func), $args);
 
-        // no template
+        // no templates
         if (!$this->hasTemplate()) {
             $root = b::config()->getValue("project.templates");
             $parts = explode(DIRECTORY_SEPARATOR, str_replace('\\', DIRECTORY_SEPARATOR, $m->getDeclaringClass()->name));
-            $path = array();
-            $stop = false; $i = 0;
-            foreach (array_reverse($parts) as $part) {
-                $path[] = $part;
-                $file = $root."/".implode("/", array_reverse($path)).".template.php";
+            while(count($parts) > 0) {
+                $file = $root."/".implode("/", $parts).".template.php";
                 if (file_exists($file)) {
                     $this->setTemplate($file); break;
                 }
+                array_shift($parts);
             }
         }
 
@@ -194,14 +193,13 @@ class controller extends \bolt\browser\view implements iController {
         if (!$this->hasLayout()) {
             $root = b::config()->getValue("project.templates")."/layouts";
             $parts = explode(DIRECTORY_SEPARATOR, str_replace('\\', DIRECTORY_SEPARATOR, $m->getDeclaringClass()->getParentClass()->name));
-            $path = array();
-            $stop = false; $i = 0;
-            foreach (array_reverse($parts) as $part) {
-                $path[] = $part;
-                $file = $root."/".implode("/", array_reverse($path)).".template.php";
+
+            while(count($parts) > 0) {
+                $file = $root."/".implode("/", $parts).".template.php";
                 if (file_exists($file)) {
                     $this->setLayout($file); break;
                 }
+                array_shift($parts);
             }
             $file = b::config()->getValue("project.templates")."/layout.template.php";
             if (file_exists($file)) {
@@ -217,11 +215,11 @@ class controller extends \bolt\browser\view implements iController {
 
     }
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief execute the controller
-    ///
-    /// @return mixed response
-    ////////////////////////////////////////////////////////////////////
+    /**
+     * execute the controller
+     *
+     * @return mixed response
+     */
     public function run() {
         return $this->render();
     }

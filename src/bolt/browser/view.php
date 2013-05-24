@@ -26,24 +26,24 @@ b::on('run', function() {
     });
 });
 
-////////////////////////////////////////////////////////////////////
-/// @brief factory generator for view class
-/// @extends \bolt\plugin\singleton
-///
-////////////////////////////////////////////////////////////////////
+/**
+ * factory generator for view class
+ * @extends \bolt\plugin\singleton
+ *
+ */
 class viewFactory extends \bolt\plugin {
 
     // type is singleton
     // since this is really a plugin dispatch
     public static $TYPE = "factory";
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief generate a view
-    /// @static
-    ///
-    /// @param $class view class to generate
-    /// @return view class
-    ////////////////////////////////////////////////////////////////////
+    /**
+     * generate a view
+     * @static
+     *
+     * @param $class view class to generate
+     * @return view class
+     */
     public static function factory($class='\bolt\browser\view') {
         return new $class();
     }
@@ -55,11 +55,11 @@ interface iView {
 }
 
 
-////////////////////////////////////////////////////////////////////
-/// @brief base view class
-/// @implements iView
-///
-////////////////////////////////////////////////////////////////////
+/**
+ * base view class
+ * @implements iView
+ *
+ */
 class view extends \bolt\event implements iView {
 
     // some things we're going to need
@@ -78,13 +78,13 @@ class view extends \bolt\event implements iView {
     protected $layout = false;
     protected $template = false;
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief contruct a new view
-    ///
-    /// @param $params array of view params
-    /// @param $parent parent view
-    /// @return void
-    ////////////////////////////////////////////////////////////////////
+    /**
+     * contruct a new view
+     *
+     * @param $params array of view params
+     * @param $parent parent view
+     * @return void
+     */
     final public function __construct($params=array(), \bolt\browser\view $parent=null) {
         $this->_guid = uniqid();
         $this->_params = b::bucket($params);
@@ -112,62 +112,62 @@ class view extends \bolt\event implements iView {
 
     }
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief called by __construct
-    ///
-    /// @return void
-    ////////////////////////////////////////////////////////////////////
+    /**
+     * called by __construct
+     *
+     * @return void
+     */
     protected function init() {}
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief called by render to set content
-    ///
-    /// @return void
-    ////////////////////////////////////////////////////////////////////
+    /**
+     * called by render to set content
+     *
+     * @return void
+     */
     protected function build() {}
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief called by render before build
-    ///
-    /// @return void
-    ////////////////////////////////////////////////////////////////////
+    /**
+     * called by render before build
+     *
+     * @return void
+     */
     protected function before() {}
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief called by render after build and render
-    ///
-    /// @return void
-    ////////////////////////////////////////////////////////////////////
+    /**
+     * called by render after build and render
+     *
+     * @return void
+     */
     protected function after() {}
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief set the parent view
-    ///
-    /// @param \bolt\browser\view $parent
-    /// @return self
-    ////////////////////////////////////////////////////////////////////
+    /**
+     * set the parent view
+     *
+     * @param \bolt\browser\view $parent
+     * @return self
+     */
     public function setParent(\bolt\browser\view $parent) {
         $this->_parent = $parent;
         return $this;
     }
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief get the parent view
-    ///
-    /// @return parent view
-    ////////////////////////////////////////////////////////////////////
+    /**
+     * get the parent view
+     *
+     * @return parent view
+     */
     public function getParent() {
         return $this->_parent;
     }
 
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief MAGIC get a param from params bucket
-    /// @see self::getParam
-    ///
-    /// @param $name
-    /// @return value
-    ////////////////////////////////////////////////////////////////////
+    /**
+     * MAGIC get a param from params bucket
+     * @see self::getParam
+     *
+     * @param $name
+     * @return value
+     */
     public function __get($name) {
         if ($name == 'params') {
             return $this->_params;
@@ -181,25 +181,25 @@ class view extends \bolt\event implements iView {
         return false;
     }
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief MAGIC set a param to params bucket
-    /// @see bucket::set
-    ///
-    /// @param $name
-    /// @param $value
-    /// @return void
-    ////////////////////////////////////////////////////////////////////
+    /**
+     * MAGIC set a param to params bucket
+     * @see bucket::set
+     *
+     * @param $name
+     * @param $value
+     * @return void
+     */
     public function __set($name, $value) {
         $this->_properties[] = $name;
         $this->{$name} = $value;
     }
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief get a param
-    ///
-    /// @param $name
-    /// @return value
-    ////////////////////////////////////////////////////////////////////
+    /**
+     * get a param
+     *
+     * @param $name
+     * @return value
+     */
     public function getParam($name, $default=null) {
         if (!$name) {
             return b::bucket();
@@ -221,21 +221,21 @@ class view extends \bolt\event implements iView {
         return ($val ?: $default);
     }
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief get params
-    ///
-    /// @return params bucket
-    ////////////////////////////////////////////////////////////////////
+    /**
+     * get params
+     *
+     * @return params bucket
+     */
     public function getParams() {
         return $this->_params;
     }
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief set params
-    ///
-    /// @param $params
-    /// @return self
-    ////////////////////////////////////////////////////////////////////
+    /**
+     * set params
+     *
+     * @param $params
+     * @return self
+     */
     public function setParams($params) {
         if (is_a($params, '\bolt\bucket') ) {
             $this->_params = $params;
@@ -256,41 +256,41 @@ class view extends \bolt\event implements iView {
         return $this->_params->exists($name);
     }
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief get the unique id of view
-    ///
-    /// @return string guid
-    ////////////////////////////////////////////////////////////////////
+    /**
+     * get the unique id of view
+     *
+     * @return string guid
+     */
     public function getGuid() {
         return $this->_guid;
     }
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief get view content
-    ///
-    /// @return view content
-    ////////////////////////////////////////////////////////////////////
+    /**
+     * get view content
+     *
+     * @return view content
+     */
     public function getContent() {
         return $this->_content;
     }
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief set the view content
-    ///
-    /// @param $content view content
-    /// @return self
-    ////////////////////////////////////////////////////////////////////
+    /**
+     * set the view content
+     *
+     * @param $content view content
+     * @return self
+     */
     public function setContent($content) {
         $this->_content = $content;
         return $this;
     }
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief set the layout view
-    ///
-    /// @param $layout (string|\bolt\browser\view) path to template or view object
-    /// @return self
-    ////////////////////////////////////////////////////////////////////
+    /**
+     * set the layout view
+     *
+     * @param $layout (string|\bolt\browser\view) path to template or view object
+     * @return self
+     */
     public function setLayout($layout) {
         if (is_string($layout)) {
             $layout = b::view()
@@ -304,30 +304,30 @@ class view extends \bolt\event implements iView {
         return $this;
     }
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief return layout view
-    ///
-    /// @return \bolt\browser\view
-    ////////////////////////////////////////////////////////////////////
+    /**
+     * return layout view
+     *
+     * @return \bolt\browser\view
+     */
     public function getLayout() {
         return $this->_layout;
     }
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief check if the controller has a layout view
-    ///
-    /// @return bool
-    ////////////////////////////////////////////////////////////////////
+    /**
+     * check if the controller has a layout view
+     *
+     * @return bool
+     */
     public function hasLayout() {
         return !($this->_layout === false);
     }
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief set the view file
-    ///
-    /// @param $file path to file
-    /// @return self
-    ////////////////////////////////////////////////////////////////////
+    /**
+     * set the view file
+     *
+     * @param $file path to file
+     * @return self
+     */
     public function setTemplate($file) {
         if ($file === false) {
             $this->_template = false;
@@ -339,60 +339,60 @@ class view extends \bolt\event implements iView {
         return $this;
     }
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief get the view file
-    ///
-    /// @return view file
-    ////////////////////////////////////////////////////////////////////
+    /**
+     * get the view file
+     *
+     * @return view file
+     */
     public function getTemplate() {
         return $this->_template;
     }
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief has a template
-    ///
-    /// @return bool
-    ////////////////////////////////////////////////////////////////////
+    /**
+     * has a template
+     *
+     * @return bool
+     */
     public function hasTemplate() {
         return $this->_template !== null;
     }
 
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief set renderer
-    ///
-    /// @param $name render name
-    /// @return self
-    ////////////////////////////////////////////////////////////////////
+    /**
+     * set renderer
+     *
+     * @param $name render name
+     * @return self
+     */
     public function setRenderer($name) {
         $this->_render = $name;
         return $this;
     }
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief get renderer
-    ///
-    /// @return renderer
-    ////////////////////////////////////////////////////////////////////
+    /**
+     * get renderer
+     *
+     * @return renderer
+     */
     public function getRenderer() {
         return $this->_render;
     }
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief has the view been rendered
-    ///
-    /// @return renderer
-    ////////////////////////////////////////////////////////////////////
+    /**
+     * has the view been rendered
+     *
+     * @return renderer
+     */
     public function hasRendered() {
         return $this->_hasRendered;
     }
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief render the given view
-    ///
-    /// @param $args array of argumnets
-    /// @return content of view
-    ////////////////////////////////////////////////////////////////////
+    /**
+     * render the given view
+     *
+     * @param $args array of argumnets
+     * @return content of view
+     */
     final public function render($args=array()) {
 
         // globalize any args
@@ -481,15 +481,15 @@ class view extends \bolt\event implements iView {
     }
 
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief render a template file and set controller content
-    /// @see \bolt\render::render
-    ///
-    /// @param $file path to template file
-    /// @param $vars array of variable
-    /// @param $render name of render plugin
-    /// @return self
-    ////////////////////////////////////////////////////////////////////
+    /**
+     * render a template file and set controller content
+     * @see \bolt\render::render
+     *
+     * @param $file path to template file
+     * @param $vars array of variable
+     * @param $render name of render plugin
+     * @return self
+     */
     public function renderTemplate($file, $vars=array(), $render=false) {
         return b::render(array(
             'file' => $file,
@@ -499,15 +499,15 @@ class view extends \bolt\event implements iView {
         ));
     }
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief render a string and set as controller content
-    ///
-    ///
-    /// @param $str string to render
-    /// @param $vars array of variable
-    /// @param $render name of render plugin
-    /// @return self
-    ////////////////////////////////////////////////////////////////////
+    /**
+     * render a string and set as controller content
+     *
+     *
+     * @param $str string to render
+     * @param $vars array of variable
+     * @param $render name of render plugin
+     * @return self
+     */
     public function renderString($str, $vars=array(), $render=false) {
         return b::render(array(
             'string' => $str,
