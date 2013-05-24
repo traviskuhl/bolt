@@ -1,6 +1,9 @@
 # Bolt
 a PHP Framework
 
+## NOTICE
+bolt is unstable and under active development. the api is unstable
+
 [![Build Status](https://secure.travis-ci.org/traviskuhl/bolt.png?branch=beta)](http://travis-ci.org/traviskuhl/bolt)
 
 ## Install

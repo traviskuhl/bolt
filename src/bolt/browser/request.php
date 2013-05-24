@@ -3,14 +3,14 @@
 namespace bolt\browser;
 use \b;
 
-/// plug into b::request();
+// plug into b::request();
 b::plug('request', '\bolt\browser\request');
 
-////////////////////////////////////////////////////////////////////
-/// @brief browser request class
-/// @extends \bolt\plugin\singleton
-///
-////////////////////////////////////////////////////////////////////
+/**
+ * browser request class
+ * @extends \bolt\plugin\singleton
+ *
+ */
 class request extends \bolt\plugin\singleton {
 
 	private $_accept = "text/html";
@@ -25,11 +25,11 @@ class request extends \bolt\plugin\singleton {
     private $_route = false;
     private $_content = false;
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief construct a new instance
-    ///
-    /// @return self
-    ////////////////////////////////////////////////////////////////////
+    /**
+     * construct a new instance
+     *
+     * @return self
+     */
 	public function __construct() {
 
 		// get from env
@@ -73,20 +73,20 @@ class request extends \bolt\plugin\singleton {
 
 	}
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief MAGIC get variable. where $name is:
-    ///     get -> $_GET bucket
-    ///     post -> $_POST bucket
-    ///     request -> $_REQUEST bucket
-    ///     input -> $_input contensts
-    ///     server -> $_SERVER bucket
-    ///     params -> request params
-    ///     headers -> headers bucket
-    ///     default -> route params
-    ///
-    /// @param $name name of variable
-    /// @return mixed
-    ////////////////////////////////////////////////////////////////////
+    /**
+     * MAGIC get variable. where $name is:
+     *     get -> $_GET bucket
+     *     post -> $_POST bucket
+     *     request -> $_REQUEST bucket
+     *     input -> $_input contensts
+     *     server -> $_SERVER bucket
+     *     params -> request params
+     *     headers -> headers bucket
+     *     default -> route params
+     *
+     * @param $name name of variable
+     * @return mixed
+     */
     public function __get($name) {
         switch($name) {
             case 'get':
@@ -108,13 +108,13 @@ class request extends \bolt\plugin\singleton {
         };
     }
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief set a route apram
-    ///
-    /// @param $name
-    /// @param $value
-    /// @return void
-    ////////////////////////////////////////////////////////////////////
+    /**
+     * set a route apram
+     *
+     * @param $name
+     * @param $value
+     * @return void
+     */
     public function __set($name, $value) {
         $this->_params->set($name, $value);
     }
@@ -123,16 +123,16 @@ class request extends \bolt\plugin\singleton {
         return $this->_route;
     }
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief get request params
-    ///
-    /// @param $type of params. where:
-    ///       get -> $_GET bucket
-    ///       post -> $_POST bucket
-    ///       request -> $_REQUEST bucket
-    ///       default -> route params bucket
-    /// @return object controller
-    ////////////////////////////////////////////////////////////////////
+    /**
+     * get request params
+     *
+     * @param $type of params. where:
+     *       get -> $_GET bucket
+     *       post -> $_POST bucket
+     *       request -> $_REQUEST bucket
+     *       default -> route params bucket
+     * @return object controller
+     */
     public function getParams($type=false) {
         switch($type) {
             case 'get': return $this->_get;
@@ -142,90 +142,90 @@ class request extends \bolt\plugin\singleton {
         };
     }
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief set route params
-    ///
-    /// @param route params
-    /// @return self
-    ////////////////////////////////////////////////////////////////////
+    /**
+     * set route params
+     *
+     * @param route params
+     * @return self
+     */
     public function setParams(\bolt\bucket $params) {
         $this->_params = $params;
         return $this;
     }
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief get all headers
-    ///
-    /// @return \bolt\bucket headers
-    ////////////////////////////////////////////////////////////////////
+    /**
+     * get all headers
+     *
+     * @return \bolt\bucket headers
+     */
     public function getHeaders() {
         return $this->_headers;
     }
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief get input contents (php://input)
-    ///
-    /// @return string
-    ////////////////////////////////////////////////////////////////////
+    /**
+     * get input contents (php://input)
+     *
+     * @return string
+     */
     public function getInput() {
         return $this->_input;
     }
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief get the route action
-    ///
-    /// @return string route action
-    ////////////////////////////////////////////////////////////////////
+    /**
+     * get the route action
+     *
+     * @return string route action
+     */
     public function getAction() {
         return $this->_action;
     }
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief set the route action
-    ///
-    /// @param $action string of route action
-    /// @return self
-    ////////////////////////////////////////////////////////////////////
+    /**
+     * set the route action
+     *
+     * @param $action string of route action
+     * @return self
+     */
     public function setAction($action){
         $this->_action = $action;
         return $this;
     }
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief get HTTP Method
-    ///
-    /// @return string of method
-    ////////////////////////////////////////////////////////////////////
+    /**
+     * get HTTP Method
+     *
+     * @return string of method
+     */
     public function getMethod() {
         return $this->_method;
     }
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief set the HTTP method
-    ///
-    /// @param $method set the http method
-    /// @return self
-    ////////////////////////////////////////////////////////////////////
+    /**
+     * set the HTTP method
+     *
+     * @param $method set the http method
+     * @return self
+     */
     public function setMethod($method){
         $this->_method = $method;
         return $this;
     }
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief get the accept headers
-    ///
-    /// @return accept header string
-    ////////////////////////////////////////////////////////////////////
+    /**
+     * get the accept headers
+     *
+     * @return accept header string
+     */
     public function getAccept() {
         return $this->_accept;
     }
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief set the HTTP accept header
-    ///
-    /// @param $accept header
-    /// @return self
-    ////////////////////////////////////////////////////////////////////
+    /**
+     * set the HTTP accept header
+     *
+     * @param $accept header
+     * @return self
+     */
     public function setAccept($accept) {
         $this->_accept = $accept;
         return $this;
@@ -235,12 +235,12 @@ class request extends \bolt\plugin\singleton {
         return $this->_content;
     }
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief execute the request
-    ///
-    /// @param $path request path
-    /// @return executed response
-    ////////////////////////////////////////////////////////////////////
+    /**
+     * execute the request
+     *
+     * @param $path request path
+     * @return executed response
+     */
 	public function run($path=false) {
 
         // ask the router to look for classes

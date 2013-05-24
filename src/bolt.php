@@ -1,19 +1,24 @@
 <?php
-////////////////////////////////////////////////////
-// Copyright 2013 Travis Kuhl (travis@kuhl.co)
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation
-// files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy,
-// modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom
-// the Software is furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
-// WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-// COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF  CONTRACT, TORT
-// OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-////////////////////////////////////////////////////
+/**
+ * bolt.php
+ *
+ * A PHP Framework
+ *
+ * @copyright  2010 - 2013
+ * @author     Travis Kuhl (travis@kuhl.co)
+ * @link       http://bolthq.com
+ * @license    http://opensource.org/licenses/Apache-2.0 Apache 2.0
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License");
+ *  you may not use this file except in compliance with the License.
+ *  You may obtain a copy of the License at
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
 
 // start
 define('bStart', microtime(true));
@@ -46,14 +51,14 @@ if ( bEnv === 'dev' ) {
     ini_set("display_errors",1);
 }
 
-/// set our bzone
+// set our bzone
 date_default_timezone_set(bTimeZone);
 
-////////////////////////////////////////////////////////////
-/// @brief static bolt wrapper instance
-///
-/// @class b
-////////////////////////////////////////////////////////////
+/**
+ * static bolt wrapper instance
+ *
+ * @class b
+ */
 final class b {
 
     const VERSION = "1.0.0";
@@ -154,11 +159,11 @@ final class b {
 
 
 
-    ////////////////////////////////////////////////////////////
-    /// @brief return bolt instance
-    ///
-    /// @return bolt instance
-    ////////////////////////////////////////////////////////////
+    /**
+     * return bolt instance
+     *
+     * @return bolt instance
+     */
     public static function bolt() {
         if (!self::$_instance) {
             self::$_instance = new bolt();
@@ -166,41 +171,41 @@ final class b {
         return self::$_instance;
     }
 
-    ////////////////////////////////////////////////////////////
-    /// @brief magic static to execute plugins. passthrough to
-    ///         plugin::call method
-    ///
-    /// @see plugin::call
-    ////////////////////////////////////////////////////////////
+    /**
+     * magic static to execute plugins. passthrough to
+     *         plugin::call method
+     *
+     * @see plugin::call
+     */
     public static function __callStatic($name, $args) {
         return call_user_func(array(self::bolt(), 'call'), $name, $args);
     }
 
-    ////////////////////////////////////////////////////////////
-    /// @brief static method to register a plugin. passthrough
-    ///                 to plugin::plug method
-    ///
-    /// @see plugin::plug
-    ////////////////////////////////////////////////////////////
+    /**
+     * static method to register a plugin. passthrough
+     *                 to plugin::plug method
+     *
+     * @see plugin::plug
+     */
     public static function plug() {
         return call_user_func_array(array(self::bolt(), 'plug'), func_get_args());
     }
 
-    ////////////////////////////////////////////////////////////
-    /// @brief return a list of core modules
-    ///
-    /// @return bolt instance
-    ////////////////////////////////////////////////////////////
+    /**
+     * return a list of core modules
+     *
+     * @return bolt instance
+     */
     public static function getCore() {
         return array_keys(self::$_core);
     }
 
-    ////////////////////////////////////////////////////////////
-    /// @brief get/set env setting
-    ///
-    /// $env env setting
-    /// @return bolt instance
-    ////////////////////////////////////////////////////////////
+    /**
+     * get/set env setting
+     *
+     * $env env setting
+     * @return bolt instance
+     */
     public static function env($env=false) {
         if ($env) {
             self::$_env = $env;
@@ -208,16 +213,16 @@ final class b {
         return (self::$_env ?: bEnv);
     }
 
-    ////////////////////////////////////////////////////////////
-    /// @brief initalize the bolt framework
-    ///
-    /// @param $args initalization arguments
-    ///               - core: array of core plugins to load
-    ///               - config: array of config params to set
-    ///               - load: array of plugin folders to load. glob
-    ///                         is run on each item
-    /// @return void
-    ////////////////////////////////////////////////////////////
+    /**
+     * initalize the bolt framework
+     *
+     * @param $args initalization arguments
+     *               - core: array of core plugins to load
+     *               - config: array of config params to set
+     *               - load: array of plugin folders to load. glob
+     *                         is run on each item
+     * @return void
+     */
     public static function init($args=array()) {
 
         // lig
@@ -354,12 +359,12 @@ final class b {
 
     }
 
-    ////////////////////////////////////////////////////////////
-    /// @brief deside how to run the framework
-    ///
-    /// @param $mode run mode
-    /// @return void
-    ////////////////////////////////////////////////////////////
+    /**
+     * deside how to run the framework
+     *
+     * @param $mode run mode
+     * @return void
+     */
     public static function run($mode=false) {
         if ($mode === false) {$mode = self::$_mode; }
 
@@ -394,13 +399,13 @@ final class b {
     }
 
 
-    ////////////////////////////////////////////////////////////
-    /// @brief setting
-    ///
-    /// @param $name name of setting
-    /// @param $default default value
-    /// @return setting value
-    ////////////////////////////////////////////////////////////
+    /**
+     * setting
+     *
+     * @param $name name of setting
+     * @param $default default value
+     * @return setting value
+     */
     public static function setting($name, $default=-1) {
         if ($default === -1) {$default = b::bucket(); }
         $type = 'project';
@@ -422,11 +427,11 @@ final class b {
     }
 
 
-    ////////////////////////////////////////////////////////////
-    /// @brief load files
-    ///
-    /// @param $paths list of paths to load
-    ////////////////////////////////////////////////////////////
+    /**
+     * load files
+     *
+     * @param $paths list of paths to load
+     */
     public static function load($paths) {
         if (is_string($paths)) { $paths = array($paths); }
 
@@ -499,21 +504,21 @@ final class b {
             }
         }
 
-    ////////////////////////////////////////////////////////////
-    /// @brief static return a list of loaded files
-    ///
-    /// @return array of loaded files
-    ////////////////////////////////////////////////////////////
+    /**
+     * static return a list of loaded files
+     *
+     * @return array of loaded files
+     */
     public static function getLoaded() {
         return self::$_loaded;
     }
 
-    ////////////////////////////////////////////////////////////
-    /// @brief autoload bolt components
-    ///
-    /// @param $class class name to load (namespace allowed)
-    /// @return void
-    ////////////////////////////////////////////////////////////
+    /**
+     * autoload bolt components
+     *
+     * @param $class class name to load (namespace allowed)
+     * @return void
+     */
     public static function autoloader($class) {
 
     	// we only want the last part of the class
@@ -551,14 +556,14 @@ final class b {
 
     }
 
-    ////////////////////////////////////////////////////////////
-    /// @brief log a message somewhere
-    ///
-    /// @param $message the message to log
-    /// @param $vars array of replacement vars
-    /// @param $sev the log severity
-    /// @reutrn bolt instance
-    ////////////////////////////////////////////////////////////
+    /**
+     * log a message somewhere
+     *
+     * @param $message the message to log
+     * @param $vars array of replacement vars
+     * @param $sev the log severity
+     * @reutrn bolt instance
+     */
     public static function log($message, $vars=array(), $sev=1) {
         if (bLogLevel === self::LogNone) { return self::bolt(); } // if no logging just stop now
         if (!is_array($vars)) {$sev = $vars;} // vars is really sev
@@ -572,14 +577,14 @@ final class b {
         return self::bolt();
     }
 
-    ////////////////////////////////////////////////////////////
-    /// @brief get/set a configuration paramater. passhtrough to
-    ///         config::get or config::set
-    ///
-    /// @param $name name of config param
-    /// @return <mixed> config param or false if doesn't exist
-    /// @see config::get
-    ////////////////////////////////////////////////////////////
+    /**
+     * get/set a configuration paramater. passhtrough to
+     *         config::get or config::set
+     *
+     * @param $name name of config param
+     * @return <mixed> config param or false if doesn't exist
+     * @see config::get
+     */
     public static function _($name, $value=null) {
         return ($value === null ? b::config()->get($name) : b::config()->set($name, $value));
     }
@@ -594,20 +599,20 @@ final class b {
 }
 
 
-////////////////////////////////////////////////////////////
-/// @brief wrapper for single bolt instance
-///
-/// @class bolt
-/// @extends bolt\plugin
-////////////////////////////////////////////////////////////
+/**
+ * wrapper for single bolt instance
+ *
+ * @class bolt
+ * @extends bolt\plugin
+ */
 final class bolt extends bolt\plugin {
 
-    ////////////////////////////////////////////////////////////
-    /// @brief construct a new bolt class. must also construct
-    ///         parent class and pass fallback class list
-    ///
-    /// @see plugin::__construct
-    ////////////////////////////////////////////////////////////
+    /**
+     * construct a new bolt class. must also construct
+     *         parent class and pass fallback class list
+     *
+     * @see plugin::__construct
+     */
     public function __construct() {
 
         // init our plugin class
@@ -620,16 +625,16 @@ final class bolt extends bolt\plugin {
 }
 
 
-////////////////////////////////////////////////////////////
-/// @brief global paramater check
-///
-/// @method	p
-/// @param	$key	key name
-/// @param	$default 	default value if key != exist [Default: false]
-/// @param	$array		array to look in [Default: $_REQUEST]
-/// @param  $filter    string to filter on the return
-/// @return mixed paramater value
-////////////////////////////////////////////////////////////
+/**
+ * global paramater check
+ *
+ * @method	p
+ * @param	$key	key name
+ * @param	$default 	default value if key != exist [Default: false]
+ * @param	$array		array to look in [Default: $_REQUEST]
+ * @param  $filter    string to filter on the return
+ * @return mixed paramater value
+ */
 function  p($key, $default=false, $array=false, $filter=FILTER_SANITIZE_STRING) {
 
 	// check if key is an array
@@ -701,50 +706,16 @@ function  p($key, $default=false, $array=false, $filter=FILTER_SANITIZE_STRING) 
 
 }
 
-////////////////////////////////////////////////////////////
-/// @brief global raw paramater check
-///
-/// @method	p_raw
-/// @param	$key	key name
-/// @param	$default 	default value if key != exist [Default: false]
-/// @param	$array		array to look in [Default: $_REQUEST]
-/// @return mixed paratamer value
-/// @see p
-////////////////////////////////////////////////////////////
+/**
+ * global raw paramater check
+ *
+ * @method	p_raw
+ * @param	$key	key name
+ * @param	$default 	default value if key != exist [Default: false]
+ * @param	$array		array to look in [Default: $_REQUEST]
+ * @return mixed paratamer value
+ * @see p
+ */
 function p_raw($key,$default=false,$array=false) {
 	return p($key,$default,$array,FILTER_UNSAFE_RAW);
-}
-
-////////////////////////////////////////////////////////////
-/// @brief global path paramater check
-/// @method	p
-/// @param	$pos	    index position of key
-/// @param	$default 	default value if key != exist [Default: false]
-/// @param	$array		array to look in [Default: $_REQUEST]
-/// @param  $filter    string to filter on the return
-/// @return mixed path paramter
-////////////////////////////////////////////////////////////
-function pp($pos,$default=false,$filter=false) {
-
-	// path
-	$path = b::config()->bPath;
-
-	if ( !$path ) { return $default; }
-
-	// path
-	$path = explode('/',trim($path,'/'));
-
-	// yes?
-	if ( count($path)-1 < $pos OR ( count($path)-1 >= $pos AND $path[$pos] == "" ) ) {
-		return $default;
-	}
-
-	// filter
-	if ( $filter ) {
-		$path[$pos] = preg_replace("/[^".$filter."]+/","",$path[$pos]);
-	}
-
-	// give back
-	return $path[$pos];
-
 }

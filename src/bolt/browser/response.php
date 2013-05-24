@@ -6,11 +6,11 @@ use \b;
 // plug into b::response
 b::plug('response', '\bolt\browser\response');
 
-////////////////////////////////////////////////////////////////////
-/// @brief browser response
-/// @extends \bolt\plugin
-///
-////////////////////////////////////////////////////////////////////
+/**
+ * browser response
+ * @extends \bolt\plugin
+ *
+ */
 class response extends \bolt\plugin {
 
 	// we're a singleton
@@ -22,25 +22,25 @@ class response extends \bolt\plugin {
     private $_content = false;
     private $_data = array();
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief construct a response
-    ///
-    /// @return self
-    ////////////////////////////////////////////////////////////////////
+    /**
+     * construct a response
+     *
+     * @return self
+     */
 	public function __construct() {
 		$this->_headers = b::bucket();
 	}
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief MAGIC return params, where:
-    ///     status -> _status
-    ///     accept -> _accept
-    ///     contentType -> _contentType
-    ///     headers -> _headers bucket
-    ///
-    /// @param $name
-    /// @return mixed
-    ////////////////////////////////////////////////////////////////////
+    /**
+     * MAGIC return params, where:
+     *     status -> _status
+     *     accept -> _accept
+     *     contentType -> _contentType
+     *     headers -> _headers bucket
+     *
+     * @param $name
+     * @return mixed
+     */
     public function __get($name) {
         switch($name) {
             case 'status':
@@ -53,13 +53,13 @@ class response extends \bolt\plugin {
         return false;
     }
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief MAGIC set variables
-    ///
-    /// @param $name
-    /// @param $value
-    /// @return self
-    ////////////////////////////////////////////////////////////////////
+    /**
+     * MAGIC set variables
+     *
+     * @param $name
+     * @param $value
+     * @return self
+     */
     public function __set($name, $value) {
         switch($name) {
             case 'status':
@@ -78,82 +78,82 @@ class response extends \bolt\plugin {
         return $this->_content;
     }
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief get response content type
-    ///
-    /// @return self
-    ////////////////////////////////////////////////////////////////////
+    /**
+     * get response content type
+     *
+     * @return self
+     */
     public function getContentType() {
         return $this->_contentType;
     }
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief set response content type
-    ///
-    /// @param $type content type string
-    /// @return self
-    ////////////////////////////////////////////////////////////////////
+    /**
+     * set response content type
+     *
+     * @param $type content type string
+     * @return self
+     */
     public function setContentType($type) {
         $this->_contentType = $type;
         return $this;
     }
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief get response headers
-    ///
-    /// @return headers bucket
-    ////////////////////////////////////////////////////////////////////
+    /**
+     * get response headers
+     *
+     * @return headers bucket
+     */
 	public function getHeaders() {
 		return $this->_headers;
 	}
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief get the response status
-    ///
-    /// @return int response status
-    ////////////////////////////////////////////////////////////////////
+    /**
+     * get the response status
+     *
+     * @return int response status
+     */
 	public function getStatus() {
 		return $this->_status;
 	}
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief set the response status (cast as int)
-    ///
-    /// @param $status
-    /// @return self
-    ////////////////////////////////////////////////////////////////////
+    /**
+     * set the response status (cast as int)
+     *
+     * @param $status
+     * @return self
+     */
 	public function setStatus($status) {
 		$this->_status = (int)$status;
         if ($this->_status === 0) { $this->_status = 500; }
 		return $this;
 	}
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief set response data
-    ///
-    /// @param $data
-    /// @return self
-    ////////////////////////////////////////////////////////////////////
+    /**
+     * set response data
+     *
+     * @param $data
+     * @return self
+     */
     public function setData($data) {
         $this->_data = $data;
         return $this;
     }
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief get response data
-    ///
-    /// @return response data
-    ////////////////////////////////////////////////////////////////////
+    /**
+     * get response data
+     *
+     * @return response data
+     */
     public function getData() {
         return $this->_data;
     }
 
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief get the plguin that can response to request
-    ///
-    /// @return response plugin
-    ////////////////////////////////////////////////////////////////////
+    /**
+     * get the plguin that can response to request
+     *
+     * @return response plugin
+     */
     public function getOutputHandler() {
 
         // content type
@@ -194,11 +194,11 @@ class response extends \bolt\plugin {
 
     }
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief execute the response
-    ///
-    /// @return string response
-    ////////////////////////////////////////////////////////////////////
+    /**
+     * execute the response
+     *
+     * @return string response
+     */
 	public function run() {
 
         // before

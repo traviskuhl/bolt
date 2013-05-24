@@ -41,11 +41,11 @@ b::render()->once('before', function() {
     });
 });
 
-////////////////////////////////////////////////////////////////////
-/// @brief browser route class
-/// @extends \bolt\plugin\singleton
-///
-////////////////////////////////////////////////////////////////////
+/**
+ * browser route class
+ * @extends \bolt\plugin\singleton
+ *
+ */
 class route extends \bolt\plugin\singleton {
 
     // type is singleton
@@ -72,12 +72,12 @@ class route extends \bolt\plugin\singleton {
         }
     }
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief default plugin method. 0 args -> self, > 0 args register
-    ///
-    /// @params mix
-    /// @return mixed
-    ////////////////////////////////////////////////////////////////////
+    /**
+     * default plugin method. 0 args -> self, > 0 args register
+     *
+     * @params mix
+     * @return mixed
+     */
     public function _default() {
         if (count(func_get_args()) == 0 ) {
             return $this;
@@ -95,50 +95,50 @@ class route extends \bolt\plugin\singleton {
         return $this;
     }
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief set default route parser
-    ///
-    /// @param $class router class
-    /// @return self
-    ////////////////////////////////////////////////////////////////////
+    /**
+     * set default route parser
+     *
+     * @param $class router class
+     * @return self
+     */
     public function setDefaultParser($class) {
         $this->_defaultParser = $class;
         return $this;
     }
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief get default route parser
-    ///
-    /// @return return default parser
-    ////////////////////////////////////////////////////////////////////
+    /**
+     * get default route parser
+     *
+     * @return return default parser
+     */
     public function getDefaultParser() {
         return $this->_defaultParser;
     }
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief get the current registered routes
-    ///
-    /// @return array of route objects
-    ////////////////////////////////////////////////////////////////////
+    /**
+     * get the current registered routes
+     *
+     * @return array of route objects
+     */
     public function getRoutes() {
         return $this->_routes;
     }
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief get the matched route
-    ///
-    /// @return  route object
-    ////////////////////////////////////////////////////////////////////
+    /**
+     * get the matched route
+     *
+     * @return  route object
+     */
     public function getRoute() {
         return $this->_route;
     }
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief get a route by name
-    ///
-    /// @param $name name of route
-    /// @return route object
-    ////////////////////////////////////////////////////////////////////
+    /**
+     * get a route by name
+     *
+     * @param $name name of route
+     * @return route object
+     */
     public function getRouteByName($name) {
         foreach ($this->_routes as $route) {
             if ($route->getName() == $name) {
@@ -148,13 +148,13 @@ class route extends \bolt\plugin\singleton {
         return false;
     }
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief register a new route
-    ///
-    /// @param $paths (string|array) or route paths
-    /// @param $class controller class (default b::config->router)
-    /// @return router object
-    ////////////////////////////////////////////////////////////////////
+    /**
+     * register a new route
+     *
+     * @param $paths (string|array) or route paths
+     * @param $class controller class (default b::config->router)
+     * @return router object
+     */
     public function register($paths, $class=false) {
 
         // if paths is not an object
@@ -173,13 +173,13 @@ class route extends \bolt\plugin\singleton {
 
     }
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief match a route to a give path & method
-    ///
-    /// @param $path path string
-    /// @param $method requesting method
-    /// @return router object or false
-    ////////////////////////////////////////////////////////////////////
+    /**
+     * match a route to a give path & method
+     *
+     * @param $path path string
+     * @param $method requesting method
+     * @return router object or false
+     */
     public function match($path, $method=false) {
 
         // class
@@ -217,15 +217,15 @@ class route extends \bolt\plugin\singleton {
 
     }
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief return a url string based on named route
-    ///
-    /// @param $name route name
-    /// @param $data route params
-    /// @param $params query parameters to add
-    /// @param $args array of args
-    /// @return string url
-    ////////////////////////////////////////////////////////////////////
+    /**
+     * return a url string based on named route
+     *
+     * @param $name route name
+     * @param $data route params
+     * @param $params query parameters to add
+     * @param $args array of args
+     * @return string url
+     */
     public function url($name, $data=array(), $query=array(), $args=array()) {
         $prefix = "/";
 
@@ -267,11 +267,11 @@ class route extends \bolt\plugin\singleton {
 
     }
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief load all routes from declaired controller classes
-    ///
-    /// @return self
-    ////////////////////////////////////////////////////////////////////
+    /**
+     * load all routes from declaired controller classes
+     *
+     * @return self
+     */
     public function loadClassRoutes() {
         $classes = b::getDefinedSubClasses('bolt\browser\controller');
 
