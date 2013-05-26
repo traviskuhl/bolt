@@ -394,6 +394,7 @@ class request extends \bolt\plugin\singleton {
     public static function initServer() {
         if (defined('bServerInit') AND bServerInit === true) {return;}
 
+
         // always need from server
         $needed = array(
             'SERVER_PORT', 'HTTP_HOST', 'REMOTE_ADDR', 'QUERY_STRING', 'REQUEST_URI', 'SCRIPT_NAME', 'PATH_INFO'
@@ -413,10 +414,6 @@ class request extends \bolt\plugin\singleton {
         // forward
         if (isset($_SERVER['HTTP_X_FORWARDED_FOR'])) {
             $_SERVER['REMOTE_ADDR'] = $_SERVER['HTTP_X_FORWARDED_FOR'];
-        }
-
-        if (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) AND $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https') {
-            $_SERVER['SERVER_PORT'] = 443;
         }
 
         if (isset($_SERVER['HTTP_X_PORT'])) {
@@ -448,8 +445,13 @@ class request extends \bolt\plugin\singleton {
         $uri = explode('/',$_SERVER['SCRIPT_NAME']);
         $hostParts = explode(":", $_SERVER['HTTP_HOST']);
 
+        if (isset($hostParts[1])) {
+            $_SERVER['SERVER_PORT'] = $hostParts[1];
+        }
+
+        define("PROTO",         (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) ? $_SERVER['HTTP_X_FORWARDED_PROTO'] : 'http'));
         define("HTTP_HOST",      $_SERVER['HTTP_HOST']);
-        define("HOST",           ($_SERVER['SERVER_PORT']==443?"https://":"http://").$_SERVER['HTTP_HOST']);
+        define("HOST",           PROTO."://".$_SERVER['HTTP_HOST']);
         define("HOST_NSSL",      "http://".$_SERVER['HTTP_HOST']);
         define("HOST_SSL",       "https://".$_SERVER['HTTP_HOST']);
         define("HOSTNAME",         array_shift($hostParts));
@@ -476,7 +478,6 @@ class request extends \bolt\plugin\singleton {
         define("IP",             $_SERVER['REMOTE_ADDR']);
         define("SELF",           HOST.$_SERVER['REQUEST_URI']);
         define("PORT",           $_SERVER['SERVER_PORT']);
-        define("PROTO",         (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) ? $_SERVER['HTTP_X_FORWARDED_PROTO'] : 'http'));
         define("bServerInit",   true);
 
 

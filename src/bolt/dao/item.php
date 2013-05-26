@@ -187,7 +187,7 @@ abstract class item implements iItem {
     /// @see bucket::set()
     /// @return sefl
     ////////////////////////////////////////////////////////////////////
-    public function set($name, $value=false) {
+    public function set($name, $value=false, $useTraits = true) {
         if (is_array($name)) {
             foreach ($name as $k => $v) {
                 $this->set($k, $v);
@@ -210,7 +210,7 @@ abstract class item implements iItem {
         if (method_exists($this, $setName)) {
             $value = call_user_func(array($this, $setName), $value);
         }
-        else if (array_key_exists(strtolower($setName), $this->_traits)) {
+        else if ($useTraits AND array_key_exists(strtolower($setName), $this->_traits)) {
             $value = $this->callTrait($setName, array($value));
         }
 
@@ -229,7 +229,7 @@ abstract class item implements iItem {
     /// @return self
     ////////////////////////////////////////////////////////////////////
     public function getValue($name, $default=false) {
-        return $this->get($name, $default)->value;
+        return $this->get($name, $default, false)->value;
     }
 
     ////////////////////////////////////////////////////////////////////

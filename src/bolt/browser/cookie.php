@@ -16,7 +16,7 @@ class cookie extends plugin\singleton {
     ///
     /// @return string url with additional params
     ////////////////////////////////////////////////
-	public function set($name, $value, $expires=false, $domain=false, $secure=false, $http=false) {
+	public function set($name, $value, $expires=false, $domain=false, $secure=false, $http=false, $path="/") {
 		if (is_array($expires)) {
 			foreach ($expires as $k => $v) {
 				${$k} = $v;
@@ -66,7 +66,7 @@ class cookie extends plugin\singleton {
 		}
 
 		// set it
-		return setcookie($prefix.$name, $value, $expires, '/', $domain, $secure, $http);
+		return setcookie($prefix.$name, $value, $expires, $path, $domain, $secure, $http);
 
 	}
 

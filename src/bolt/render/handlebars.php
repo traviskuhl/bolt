@@ -89,6 +89,7 @@ class handlebars extends \bolt\plugin\singleton {
                         ${$match[1]} = $val;
                     }
                 }
+                var_dump($args); die;
                 if (substr($args,-1) !== ';') { $args .=';'; }
                 return eval("return $args");
             }

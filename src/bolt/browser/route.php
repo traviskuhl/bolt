@@ -260,7 +260,10 @@ class route extends \bolt\plugin\singleton {
             $path = str_replace('{'.$k.'}', $v, $path );
         }
 
-        $parts['path'] = $prefix . ltrim($path, '/');
+        // anything left over
+        $path = preg_replace("#\{[^\}]+\}/?#", "", $path);
+
+        $parts['path'] = $prefix . trim($path, '/');
 
         // return with params
         return \http_build_url(false, $parts);

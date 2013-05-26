@@ -68,7 +68,7 @@ class view extends \bolt\event implements iView {
     private $_template = null;
     private $_render = 'handlebars';
     private $_properties = array();
-    private $_layout = false;
+    private $_layout = null;
     private $_parent = false;
     private $_hasRendered = false;
     private $_params;
@@ -319,7 +319,7 @@ class view extends \bolt\event implements iView {
      * @return bool
      */
     public function hasLayout() {
-        return !($this->_layout === false);
+        return is_object($this->_layout);
     }
 
     /**
