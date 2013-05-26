@@ -22,6 +22,7 @@ abstract class parser extends \bolt\event {
     private $_validators = array();
     private $_params = array();
     private $_daos = array();
+    private $_optional = array();
 
     /**
      * contrcut a new route parser
@@ -122,6 +123,16 @@ abstract class parser extends \bolt\event {
     }
 
     /**
+     * check if the param is optional
+     *
+     * @param $name name of route param
+     * @return bool
+     */
+    public function isOptional($name)  {
+        return in_array($name, $this->_optional);
+    }
+
+    /**
      * set the name of the route
      *
      * @param $name
@@ -140,6 +151,17 @@ abstract class parser extends \bolt\event {
      */
     public function method($method) {
         $this->_method = (is_array($method) ? $method : explode(',', $method));
+        return $this;
+    }
+
+    /**
+     * set optional params
+     *
+     * @param array $params
+     * @return self
+     */
+    public function optional($params) {
+        $this->_optional = array_merge($this->_optional, $params);
         return $this;
     }
 

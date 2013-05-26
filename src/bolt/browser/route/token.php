@@ -22,7 +22,7 @@ class token extends parser {
                     foreach ($matches as $match) {
                         $part = str_replace($match[0], "~{$i}~", $part);
                         $name = $match[1];
-                        $rep[$i++] = '?(?P<'.$name.'>'.$this->getValidator($name).')?';
+                        $rep[$i++] = ($this->isOptional($name) ? '?(?P<'.$name.'>'.$this->getValidator($name).')?' : '(?P<'.$name.'>'.$this->getValidator($name).')');
                         $params[$name] = false;
                     }
                     $part = preg_quote($part, '#');
