@@ -391,8 +391,12 @@ final class b {
             // browser request
             b::request()->run();
 
+            $resp = b::response()
+                        ->setContent(b::request()->getContent())
+                        ->setData(b::request()->getData());
+
             // browser response
-            exit(b::response()->setContent(b::request()->getContent())->run());
+            exit($resp->run());
 
         }
 
@@ -422,7 +426,7 @@ final class b {
     public static function setSettings($name, $file) {
         self::$_settings[$name] = b::settings($file);
     }
-    public function getSettings($name) {
+    public static function getSettings($name) {
         return self::$_settings[$name];
     }
 
@@ -528,6 +532,11 @@ final class b {
         if (file_exists(bRoot."/{$class}.php")) {
             self::$_loaded[] = realpath(bRoot."/{$class}.php");
             return include_once(bRoot."/{$class}.php");
+        }
+
+        // try converting _ to /
+        if (strpos($class, '_') !== false) {
+            include_once(str_replace("_", "/", $class).".php");
         }
 
         // config

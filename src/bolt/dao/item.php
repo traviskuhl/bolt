@@ -143,7 +143,7 @@ abstract class item implements iItem {
     /// @see bucket::get()
     /// @return value
     ////////////////////////////////////////////////////////////////////
-    public function get($name, $default=false, $userTraits=true) {
+    public function get($name, $default=false, $useTraits=true) {
         $getName = "get{$name}"; $value = false;
 
         // default value
@@ -152,10 +152,10 @@ abstract class item implements iItem {
         }
 
         // find it
-        if (method_exists($this, $getName)) {
+        if ($name !== 'value' AND method_exists($this, $getName)) {
             $value = call_user_func(array($this, $getName));
         }
-        else if (array_key_exists(strtolower($getName), $this->_traits) AND $userTraits !== false) {
+        else if ($useTraits !== false AND array_key_exists(strtolower($getName), $this->_traits)) {
             $value = $this->callTrait($getName);
         }
         else {
@@ -177,6 +177,19 @@ abstract class item implements iItem {
         if (!is_object($value)) { $value = b::bucket($value); }
 
         return $value;
+    }
+
+    ////////////////////////////////////////////////////////////////////
+    /// @brief get a string value
+    ///
+    /// @param $values array of values
+    /// @param $default default value is none is returned
+    /// @param $useTraits use traits
+    /// @return mixed value
+    ////////////////////////////////////////////////////////////////////
+    public function getValue($name, $default=false, $useTraits=true) {
+        $v = $this->get($name, $default, $useTraits);
+        return $v->value;
     }
 
     ////////////////////////////////////////////////////////////////////
@@ -221,16 +234,6 @@ abstract class item implements iItem {
         return $this;
     }
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief get a string value
-    ///
-    /// @param $values array of values
-    /// @see setValue
-    /// @return self
-    ////////////////////////////////////////////////////////////////////
-    public function getValue($name, $default=false) {
-        return $this->get($name, $default, false)->value;
-    }
 
     ////////////////////////////////////////////////////////////////////
     /// @brief set an array of data
@@ -355,6 +358,8 @@ abstract class item implements iItem {
         $t = $this->_traits[strtolower($name)];
         $func = false; $_args = array();
 
+        var_dump($name);
+
         // is trait callable
         if (is_callable($t[0])) {
             if (isset($t[1])) {
@@ -384,7 +389,8 @@ abstract class item implements iItem {
                 if (!$i->hasInstance($name)) {
                     foreach ($t[3] as $key) {
                         if ($key{0} == '$') {
-                            $_args[] = $this->getValue(substr($key, 1), false, false);
+                            $key = substr($key, 1);
+                            // $_args[] = $this->getValue($key, false, false);
                         }
                         else {
                             $_args[] = $key;
@@ -411,7 +417,7 @@ abstract class item implements iItem {
                 // loop
                 if (count($params) > 0) {
                     foreach ($params as $parm) {
-                        $_args[] = $this->_data->getValue($param->name, $param->getDefaultValue());
+                        $_args[] = $this->_data->getValue($param->name, $param->getDefaultValue(), false);
                     }
                 }
 

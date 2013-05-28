@@ -16,8 +16,6 @@ class plain extends handler {
     //
     public function handle() {
 
-        $this->setContentType('text/plain');
-
         // html
         return $this->getContent();
 

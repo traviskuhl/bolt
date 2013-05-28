@@ -705,6 +705,14 @@ class bString {
         return $this->_modifiers;
     }
 
+    public function isTrue() {
+        return $this->_value === true;
+    }
+
+    public function isFalse() {
+        return $this->_value === false;
+    }
+
     // string functions
     public function ago() {
         $this->_value = b::ago($this->_value);

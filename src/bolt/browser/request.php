@@ -24,6 +24,7 @@ class request extends \bolt\plugin\singleton {
     private $_params = false; // route params
     private $_route = false;
     private $_content = false;
+    private $_data = array();
 
     /**
      * construct a new instance
@@ -235,6 +236,15 @@ class request extends \bolt\plugin\singleton {
         return $this->_content;
     }
 
+    public function setData($data) {
+        $this->_data = $data;
+        return $this;
+    }
+
+    public function getData() {
+        return $this->_data;
+    }
+
     /**
      * execute the request
      *
@@ -378,13 +388,19 @@ class request extends \bolt\plugin\singleton {
         }
 
         // set the controller
-        $this->_content = $run;
+        $this->_content = $run->getContent();
+        $this->_data = $run->getData();
+
+        $_args = array(
+            'controller' => $run,
+            'request' => $this
+        );
 
         // after request is finished
-        $this->fire("after");
+        $this->fire("after", $_args);
 
         // call before
-        $route->fire("after");
+        $route->fire("after", $_args);
 
 		// set our response and run
 		return $this;

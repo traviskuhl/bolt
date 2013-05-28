@@ -72,11 +72,12 @@ class view extends \bolt\event implements iView {
     private $_parent = false;
     private $_hasRendered = false;
     private $_params;
+    private $_data;
 
     // static
     protected $_fromInit = false;
-    protected $layout = false;
-    protected $template = false;
+    protected $layout = null;
+    protected $template = null;
 
     /**
      * contruct a new view
@@ -91,10 +92,10 @@ class view extends \bolt\event implements iView {
         $this->_parent = $parent;
 
         // check if a layout property is set
-        if ($this->layout) {
+        if ($this->layout !== null) {
             $this->setLayout($this->layout);
         }
-        if ($this->template) {
+        if ($this->template !== null) {
             $this->setTemplate($this->template);
         }
 
@@ -174,6 +175,12 @@ class view extends \bolt\event implements iView {
         }
         else if ($name == 'cookies') {
             return b::cookie();
+        }
+        else if ($name == 'request') {
+            return b::request();
+        }
+        else if ($name == 'response') {
+            return b::response();
         }
         else if (array_key_exists($name, $this->_properties)) {
             return $this->{$name};
@@ -297,9 +304,6 @@ class view extends \bolt\event implements iView {
                         ->setTemplate($layout)
                         ->setParent($this);
         }
-        if (!b::isInterfaceOf($layout, '\bolt\browser\iView')) {
-            return $this;
-        }
         $this->_layout = $layout;
         return $this;
     }
@@ -385,6 +389,15 @@ class view extends \bolt\event implements iView {
      */
     public function hasRendered() {
         return $this->_hasRendered;
+    }
+
+    public function setData($data) {
+        $this->_data = $data;
+        return $this;
+    }
+
+    public function getData() {
+        return $this->_data;
     }
 
     /**

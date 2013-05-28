@@ -30,8 +30,8 @@ class controller extends \bolt\browser\view implements iController {
     private $_hasRendered = false;
 
     // starter variables
-    protected $templateDir = false;
-    protected $layout = false;
+    protected $templateDir = null;
+    protected $layout = null;
 
     /**
      * get the accept header from b::request
@@ -190,7 +190,7 @@ class controller extends \bolt\browser\view implements iController {
         }
 
         // no template
-        if (!$this->hasLayout()) {
+        if (!$this->hasLayout() AND $this->getLayout() !== false) {
             $root = b::config()->getValue("project.templates")."/layouts";
             $parts = explode(DIRECTORY_SEPARATOR, str_replace('\\', DIRECTORY_SEPARATOR, $m->getDeclaringClass()->getParentClass()->name));
 
@@ -221,7 +221,7 @@ class controller extends \bolt\browser\view implements iController {
      * @return mixed response
      */
     public function run() {
-        return $this->render();
+        return $this;
     }
 
 }

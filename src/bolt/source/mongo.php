@@ -109,6 +109,8 @@ class mongoi extends \bolt\plugin\factory {
 
 	public function query($collection, $query, $args=array()) {
 
+var_dump($query);
+
 		// try connecting
 		$this->_connect();
 

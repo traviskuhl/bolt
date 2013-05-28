@@ -180,7 +180,7 @@ class response extends \bolt\plugin {
         });
 
         // plug
-        $plug = "html";
+        $plug = "plain";
 
         // loop it
         foreach ($map as $item) {

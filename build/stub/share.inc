@@ -18,7 +18,7 @@
 /// Compiled: %CDATE%
 
 // include bolt
-require("bolt.phar");
+require("bolt.php");
 
 // if we're in cli, load it
 // otherwise we're just including the phar
