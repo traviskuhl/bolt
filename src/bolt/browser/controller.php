@@ -10,218 +10,574 @@ use \b;
  * @interface
  */
 interface iController {
-    public function build(); // build
-    public function run();  // execute the controller
+    function render($args=array());
+}
+
+// depend on bolt browser
+b::plug('controller', '\bolt\browser\controllerFactory');
+
+/**
+ * factory generator for controller class
+ * @extends \bolt\plugin\singleton
+ *
+ */
+class controllerFactory extends \bolt\plugin {
+
+    // type is singleton
+    // since this is really a plugin dispatch
+    public static $TYPE = "factory";
+
+    /**
+     * generate a controller
+     * @static
+     *
+     * @param $class controller class to generate
+     * @return controller class
+     */
+    public static function factory($class='\bolt\browser\controller') {
+        return new $class();
+    }
+
 }
 
 /**
- * base controlle class
- * @extends \bolt\event
- *
+ * base controller class
  * @implements iController
- * @return voud
+ *
  */
-class controller extends \bolt\browser\view implements iController {
+class controller extends \bolt\event implements iController {
 
-    // render
-    private $_content = false;
-    private $_data = array();
+    // some things we're going to need
+    private $_guid = false;
+    private $_content = null;
+    private $_template = null;
+    private $_render = 'handlebars';
     private $_properties = array();
+    private $_layout = null;
+    private $_parent = false;
     private $_hasRendered = false;
+    private $_params;
+    private $_data;
+    private $_action = 'build';
 
-    // starter variables
-    protected $templateDir = null;
+    // static
+    protected $_fromInit = false;
     protected $layout = null;
+    protected $template = null;
 
     /**
-     * get the accept header from b::request
-     * @see \bolt\browser\request::getAccept
+     * contruct a new view
      *
-     * @return accept header value
+     * @param $params array of view params
+     * @param $parent parent view
+     * @return void
      */
-    public function getAccept() {
-        return b::request()->getAccept();
+    final public function __construct($params=array(), \bolt\browser\view $parent=null) {
+        $this->_guid = uniqid();
+        $this->_params = b::bucket($params);
+        $this->_parent = $parent;
+
+        // check if a layout property is set
+        if ($this->layout !== null) {
+            $this->setLayout($this->layout);
+        }
+        if ($this->template !== null) {
+            $this->setTemplate($this->template);
+        }
+
+        // any properties
+        $ref = new \ReflectionClass($this);
+
+        // globalize any properties already defined by this class
+        foreach ($ref->getProperties(\ReflectionProperty::IS_PUBLIC | \ReflectionProperty::IS_PROTECTED) as $prop) {
+            if (!$prop->isStatic()) {
+                $this->_properties[] = $prop->getName();
+            }
+        }
+
+        // init
+        $this->_fromInit = $this->init();
+
     }
 
     /**
-     * set the accept header from b::request
-     * @see \bolt\browser\request::getAccept
+     * called by __construct
      *
-     * @param $header
+     * @return void
+     */
+    protected function init() {}
+
+    /**
+     * called by render to set content
+     *
+     * @return void
+     */
+    protected function build() {}
+
+    /**
+     * called by render before build
+     *
+     * @return void
+     */
+    protected function before() {}
+
+    /**
+     * called by render after build and render
+     *
+     * @return void
+     */
+    protected function after() {}
+
+    /**
+     * set the action
+     *
+     * @param $action name of action
      * @return self
      */
-    public function setAccept($header) {
-        b::response()->setAccept($header);
+    public function setAction($action) {
+        $this->_action = $action;
         return $this;
     }
 
     /**
-     * set response content type
-     * @see \bolt\browser\response::setContentType
+     * get the action
      *
-     * @param $type
+     * @return action string
+     */
+    public function getAction() {
+        return $this->_action;
+    }
+
+    /**
+     * set the parent view
+     *
+     * @param \bolt\browser\view $parent
      * @return self
      */
-    public function setContentType($type) {
-        b::response()->setContentType($type);
+    public function setParent(\bolt\browser\view $parent) {
+        $this->_parent = $parent;
         return $this;
     }
 
     /**
-     * get response content type
-     * @see \bolt\browser\response::setContentType
+     * get the parent view
      *
-     * @return content type
+     * @return parent view
      */
-    public function getContentType() {
-        return b::response()->getContentType();
+    public function getParent() {
+        return $this->_parent;
+    }
+
+
+    /**
+     * MAGIC get a param from params bucket
+     * @see self::getParam
+     *
+     * @param $name
+     * @return value
+     */
+    public function __get($name) {
+        if ($name == 'params') {
+            return $this->_params;
+        }
+        else if ($name == 'cookies') {
+            return b::cookie();
+        }
+        else if ($name == 'request') {
+            return b::request();
+        }
+        else if ($name == 'response') {
+            return b::response();
+        }
+        else if (array_key_exists($name, $this->_properties)) {
+            return $this->{$name};
+        }
+        return false;
     }
 
     /**
-     * get the response status in b::response
-     * @see \bolt\browser\response::getStatus
+     * MAGIC set a param to params bucket
+     * @see bucket::set
      *
-     * @return status
+     * @param $name
+     * @param $value
+     * @return void
      */
-    public function getStatus() {
-        return b::response()->getStatus();
+    public function __set($name, $value) {
+        $this->_properties[] = $name;
+        $this->{$name} = $value;
     }
 
     /**
-     * set the response status in b::response
-     * @see \bolt\browser\response::setStatus
+     * get a param
      *
-     * @param $status (int) http status
-     * @return \bolt\bucket params
+     * @param $name
+     * @return value
      */
-    public function setStatus($status) {
-        b::response()->setStatus($status);
-        return $this;
+    public function getParam($name, $default=null) {
+        if (!$name) {
+            return b::bucket();
+        }
+        else if ($this->_params->exists($name)) {
+            return $this->_params->get($name, $default);
+        }
+        else if (in_array($name, $this->_properties)) {
+            return b::bucket($this->{$name});
+        }
+        else if ($this->_parent AND $this->_parent->exists($name)) {
+            return $this->_parent->getParam($name, $default);
+        }
+        return ($default === null ? b::bucket() : $default);
+    }
+
+    public function getParamValue($name, $default=null) {
+        $val = $this->getParam($name, $default);
+        return ($val ?: $default);
     }
 
     /**
-     * execute the controller
+     * get params
      *
-     * @return mixed response
+     * @return params bucket
      */
-    final public function build() {
+    public function getParams() {
+        return $this->_params;
+    }
 
-        // params from the request
-        $params = b::request()->getParams();
-
-        // check
-        if ($this->_fromInit AND b::isInterfaceOf($this->_fromInit, '\bolt\browser\iController')) {
-            return $this->_fromInit;
-        }
-
-        // lets figure out what method was request
-        $method = strtolower(b::request()->getMethod());
-
-        $action = b::request()->getAction();
-
-        // figure out how we handle this request
-        // order goes
-        // 1. dispatch
-        // 2. method+action
-        // 3. action
-        // 4. method
-        // 5. get
-
-        if (method_exists($this, 'dispatch')) {
-            $func = 'dispatch';
-        }
-        else if (method_exists($this, $method.$action)) {
-            $func = $method.$action;
-        }
-        else if (method_exists($this, $action)) {
-            $func = $action;
-        }
-        else if (method_exists($this, $method)) {
-            $func = $method;
-        }
-        else if (method_exists($this, 'get')){
-            $func = 'get';
+    /**
+     * set params
+     *
+     * @param $params
+     * @return self
+     */
+    public function setParams($params) {
+        if (is_a($params, '\bolt\bucket') ) {
+            $this->_params = $params;
         }
         else {
-            return $this;
+            $this->_params->set($params);
+        }
+        return $this;
+    }
+
+    public function exists($name) {
+        if (in_array($name, $this->_properties)) {
+            return true;
+        }
+        else if ($this->_parent AND $this->_parent->exists($name)) {
+            return true;
+        }
+        return $this->_params->exists($name);
+    }
+
+    /**
+     * get the unique id of view
+     *
+     * @return string guid
+     */
+    public function getGuid() {
+        return $this->_guid;
+    }
+
+    /**
+     * get view content
+     *
+     * @return view content
+     */
+    public function getContent() {
+        return $this->_content;
+    }
+
+    /**
+     * set the view content
+     *
+     * @param $content view content
+     * @return self
+     */
+    public function setContent($content) {
+        $this->_content = $content;
+        return $this;
+    }
+
+    /**
+     * set the layout view
+     *
+     * @param $layout (string|\bolt\browser\view) path to template or view object
+     * @return self
+     */
+    public function setLayout($layout) {
+        if (is_string($layout)) {
+            $layout = b::view()
+                        ->setTemplate($layout)
+                        ->setParent($this);
+        }
+        $this->_layout = $layout;
+        return $this;
+    }
+
+    /**
+     * return layout view
+     *
+     * @return \bolt\browser\view
+     */
+    public function getLayout() {
+        return $this->_layout;
+    }
+
+    /**
+     * check if the controller has a layout view
+     *
+     * @return bool
+     */
+    public function hasLayout() {
+        return is_object($this->_layout);
+    }
+
+    /**
+     * set the view file
+     *
+     * @param $file path to file
+     * @return self
+     */
+    public function setTemplate($file) {
+        if ($file === false) {
+            $this->_template = false;
+        }
+        else if (!file_exists($file)) {
+            $file = b::config()->getValue("project.templates")."/".$file;
+        }
+        $this->_template = $file;
+        return $this;
+    }
+
+    /**
+     * get the view file
+     *
+     * @return view file
+     */
+    public function getTemplate() {
+        return $this->_template;
+    }
+
+    /**
+     * has a template
+     *
+     * @return bool
+     */
+    public function hasTemplate() {
+        return $this->_template !== null;
+    }
+
+
+    /**
+     * set renderer
+     *
+     * @param $name render name
+     * @return self
+     */
+    public function setRenderer($name) {
+        $this->_render = $name;
+        return $this;
+    }
+
+    /**
+     * get renderer
+     *
+     * @return renderer
+     */
+    public function getRenderer() {
+        return $this->_render;
+    }
+
+    /**
+     * has the view been rendered
+     *
+     * @return renderer
+     */
+    public function hasRendered() {
+        return $this->_hasRendered;
+    }
+
+    public function setData($data) {
+        $this->_data = $data;
+        return $this;
+    }
+
+    public function getData() {
+        return $this->_data;
+    }
+
+    /**
+     * render the given view
+     *
+     * @param $args array of argumnets
+     * @return content of view
+     */
+    final public function render($args=array()) {
+
+        // globalize any args
+        foreach ($args as $name => $value) {
+            $this->{$name} = $value;
         }
 
-        // reflect our method and add any
-        // request params
-        $m = new \ReflectionMethod($this, $func);
+        // add any set data to the params load
+        foreach ($this->_properties as $name) {
+            $this->_params->set($name, $this->{$name});
+        }
 
-        // args we're going to send when we call
-        $args = array();
+        // add our view to the vars
+        $this->_params->self = $this;
 
-        // method params
-        if ($m->getNumberOfParameters() > 0) {
-            foreach ($m->getParameters() as $i => $param) {
-                $v = false;
-                if ($params->exists($param->name)) {
-                    $v = $params->getValue($param->name);
+        // before
+        $this->fire('before');
+
+        // before render
+        call_user_func(array($this, 'before'));
+
+        // build args
+        $_args = array();
+
+        // if action is a function
+        // just call that
+        $action = (is_string($this->getAction()) ? array($this, $this->getAction()) : $this->getAction());
+
+        // reflect on build to see what to run
+        $ref = (is_array($action) ? new \ReflectionMethod($action[0], $action[1]) : new \ReflectionFunction($action));
+
+        if ($ref->getNumberOfParameters() > 0) {
+            foreach ($ref->getParameters() as $param) {
+                $name = $param->getName();
+
+                // is it a req/resp class
+                if ($param->getClass() AND $param->getClass()->name == 'bolt\browser\request') {
+                    $_args[] = b::request();
+                }
+                else if ($param->getClass() AND $param->getClass()->name == 'bolt\browser\response') {
+                    $_args[] = b::response();
+                }
+                else if (array_key_exists($name, $args)) {
+                    $_args[] = $args['name'];
+                }
+                else if ($this->_params->exists($name)) {
+                    $_args[] = $this->_params->value($name);
+                }
+                else if ($param->isDefaultValueAvailable()) {
+                    $_args[] = $param->getDefaultValue();
                 }
                 else {
-                    $v = $params->getValue($i);
+                    $_args[] = false;
                 }
-                if ($v === false AND $param->isOptional()) {
-                    $v = $param->getDefaultValue();
-                }
-                $args[] = $v;
-            }
-        }
-        else {
-            $args = $this->getParams()->asArray();
-        }
-
-        // go ahead an execute
-        $resp = call_user_func_array(array($this, $func), $args);
-
-        // no templates
-        if (!$this->hasTemplate()) {
-            $root = b::config()->getValue("project.templates");
-            $parts = explode(DIRECTORY_SEPARATOR, str_replace('\\', DIRECTORY_SEPARATOR, $m->getDeclaringClass()->name));
-            while(count($parts) > 0) {
-                $file = $root."/".implode("/", $parts).".template.php";
-                if (file_exists($file)) {
-                    $this->setTemplate($file); break;
-                }
-                array_shift($parts);
             }
         }
 
-        // no template
-        if (!$this->hasLayout() AND $this->getLayout() !== false) {
-            $root = b::config()->getValue("project.templates")."/layouts";
-            $parts = explode(DIRECTORY_SEPARATOR, str_replace('\\', DIRECTORY_SEPARATOR, $m->getDeclaringClass()->getParentClass()->name));
+        // call build
+        call_user_func_array($action, $_args);
 
-            while(count($parts) > 0) {
-                $file = $root."/".implode("/", $parts).".template.php";
-                if (file_exists($file)) {
-                    $this->setLayout($file); break;
-                }
-                array_shift($parts);
-            }
-            $file = b::config()->getValue("project.templates")."/layout.template.php";
-            if (file_exists($file)) {
-                $this->setLayout($file);
-            }
+        // // no template
+        // if (!$this->hasTemplate() AND $this->getTemplate() !== false) {
+        //     $root = b::config()->value("project.templates");
+        //     $parts = explode(DIRECTORY_SEPARATOR, str_replace('\\', DIRECTORY_SEPARATOR, $m->getDeclaringClass()->name));
+        //     while(count($parts) > 0) {
+        //         $file = $root."/".implode("/", $parts).".template.php";
+        //         if (file_exists($file)) {
+        //             $this->setTemplate($file); break;
+        //         }
+        //         array_shift($parts);
+        //     }
+        // }
+
+        // // no template
+        // if (!$this->hasLayout() AND $this->getLayout() !== false) {
+        //     $root = b::config()->value("project.templates")."/layouts";
+        //     $parts = explode(DIRECTORY_SEPARATOR, str_replace('\\', DIRECTORY_SEPARATOR, $m->getDeclaringClass()->getParentClass()->name));
+
+        //     while(count($parts) > 0) {
+        //         $file = $root."/".implode("/", $parts).".template.php";
+        //         if (file_exists($file)) {
+        //             $this->setLayout($file); break;
+        //         }
+        //         array_shift($parts);
+        //     }
+        //     $file = b::config()->value("project.templates")."/layout.template.php";
+        //     if (file_exists($file)) {
+        //         $this->setLayout($file);
+        //     }
+        // }
+
+
+        if ($this->_template !== false AND $this->_content === null) {
+            $this->setContent(b::render(array(
+                'render' => $this->_render,
+                'file' => $this->_template,
+                'self' => $this,
+                'vars' => $this->_params
+            )));
+        }
+        else if ($this->_render AND $this->_content === null) {
+            $this->setContent(b::render(array(
+                'render' => $this->_render,
+                'string' => $this->_content,
+                'self' => $this,
+                'vars' => $this->_params
+            )));
         }
 
-        // if response is a view
-        // render it
-        if (is_string($resp)) {
-            $this->setContent($resp);
+        // layout
+        if ($this->hasLayout()) {
+            $this->setContent(
+                    $this->getLayout()
+                        ->setParent($this)
+                        ->setParams(array('child' => $this->getContent()))
+                        ->render()
+                );
         }
 
+        // after render
+        call_user_func(array($this,'after'));
+
+        // after
+        $this->fire('after');
+
+        $this->_hasRendered = true;
+
+        return $this->getContent();
+    }
+
+
+    /**
+     * render a template file and set controller content
+     * @see \bolt\render::render
+     *
+     * @param $file path to template file
+     * @param $vars array of variable
+     * @param $render name of render plugin
+     * @return self
+     */
+    public function renderTemplate($file, $vars=array(), $render=false) {
+        return b::render(array(
+            'file' => $file,
+            'vars' => $vars,
+            'render' => $render,
+            'self' => $this
+        ));
     }
 
     /**
-     * execute the controller
+     * render a string and set as controller content
      *
-     * @return mixed response
+     *
+     * @param $str string to render
+     * @param $vars array of variable
+     * @param $render name of render plugin
+     * @return self
      */
-    public function run() {
-        return $this;
+    public function renderString($str, $vars=array(), $render=false) {
+        return b::render(array(
+            'string' => $str,
+            'vars' => $vars,
+            'render' => $render,
+            'self' => $this
+        ));
     }
 
 }

@@ -74,6 +74,7 @@ class request extends \bolt\plugin\singleton {
 
 	}
 
+
     /**
      * MAGIC get variable. where $name is:
      *     get -> $_GET bucket
@@ -287,55 +288,8 @@ class request extends \bolt\plugin\singleton {
         // controller
         $reps = false;
 
-
         // call before
         $route->fire("before");
-
-        // route class
-        $class = $route->getController();
-        $params = $route->getParams();
-
-		// is the route a clouser
-		if (is_a($class, 'Closure')) {
-
-			// args
-			$args = $route->getParams();
-
-            // reflect our function
-            $f = new \ReflectionFunction($class);
-
-            // params
-            $p = $f->getParameters();
-
-            // yes or no
-            if (count($p) > 0) {
-
-                // do it
-                $_params = array();
-
-                // loop
-                foreach ($p as $item) {
-                    $_params[] = (array_key_exists($item->name, $args) ? $args[$item->name] : ($item->isDefaultValueAvailable() ? $item->getDefaultValue() : false));
-                }
-
-                // call our function
-                $resp = call_user_func_array($class, $_params);
-
-            }
-            else {
-                $resp = $class();
-            }
-
-		}
-		else {
-			$resp = new $class();
-		}
-
-        // if response isn't an object
-        if (!is_object($resp)) {
-            $c = new \bolt\browser\controller;
-            $resp = $c->setContent($resp);
-        }
 
         // if response isn't a controller interface
         // we need to stop
@@ -362,7 +316,7 @@ class request extends \bolt\plugin\singleton {
         while ($i++ < 10) {
 
             // run the response
-            $run = $resp->run();
+            $run = $resp->run($route);
 
             // if run is a falsy value
             // we can stop now
@@ -407,7 +361,7 @@ class request extends \bolt\plugin\singleton {
 
 	}
 
-    public static function initServer() {
+    public static function initGlobals() {
         if (defined('bServerInit') AND bServerInit === true) {return;}
 
 
@@ -465,39 +419,89 @@ class request extends \bolt\plugin\singleton {
             $_SERVER['SERVER_PORT'] = $hostParts[1];
         }
 
-        define("PROTO",         (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) ? $_SERVER['HTTP_X_FORWARDED_PROTO'] : 'http'));
-        define("HTTP_HOST",      $_SERVER['HTTP_HOST']);
-        define("HOST",           PROTO."://".$_SERVER['HTTP_HOST']);
-        define("HOST_NSSL",      "http://".$_SERVER['HTTP_HOST']);
-        define("HOST_SSL",       "https://".$_SERVER['HTTP_HOST']);
-        define("HOSTNAME",         array_shift($hostParts));
+        // general
+        define("bProto",         (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) ? $_SERVER['HTTP_X_FORWARDED_PROTO'] : 'http'));
+        define("bHost",          $_SERVER['HTTP_HOST']);
+        define("bHostName",       array_shift($hostParts));
+        define("bIp",            $_SERVER['REMOTE_ADDR']);
+        define("bSelf",          bHost.$_SERVER['REQUEST_URI']);
+        define("bPort",          $_SERVER['SERVER_PORT']);
 
-        if (rtrim(str_replace("?".$_SERVER['QUERY_STRING'], "", $_SERVER['REQUEST_URI']),'/') == $_SERVER['SCRIPT_NAME']) {
-            define("URI",            HOST.implode("/",$uri)."/");
-            define("URI_NSSL",       HOST_NSSL.implode("/",$uri)."/");
-            define("URI_SSL",        HOST_SSL.implode("/",$uri)."/");
-        }
-        else {
-            define("URI",            HOST.implode("/",array_slice($uri,0,-1))."/");
-            define("URI_NSSL",       HOST_NSSL.implode("/",array_slice($uri,0,-1))."/");
-            define("URI_SSL",        HOST_SSL.implode("/",array_slice($uri,0,-1))."/");
-        }
-
+        // Path Info
         if (isset($_SERVER['PATH_INFO'])) {
-            define("PATH_INFO", $_SERVER['PATH_INFO']);
+            define("bPathInfo", $_SERVER['PATH_INFO']);
         }
         else {
-            define("PATH_INFO", str_replace("?".$_SERVER['QUERY_STRING'], "", $_SERVER['REQUEST_URI']));
+            define("bPathInfo", str_replace("?".$_SERVER['QUERY_STRING'], "", $_SERVER['REQUEST_URI']));
         }
 
-        define("COOKIE_DOMAIN",  false);
-        define("IP",             $_SERVER['REMOTE_ADDR']);
-        define("SELF",           HOST.$_SERVER['REQUEST_URI']);
-        define("PORT",           $_SERVER['SERVER_PORT']);
+        // don't do this again
         define("bServerInit",   true);
 
-
     }
+
+
+    public static function initFromEnvironment() {
+
+            // initalize some request globals
+            self::initGlobals();
+
+            // name of
+            if (!defined('bHostName')) {
+                b::log("Unable to get host from server", array(), b::LogFatal); return;
+            }
+
+            // normalzie host
+            $host = strtolower(bHostName);
+
+            // start our assumeing we'll use the global project
+            $project = b::config()->value('global.defaultProject');
+
+            // figure out if we have a hostname that can
+            // service this request
+            foreach (b::config()->get('global') as $key => $value) {
+                if ($value->exists('hostname')) {
+                    foreach ($value['hostname']->value() as $hn) { // not hackernews -> hostname
+                        if (strtolower($hn) == $host) {
+                            $project = $key; break;
+                        }
+                        else if (strtolower(implode('.', array_slice(explode('.', $hn), -2))) == $host) {
+                            $project = $key; break;
+                        }
+                    }
+                }
+            }
+
+            // no project
+            if ($project === false) {
+                b::log("Unable to match hostname (%s) to project.", array($host), b::LogFatal); return;
+            }
+
+            // project
+            $project = b::config('global')->value($project);
+
+            // project
+            if (isset($project['load'])) {
+                b::load($project['load']);
+            }
+
+            // everything else is config
+            if (isset($project['config'])) {
+                b::config()->set('project', $project['config']);
+            }
+
+            // root
+            if (b::config('project')->exists('root')) {
+                $args['load'][] = b::config('project')->value('root');
+            }
+
+            //
+            if (b::config()->exists('project.settings')) {
+                b::settings()->set('project', b::config()->project->settings->value);
+            }
+
+
+        }
 
 }
 

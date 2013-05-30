@@ -12,45 +12,11 @@ class settings extends plugin\factory {
 
     // data
     private $_bucket;
-    private $_file;
 
-    public function __construct($file) {
-        $this->_bucket = b::bucket();
-
-        // must be a string
-        if (!is_string($file)) {return;}
-
-        // not readable
-        if (!is_readable($file)) {
-            b::log("Settings location '%s' is not writeable", array($file), b::LogFatal);
-            return false;
-        }
-
-        // folder
-        if (!file_exists(dirname($file))) {
-            $folder = dirname($file);
-            mkdir($folder, 0777, true);
-        }
-
-        // data
-        $data = json_decode(file_get_contents($file), true);
-
-        // env
-        $env = "_".b::env();
-
-        if (isset($data[$env])) {
-            $data = b::mergeArray($data, $data[$env]);
-            unset($data[$env]);
-        }
-
-        // make our bucket
-        $this->_bucket->set($data);
-
-        // save file
-        $this->_file = $file;
-
+    // cons
+    public function __construct() {
+        $this->_bucket = b::bucket(array());
     }
-
 
     // __get
     public function __get($name) {

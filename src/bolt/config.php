@@ -14,13 +14,16 @@ class config extends plugin\singleton {
     private $_bucket;
 
     public function __construct() {
-        $this->_bucket = b::bucket();
+        $this->_bucket = b::bucket(array());
     }
 
     // default
-    public function _default($data=array()) {
-        if ($data) {
+    public function _default($data=false) {
+        if (is_array($data)) {
             $this->_bucket->set($data);
+        }
+        else if (is_string($data)) {
+            return $this->_bucket->get($data);
         }
         return $this;
     }

@@ -28,9 +28,11 @@ if ('cli' === php_sapi_name()) {
 
 // init from server request
 b::init(array(
-    'mode' => 'browser',
-    'src' => 'server'
+    'mode' => 'browser'
 ));
+
+// init request from environment
+b::request()->initFromEnvironment();
 
 // run in cli mode
 b::run('browser');

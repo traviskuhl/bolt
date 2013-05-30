@@ -28,28 +28,28 @@ class requestTest extends bolt_test {
     }
 
     public function testMagicGetGet() {
-        $this->assertInstanceOf('\bolt\bucket', $this->r->get);
+        $this->assertInstanceOf('\bolt\bucket\bArray', $this->r->get);
         $this->assertEquals(1, $this->r->get->getvar->value);
     }
     public function testMagicGetPost() {
-        $this->assertInstanceOf('\bolt\bucket', $this->r->post);
+        $this->assertInstanceOf('\bolt\bucket\bArray', $this->r->post);
         $this->assertEquals(1, $this->r->post->postvar->value);
     }
     public function testMagicGetRequest() {
-        $this->assertInstanceOf('\bolt\bucket', $this->r->request);
+        $this->assertInstanceOf('\bolt\bucket\bArray', $this->r->request);
         $this->assertEquals(1, $this->r->request->getvar->value);
         $this->assertEquals(1, $this->r->request->postvar->value);
     }
     public function testMagicGetHeaders() {
-        $this->assertInstanceOf('\bolt\bucket', $this->r->headers);
-        $this->assertEquals($_SERVER['HTTP_HOST'], $this->r->headers->getValue('host'));
+        $this->assertInstanceOf('\bolt\bucket\bArray', $this->r->headers);
+        $this->assertEquals($_SERVER['HTTP_HOST'], $this->r->headers->value('host'));
     }
     public function testMagicGetRouteParam() {
-        $this->assertInstanceOf('\bolt\bucket', $this->r->params);
+        $this->assertInstanceOf('\bolt\bucket\bArray', $this->r->params);
     }
     public function testMagicGetServer() {
-        $this->assertInstanceOf('\bolt\bucket', $this->r->server);
-        $this->assertEquals($_SERVER['PATH_INFO'], $this->r->server->getValue('path_info'));
+        $this->assertInstanceOf('\bolt\bucket\bArray', $this->r->server);
+        $this->assertEquals($_SERVER['PATH_INFO'], $this->r->server->value('path_info'));
     }
     public function testMagicGetInput() {
         $this->assertEquals("", $this->r->input);
@@ -65,20 +65,20 @@ class requestTest extends bolt_test {
     }
 
     public function testGetParmasGet() {
-        $this->assertInstanceOf('\bolt\bucket', $this->r->getParams('get'));
+        $this->assertInstanceOf('\bolt\bucket\bArray', $this->r->getParams('get'));
         $this->assertEquals(1, $this->r->getParams('get')->getvar->value);
     }
     public function testGetParmasPost() {
-        $this->assertInstanceOf('\bolt\bucket', $this->r->getParams('post'));
+        $this->assertInstanceOf('\bolt\bucket\bArray', $this->r->getParams('post'));
         $this->assertEquals(1, $this->r->getParams('post')->postvar->value);
     }
     public function testGetParmasRequest() {
-        $this->assertInstanceOf('\bolt\bucket', $this->r->getParams('request'));
+        $this->assertInstanceOf('\bolt\bucket\bArray', $this->r->getParams('request'));
         $this->assertEquals(1, $this->r->getParams('request')->getvar->value);
         $this->assertEquals(1, $this->r->getParams('request')->postvar->value);
     }
     public function testGetParamsDefault() {
-        $this->assertInstanceOf('\bolt\bucket', $this->r->getParams());
+        $this->assertInstanceOf('\bolt\bucket\bArray', $this->r->getParams());
         $this->assertFalse($this->r->getParams()->var->value);
     }
 
@@ -89,7 +89,7 @@ class requestTest extends bolt_test {
     }
 
     public function testGetHeaders() {
-        $this->assertInstanceOf('\bolt\bucket', $this->r->getHeaders());
+        $this->assertInstanceOf('\bolt\bucket\bArray', $this->r->getHeaders());
         $this->assertEquals($_SERVER['HTTP_HOST'], $this->r->getHeaders()->get('host'));
     }
 

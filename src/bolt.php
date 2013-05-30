@@ -88,76 +88,66 @@ final class b {
     private static $_env = false;
     private static $_instance = false;
     private static $_loaded = array();
-    private static $_settings = array(
-        'project' => false
-    );
 
     // what defined our core
-    private static $_core = array(
+    private static $_plugins = array(
 
         // general
-        'config'    => "./bolt/config.php",
-        'settings'  => "./bolt/settings.php",
-        'dao'       => "./bolt/dao.php",
-        'source'    => "./bolt/source.php",
-        'cache'     => "./bolt/cache.php",
-        'bucket'    => "./bolt/bucket.php",
-        'event'     => "./bolt/event.php",
+        'bolt-core-config'   => "./bolt/config.php",
+        'bolt-core-settings' => "./bolt/settings.php",
+        'bolt-core-dao'      => "./bolt/dao.php",
+        'bolt-core-source'   => "./bolt/source.php",
+        'bolt-core-cache'    => "./bolt/cache.php",
+        'bolt-core-bucket'   => "./bolt/bucket.php",
+        'bolt-core-event'    => "./bolt/event.php",
 
         // template renders
-        'render'          => "./bolt/render.php",
-        'render-handlebars' => "./bolt/render/handlebars.php",
+        'bolt-core-render'          => "./bolt/render.php",
+        'bolt-core-render-handlebars' => "./bolt/render/handlebars.php",
 
         // source
-        'source-mongo'      => "./bolt/source/mongo.php",
-        'source-webservice' => "./bolt/source/webservice.php",
-        'source-pdo'        => "./bolt/source/pdo.php",
+        'bolt-core-source-mongo'      => "./bolt/source/mongo.php",
+        'bolt-core-source-webservice' => "./bolt/source/webservice.php",
+        'bolt-core-source-pdo'        => "./bolt/source/pdo.php",
 
-        // cache modules
-        'cache-memcache'    => "./bolt/cache/memcache.php",
+        // browser
+        'bolt-browser' => './bolt/browser.php',
+        'bolt-browser-request' => "./bolt/browser/request.php",
+        'bolt-browser-cookie' => "./bolt/browser/cookie.php",
+        'bolt-browser-helpers' => "./bolt/browser/helpers.php",
+
+        'bolt-browser-controller' => "./bolt/browser/controller.php",
+        'bolt-browser-controller-callback' => "./bolt/browser/controller/callback.php",
+        'bolt-browser-controller-request' => "./bolt/browser/controller/request.php",
+        'bolt-browser-controller-module' => "./bolt/browser/controller/module.php",
+
+        // routers
+        'bolt-browser-route' => "./bolt/browser/route.php",
+        'bolt-browser-route-parser' => "./bolt/browser/route/parser.php",
+        'bolt-browser-route-token' => "./bolt/browser/route/token.php",
+
+        // response
+        'bolt-browser-response' => "./bolt/browser/response.php",
+        'bolt-browser-response-plain' => "./bolt/browser/response/plain.php",
+        'bolt-browser-response-json' => "./bolt/browser/response/json.php",
+        'bolt-browser-response-xhr' => "./bolt/browser/response/xhr.php",
+        'bolt-browser-response-ajax' => "./bolt/browser/response/ajax.php",
+        'bolt-browser-response-html' => "./bolt/browser/response/html.php",
+        'bolt-browser-response-xml' => "./bolt/browser/response/xml.php",
+        'bolt-browser-response-javascript' => "./bolt/browser/response/javascript.php",
+        'bolt-browser-response-json' => "./bolt/browser/response/json.php",
+
+        // cli
+        'bolt-cli' => "./bolt/cli.php",
 
     );
 
+    // strandar modes
     public static $_modes = array(
-        'browser' => array(
-            // browser
-            "./bolt/browser/controller.php",
-            "./bolt/browser/view.php",
-            "./bolt/browser/request.php",
-            "./bolt/browser/response.php",
-            "./bolt/browser/cookie.php",
-            "./bolt/browser/helpers.php",
-
-            // routers
-            "./bolt/browser/route.php",
-            "./bolt/browser/route/parser.php",
-            "./bolt/browser/route/regex.php",
-            "./bolt/browser/route/token.php",
-
-            // response
-            "./bolt/browser/response/plain.php",
-            "./bolt/browser/response/json.php",
-            "./bolt/browser/response/xhr.php",
-            "./bolt/browser/response/ajax.php",
-            "./bolt/browser/response/html.php",
-            "./bolt/browser/response/xml.php",
-            "./bolt/browser/response/javascript.php",
-        ),
-        'cli' => array(
-            // cli
-            "./bolt/cli.php",
-
-            // cli plugins
-            "./bolt/cli/arguments.php",
-            "./bolt/cli/menu.php",
-            "./bolt/cli/table.php"
-        )
+        'core' => 'bolt-*',
+        'browser' => 'bolt-browser-*',
+        'cli' => 'bolt-cli-*',
     );
-
-    // mode & env
-    public static $_mode = 'browser';
-
-
 
     /**
      * return bolt instance
@@ -214,10 +204,38 @@ final class b {
     }
 
     /**
+     * depend on a plugin(s)
+     *
+     * @param $name name of plugin or wildcard match
+     * @return self
+     */
+    public static function depend($name) {
+        $load = array();
+
+        if (strpos($name, '*') !== false) {
+            $name = str_replace('*', '.*', preg_quote($name));
+            foreach (self::$_plugins as $plugin => $file) {
+                if (preg_match("#{$name}#i", $plugin)) {
+                    $load[] = $file;
+                }
+            }
+        }
+        else if (array_key_exists($name, self::$_plugins)) {
+            $load[] = self::$_plugins[$name];
+        }
+
+        // use
+        b::load($load);
+
+        // list of loaded modules
+        return b::bolt();
+
+    }
+
+    /**
      * initalize the bolt framework
      *
      * @param $args initalization arguments
-     *               - core: array of core plugins to load
      *               - config: array of config params to set
      *               - load: array of plugin folders to load. glob
      *                         is run on each item
@@ -228,32 +246,9 @@ final class b {
         // lig
         b::log("[b::init] called");
 
-        // core always starts with the default
-        $core = array_keys(self::$_core);
-        $use = self::$_core;
-
-        // nomods
-        $skip = array();
-
-        // loop through core
-        if (array_key_exists('core', $args)) {
-            foreach ($args['core'] as $mod) {
-                if ($mod{0} == '-') {
-                    unset($use[substr($mod, 1)]);
-                }
-            }
-        }
-
         // we need to include all of our core
         // plugins
-        b::load(array_values($use));
-
-        // mode
-        if (isset($args['mode']) AND array_key_exists($args['mode'], self::$_modes)) {
-            self::load(self::$_modes[$args['mode']]);
-            self::$_mode = $args['mode'];
-            \bolt\browser\request::initServer();
-        }
+        b::depend('bolt-core-*');
 
         // config
         if (defined('bConfig') AND bConfig !== false AND file_exists(bConfig."/config.ini")) {
@@ -267,86 +262,24 @@ final class b {
             }
         }
 
-        // if we are init from the server
-        // we need to look in our global
-        if (p('src', false, $args) == 'server') {
-
-            // name of
-            if (!HOSTNAME) {
-                b::log("Unable to get host from server", array(), b::LogFatal); return;
-            }
-
-            // normalzie host
-            $host = strtolower(HOSTNAME);
-
-            // start our assumeing we'll use the global project
-            $project = b::config()->getValue('global.defaultProject');
-
-            // figure out if we have a hostname that can
-            // service this request
-            foreach (b::config()->get('global')->asArray() as $key => $value) {
-
-                if (is_array($value) AND array_key_exists('hostname', $value)) {
-                    foreach ($value['hostname'] as $hn) { // not hackernews -> hostname
-                        if (strtolower($hn) == $host) {
-                            $project = $key; break;
-                        }
-                        else if (strtolower(implode('.', array_slice(explode('.', $hn), -2))) == $host) {
-                            $project = $key; break;
-                        }
-                    }
-                }
-            }
-
-            // no project
-            if ($project === false) {
-                b::log("Unable to match hostname (%s) to project.", array($host), b::LogFatal); return;
-            }
-
-            // project
-            $project = b::config()->get('global')->get($project)->asArray();
-
-            if (isset($project['load'])) {
-                b::load($project['load']);
-            }
-
-            // everything else is config
-            if (isset($project['config'])) {
-                b::config()->import($project['config'], array('key' => 'project'));
-            }
-
-            // root
-            if (b::config()->exists('project.root')) {
-                $args['load'][] = b::config()->getValue('project.root');
-            }
-
-            //
-            if (b::config()->exists('project.settings')) {
-                self::$_settings['project'] = b::settings( b::config()->project->settings->value );
-            }
-
-
-        }
-
-
         // global load
         if (b::config()->exists('global.load')) {
             b::load(b::config()->get('global.load')->asArray());
         }
 
-        // project
-        if (b::config()->exists('project.load')) {
-            $args['load'] += b::config()->get('project.load')->asArray();
-        }
-
         // config
         if (isset($args['config'])) {
-            b::config($args['config']);
+            b::config()->set($args['config']);
         }
 
         // settings or default project
         if (isset($args['settings'])) {
-            self::$_settings['project'] = (is_a($args['settings'], '\bolt\settings') ? $args['settings'] : b::settings($args['settings']));
+            b::settings()->set($args['settings']);
+        }
+
+        // mode
+        if (isset($args['mode'])) {
+            b::load( self::$_modes[$args['mode']] );
         }
 
         // load
@@ -385,12 +318,11 @@ final class b {
         }
         else {
 
-            // load our browser resources
-            b::load( self::$_modes['browser'] );
 
             // browser request
             b::request()->run();
 
+            // response
             $resp = b::response()
                         ->setContent(b::request()->getContent())
                         ->setData(b::request()->getData());
@@ -401,35 +333,6 @@ final class b {
         }
 
     }
-
-
-    /**
-     * setting
-     *
-     * @param $name name of setting
-     * @param $default default value
-     * @return setting value
-     */
-    public static function setting($name, $default=-1) {
-        if ($default === -1) {$default = b::bucket(); }
-        $type = 'project';
-        if (stripos($name, '.') !== false) {
-            $parts = explode(".", $name);
-            $type = array_shift($parts);
-            $name = implode(".", $parts);
-        }
-        $obj = (array_key_exists($type, self::$_settings) ? self::$_settings[$type] : self::$_settings['project']);
-
-        return $obj->get($name, $default);
-    }
-
-    public static function setSettings($name, $file) {
-        self::$_settings[$name] = b::settings($file);
-    }
-    public static function getSettings($name) {
-        return self::$_settings[$name];
-    }
-
 
     /**
      * load files
@@ -536,7 +439,10 @@ final class b {
 
         // try converting _ to /
         if (strpos($class, '_') !== false) {
-            include_once(str_replace("_", "/", $class).".php");
+            $file = str_replace("_", "/", $class).".php";
+            if (file_exists($file)) {
+                return include_once($file);
+            }
         }
 
         // config

@@ -11,8 +11,8 @@ class controllerTest extends bolt_test {
             'mode' => 'browser'
         ));
 
-        $this->tc = new testController();
-        $this->tcd = new testControllerWithDefaults();
+        // $this->tc = new testController();
+        // $this->tcd = new testControllerWithDefaults();
 
         // remove request/response instances to
         // reset env
@@ -22,88 +22,92 @@ class controllerTest extends bolt_test {
 
     }
 
-
-    public function testControllerInterface() {
-        $this->assertTrue(in_array('bolt\browser\iController', class_implements($this->tc)));
+    public function testPlaceholder() {
+        // test are being reimplemented
+        $this->assertTrue(true);
     }
 
-    public function testContructSetLayout() {
-        $this->assertFalse($this->tc->hasLayout());
-        $this->assertTrue($this->tcd->hasLayout());
-    }
+    // public function testControllerInterface() {
+    //     $this->assertTrue(in_array('bolt\browser\iController', class_implements($this->tc)));
+    // }
 
-    public function testInit() {
-        $this->assertTrue($this->tc->initRun);
-    }
+    // public function testContructSetLayout() {
+    //     $this->assertFalse($this->tc->hasLayout());
+    //     $this->assertTrue($this->tcd->hasLayout());
+    // }
 
-    public function testGetAccept() {
-        $str = 'accept string';
-        b::request()->setAccept($str);
-        $this->assertEquals($str, $this->tc->getAccept());
-    }
+    // public function testInit() {
+    //     $this->assertTrue($this->tc->initRun);
+    // }
 
-    public function testGetStatus() {
-        $status = 418;
-        b::response()->setStatus($status);
-        $this->assertEquals($status, $this->tc->getStatus());
-    }
+    // public function testGetAccept() {
+    //     $str = 'accept string';
+    //     b::request()->setAccept($str);
+    //     $this->assertEquals($str, $this->tc->getAccept());
+    // }
 
-    public function testSetStatus() {
-        $status = 418;
-        $this->tc->setStatus($status);
-        $this->assertEquals($status, b::response()->getStatus());
-    }
+    // public function testGetStatus() {
+    //     $status = 418;
+    //     b::response()->setStatus($status);
+    //     $this->assertEquals($status, $this->tc->getStatus());
+    // }
 
-    public function testRun() {
-        $c = new testControlleNoMethod();
-        $this->assertEquals('', $c->run());
-    }
+    // public function testSetStatus() {
+    //     $status = 418;
+    //     $this->tc->setStatus($status);
+    //     $this->assertEquals($status, b::response()->getStatus());
+    // }
 
-    public function testBuildDispatch() {
-        $c = new testControllerWithDispatch();
-        $c->build();
-        $this->assertEquals($c->getContent(), 'dispatch');
-    }
+    // public function testRun() {
+    //     $c = new testControlleNoMethod();
+    //     $this->assertEquals('', $c->run());
+    // }
 
-    public function testBuildStandardMethods() {
-        $methods = array('get','post','put','delete','head');
-        foreach ($methods as $method) {
-            b::request()->setMethod($method);
-            $this->tc->build();
-            $this->assertEquals($method, $this->tc->getContent());
-        }
-    }
+    // public function testBuildDispatch() {
+    //     $c = new testControllerWithDispatch();
+    //     $c->build();
+    //     $this->assertEquals($c->getContent(), 'dispatch');
+    // }
 
-    public function testBuildUnknownMethod() {
-        b::request()->setMethod('unknown');
-        $o = new testControlleNoMethod();
-        $this->assertEquals($o, $o->build());
-    }
+    // public function testBuildStandardMethods() {
+    //     $methods = array('get','post','put','delete','head');
+    //     foreach ($methods as $method) {
+    //         b::request()->setMethod($method);
+    //         $this->tc->build();
+    //         $this->assertEquals($method, $this->tc->getContent());
+    //     }
+    // }
 
-    public function testBuildActionMethods() {
-        $action = 'Action';
-        $methods = array('get','post','put','delete','head');
-        b::request()->setAction($action);
-        foreach ($methods as $method) {
-            b::request()->setMethod($method);
-            $this->tc->build();
-            $this->assertEquals($method.$action, $this->tc->getContent());
-        }
-    }
+    // public function testBuildUnknownMethod() {
+    //     b::request()->setMethod('unknown');
+    //     $o = new testControlleNoMethod();
+    //     $this->assertEquals($o, $o->build());
+    // }
 
-    public function testBuildWithParams() {
-        b::request()->setParams(b::bucket(array('param' => 1)));
-        $o = new testControllerWithParam();
-        $o->build();
-        $this->assertEquals(1, $o->getContent());
-    }
+    // public function testBuildActionMethods() {
+    //     $action = 'Action';
+    //     $methods = array('get','post','put','delete','head');
+    //     b::request()->setAction($action);
+    //     foreach ($methods as $method) {
+    //         b::request()->setMethod($method);
+    //         $this->tc->build();
+    //         $this->assertEquals($method.$action, $this->tc->getContent());
+    //     }
+    // }
 
-    public function testBuildWithDefaultParams() {
-        b::request()->setMethod('post');
-        $o = new testControllerWithParam();
-        $o->build();
-        $this->assertEquals('default', $o->getContent());
-    }
+    // public function testBuildWithParams() {
+    //     b::request()->setParams(b::bucket(array('param' => 1)));
+    //     $o = new testControllerWithParam();
+    //     $o->build();
+    //     $this->assertEquals(1, $o->getContent());
+    // }
+
+    // public function testBuildWithDefaultParams() {
+    //     b::request()->setMethod('post');
+    //     $o = new testControllerWithParam();
+    //     $o->build();
+    //     $this->assertEquals('default', $o->getContent());
+    // }
 
 }
 

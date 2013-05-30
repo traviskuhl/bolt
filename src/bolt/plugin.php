@@ -195,7 +195,7 @@ abstract class plugin extends event {
         }
 
         // good
-        return true;
+        return $this;
 
     }
 
