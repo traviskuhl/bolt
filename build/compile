@@ -1,6 +1,9 @@
 #!/usr/bin/php
 <?php
 
+error_reporting(E_ALL);
+ini_set("display_errors", 1);
+
 $opts = getopt("tn", array("nostore", "pear"));
 
 set_include_path(get_include_path().":/Applications/MAMP/bin/php/php5.3.6/lib/php/");
@@ -112,9 +115,6 @@ if (isset($opts['pear'])) {
             'depend' => file_get_contents("./depend.json"),
             'branch' => 'stable'
         );
-
-    // post install
-    file_put_contents("{$tmp}/bolt-install.php", stub('stub/bolt-install.inc', $data));
 
     // package
     file_put_contents("{$tmp}/package.xml", stub('stub/package.xml',$data));
