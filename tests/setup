@@ -4,8 +4,7 @@ error_reporting(E_ALL);
 ini_set("display_errors", 1);
 
 // get our depend file from build
-$xml =  new SimpleXMLElement(file_get_contents("../build/stub/package.xml"));
-
+$xml =  new SimpleXMLElement(file_get_contents(__DIR__."/../build/stub/package.xml"));
 
 foreach ($xml->dependencies->required->package as $pkg) {
     $cmd = "pear install {$pkg->channel}/{$pkg->name}";
