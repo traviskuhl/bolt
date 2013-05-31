@@ -38,6 +38,11 @@
                 <min>1.4.0</min>
             </pearinstaller>
             <package>
+                <name>Handlebars</name>
+                <channel>pear.bolthq.com</channel>
+                <min>1.0.1</min>
+            </package>
+            <package>
                 <name>Console_CommandLine</name>
                 <channel>pear.php.net</channel>
                 <min>1.2.0</min>
