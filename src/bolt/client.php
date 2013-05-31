@@ -15,8 +15,8 @@ class client extends \bolt\plugin\singleton {
     public function start() {
 
         // get our settings
-        $home = p('SUDO_HOME', p('HOME', false, $_SERVER), $_SERVER);
-        $user = p('SUDO_USER', p('USER', false, $_SERVER), $_SERVER);
+        $home = b::param('SUDO_HOME', b::param('HOME', false, $_SERVER), $_SERVER);
+        $user = b::param('SUDO_USER', b::param('USER', false, $_SERVER), $_SERVER);
 
         // home
         if ($home === false) {
@@ -29,7 +29,7 @@ class client extends \bolt\plugin\singleton {
     }
 
     public function getUser() {
-        return p('SUDO_USER', p('USER', false, $_SERVER), $_SERVER);
+        return b::param('SUDO_USER', b::param('USER', false, $_SERVER), $_SERVER);
     }
 
     protected function defaultPackage() {
@@ -68,8 +68,8 @@ class client extends \bolt\plugin\singleton {
 
 }
 
-namespace bolt\client {
-    class command extends \bolt\cli\command {
+// namespace bolt\client {
+//     class command extends \bolt\cli\command {
 
-    }
-}
+//     }
+// }

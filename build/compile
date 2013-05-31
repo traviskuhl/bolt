@@ -40,13 +40,18 @@ $phar->startBuffering();
 
 // tet
 if (isset($opts['t'])) {
-    $sha = $version = 'test';
+    $sha = $version = $branch = 'test';
     $date = date("r");
     $ts = time();
 }
 else {
     list($sha, $date, $ts) = explode("|", trim(`git log --pretty="%h|%ci|%ct" -n1 `));
     $version = $sha;
+    foreach (explode("\n", `git branch --no-color`) as $line) {
+        if ($line{0} == '*') {
+            $branch = trim($line, '* '); break;
+        }
+    }
 }
 
 // lets get our files
@@ -65,6 +70,7 @@ foreach (iterator_to_array($regex) as $file) {
 
     // version
     $content = preg_replace("/const BUILD = '.*?';/", "const BUILD = '".$version."';", $content);
+    $content = preg_replace("/const BUILD_BRANCH = '.*?';/", "const BUILD_BRANCH = '".$branch."';", $content);
 
     // add it
     $phar->addFromString($path, $content);

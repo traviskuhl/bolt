@@ -63,6 +63,7 @@ final class b {
 
     const VERSION = "1.0.0";
     const BUILD = "";
+    const BUILD_BRANCH = "";
 
     // general constants
     const SecondsInHour = 120;
@@ -213,6 +214,10 @@ final class b {
         $load = array();
 
         if (strpos($name, '*') !== false) {
+            // trim *- and try to load
+            if (array_key_exists(trim($name,'*-'), self::$_plugins)) {
+                $load[] = self::$_plugins[trim($name, '*-')];
+            }
             $name = str_replace('*', '.*', preg_quote($name));
             foreach (self::$_plugins as $plugin => $file) {
                 if (preg_match("#{$name}#i", $plugin)) {
@@ -243,6 +248,9 @@ final class b {
      */
     public static function init($args=array()) {
 
+        // add our
+        self::$autoload += explode(PATH_SEPARATOR, get_include_path());
+
         // lig
         b::log("[b::init] called");
 
@@ -269,7 +277,7 @@ final class b {
 
         // config
         if (isset($args['config'])) {
-            b::config()->set($args['config']);
+            b::config()->set('project',$args['config']);
         }
 
         // settings or default project
@@ -299,8 +307,6 @@ final class b {
      * @return void
      */
     public static function run($mode=false) {
-        if ($mode === false) {$mode = self::$_mode; }
-
         b::log("[b::run] %s", array($mode));
 
         // ready
@@ -309,8 +315,8 @@ final class b {
         // figure out how to run
         if ($mode == 'cli' OR ($mode === false AND php_sapi_name() == 'cli')) {
 
-            // load our browser resources
-            b::load( self::$_modes['cli'] );
+            // clie
+            b::depend('bolt-cli-*');
 
             // dispatch the cli runner
             return b::cli()->run();
@@ -318,6 +324,8 @@ final class b {
         }
         else {
 
+            // clie
+            b::depend('bolt-browser-*');
 
             // browser request
             b::request()->run();
@@ -437,33 +445,18 @@ final class b {
             return include_once(bRoot."/{$class}.php");
         }
 
-        // try converting _ to /
-        if (strpos($class, '_') !== false) {
-            $file = str_replace("_", "/", $class).".php";
-            if (file_exists($file)) {
-                return include_once($file);
-            }
-        }
-
-        // config
-        $autoload = self::$autoload;
-
         // if autoload
-        if (is_array($autoload)) {
-            foreach ($autoload as $root) {
+        if (is_array(self::$autoload)) {
+            foreach (self::$autoload as $root) {
                 $root = rtrim($root, '/').'/';
-
-                if (is_callable($root)) {
-                    return call_user_func($root, $class);
-                }
-                else if (file_exists($root.$class.".php")) {
+                if (file_exists($root.$class.".php")) {
                     self::$_loaded[] = realpath($root.$class.".php");
                     return include_once($root.$class.".php");
                 }
                 else if (strpos($class, '_') !== false) {
-                    $class = str_replace("_", "/", $class). ".php";
-                    if (file_exists($root.$class)) {
-                        return include_once($root.$class);
+                    $cl = str_replace("_", "/", $class). ".php";
+                    if (file_exists($root.$cl)) {
+                        return include_once($root.$cl);
                     }
                 }
             }
@@ -511,6 +504,101 @@ final class b {
         return call_user_func_array(array(b::bolt(), 'fire'), func_get_args());
     }
 
+    /**
+     * global paramater check
+     *
+     * @method  p
+     * @param   $key    key name
+     * @param   $default    default value if key != exist [Default: false]
+     * @param   $array      array to look in [Default: $_REQUEST]
+     * @param  $filter    string to filter on the return
+     * @return mixed paramater value
+     */
+    public static function  param($key, $default=false, $array=false, $filter=FILTER_SANITIZE_STRING) {
+
+        // check if key is an array
+        if ( is_array($key) ) {
+
+            // alawys
+            $key = $key['key'];
+
+            // check for other stuff
+            $default = p('default',false,$key);
+            $array = p('array',false,$key);
+            $filter = p('filter',false,$key);
+
+        }
+
+        // no array
+        if ( $array === false ) {
+            $array = $_REQUEST;
+        }
+
+        // if there's a .
+        if ( strpos($key, '.') !== false ) {
+
+            // split on the .
+            list($a, $k) = explode('.', $key);
+
+            // reset array as p(a);
+            $array = p($a, array(), false, $filter);
+
+            // reset key
+            $key = $k;
+
+        }
+
+        // not an array
+        if ( !is_array($array) OR $key === false ){ return false; }
+
+
+        // check
+        if ( !array_key_exists($key,$array) OR $array[$key] === "" OR $array[$key] === false OR $array[$key] === 'false' ) {
+            return $default;
+        }
+
+
+        // if final is an array,
+        // weand filter we need to filter each el
+        if ( is_array($array[$key]) ) {
+
+            // filter
+            array_walk($array[$key],function($item,$key,$a){
+                $item = p($key,$a[1],$a[0]);
+            },array($filter,$array[$key]));
+
+        }
+        else {
+
+            // array
+            $array[$key] = filter_var($array[$key], $filter);
+
+            // still bad
+            if (!$array[$key]) {
+                return $default;
+            }
+
+        }
+
+        // reutnr
+        return $array[$key];
+
+    }
+
+    /**
+     * global raw paramater check
+     *
+     * @method  p_raw
+     * @param   $key    key name
+     * @param   $default    default value if key != exist [Default: false]
+     * @param   $array      array to look in [Default: $_REQUEST]
+     * @return mixed paratamer value
+     * @see p
+     */
+    public function param_raw($key,$default=false,$array=false) {
+        return p($key,$default,$array,FILTER_UNSAFE_RAW);
+    }
+
 }
 
 
@@ -539,98 +627,8 @@ final class bolt extends bolt\plugin {
 
 }
 
-
-/**
- * global paramater check
- *
- * @method	p
- * @param	$key	key name
- * @param	$default 	default value if key != exist [Default: false]
- * @param	$array		array to look in [Default: $_REQUEST]
- * @param  $filter    string to filter on the return
- * @return mixed paramater value
- */
-function  p($key, $default=false, $array=false, $filter=FILTER_SANITIZE_STRING) {
-
-	// check if key is an array
-	if ( is_array($key) ) {
-
-		// alawys
-		$key = $key['key'];
-
-		// check for other stuff
-		$default = p('default',false,$key);
-		$array = p('array',false,$key);
-		$filter = p('filter',false,$key);
-
-	}
-
-	// no array
-	if ( $array === false ) {
-		$array = $_REQUEST;
-	}
-
-	// if there's a .
-	if ( strpos($key, '.') !== false ) {
-
-		// split on the .
-		list($a, $k) = explode('.', $key);
-
-		// reset array as p(a);
-		$array = p($a, array(), false, $filter);
-
-		// reset key
-		$key = $k;
-
-	}
-
-	// not an array
-	if ( !is_array($array) OR $key === false ){ return false; }
-
-
-	// check
-	if ( !array_key_exists($key,$array) OR $array[$key] === "" OR $array[$key] === false OR $array[$key] === 'false' ) {
-		return $default;
-	}
-
-
-	// if final is an array,
-	// weand filter we need to filter each el
-	if ( is_array($array[$key]) ) {
-
-		// filter
-		array_walk($array[$key],function($item,$key,$a){
-			$item = p($key,$a[1],$a[0]);
-		},array($filter,$array[$key]));
-
-	}
-	else {
-
-		// array
-		$array[$key] = filter_var($array[$key], $filter);
-
-		// still bad
-		if (!$array[$key]) {
-			return $default;
-		}
-
-	}
-
-	// reutnr
-	return $array[$key];
-
+// shortcut
+function b() {
+    return call_user_func_array(b::bolt(), func_get_args());
 }
 
-/**
- * global raw paramater check
- *
- * @method	p_raw
- * @param	$key	key name
- * @param	$default 	default value if key != exist [Default: false]
- * @param	$array		array to look in [Default: $_REQUEST]
- * @return mixed paratamer value
- * @see p
- */
-function p_raw($key,$default=false,$array=false) {
-	return p($key,$default,$array,FILTER_UNSAFE_RAW);
-}

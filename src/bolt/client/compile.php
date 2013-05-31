@@ -4,11 +4,11 @@ namespace bolt\client;
 use \b;
 
 
-class compile  {
+// class compile  {
 
-    public function run() {
+//     public function run() {
 
 
-    }
+//     }
 
-}
+// }

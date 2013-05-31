@@ -18,28 +18,18 @@
 /// Build: %SHA% / %DATE%
 /// Compiled: %CDATE%
 
-
 // we need to be in cli mode for this to work
 if ('cli' === php_sapi_name()) {
 
-    // pear
-    require "PEAR.php";
-
-    // install
-    if (file_exists(PEAR_INSTALL_DIR."/bolt-install.php")) {
-        include PEAR_INSTALL_DIR."/bolt-install.php";
-        exit;
-    }
-
     // include bolt
-    require "bolt.php";
+    require "bolt.phar";
 
     // init our bolt instance
     b::init(array(
         'mode' => 'cli',
         'load' => array(
             bRoot."/bolt/client.php",
-            bRoot."/bolt/client/*.php"
+            bRoot."/bolt/client/"
         )
     ));
 

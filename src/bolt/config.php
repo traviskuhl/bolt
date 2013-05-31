@@ -53,7 +53,7 @@ class config extends plugin\singleton {
     // import
     public function import($file, $args=array()) {
         $parts = explode(".", $file);
-        $key = p('key', false, $args);
+        $key = b::param('key', false, $args);
         $data = array();
         switch(strtolower(array_pop($parts))) {
             case 'json':

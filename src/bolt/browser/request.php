@@ -34,8 +34,8 @@ class request extends \bolt\plugin\singleton {
 	public function __construct() {
 
 		// get from env
-		$this->_method = p("REQUEST_METHOD", "GET", $_SERVER);
-        $a = explode(',', p('HTTP_ACCEPT', false, $_SERVER));
+		$this->_method = b::param("REQUEST_METHOD", "GET", $_SERVER);
+        $a = explode(',', b::param('HTTP_ACCEPT', false, $_SERVER));
 		$this->_accept = array_shift($a);
 
 		// create a bucket of our params
@@ -285,29 +285,19 @@ class request extends \bolt\plugin\singleton {
         // globalize route
         $this->_route = $route;
 
-        // controller
-        $reps = false;
-
         // call before
-        $route->fire("before");
-
-        // if response isn't a controller interface
-        // we need to stop
-        if (!b::isInterfaceOf($resp, '\bolt\browser\iController')) {
-            b::log("request run response is not an interface of iController");
-            return false;
-        }
-
-        $this->fire("beforeControllerRun", array(
-                'controller' => $resp,
-                'route' => $route
-            ));
-
-        // request params
-        $this->_params = b::bucket($params);
+        $route->fire("before", array(
+            'route' => $route
+        ));
 
         // our aciton
         $this->_action = $route->getAction();
+
+        // class
+        $class = $route->getController();
+
+        // rew controller
+        $controller = new $class();
 
         // no never ending loops
         $i = 0;
@@ -316,7 +306,7 @@ class request extends \bolt\plugin\singleton {
         while ($i++ < 10) {
 
             // run the response
-            $run = $resp->run($route);
+            $run = $controller->run($route);
 
             // if run is a falsy value
             // we can stop now
@@ -325,28 +315,22 @@ class request extends \bolt\plugin\singleton {
             // if run isn't an object we stop
             if (!is_object($run)) { break; }
 
-            // it's a viewo
-            if (b::isInterfaceOf($run, '\bolt\browser\iView')) {
-                $resp->setContent($resp->render($run));
-                break;
-            }
-
             // if run is another controller
-            else if (b::isInterfaceOf($run, '\bolt\browser\iController') AND $run->getGuid() == $resp->getGuid()) {
+            if (b::isInterfaceOf($run, '\bolt\browser\iController') AND $run->bGuid() == $controller->bGuid()) {
                 break;
             }
 
             // level up
-            $resp = $run;
+            $controller = $run;
 
         }
 
         // set the controller
-        $this->_content = $run->getContent();
-        $this->_data = $run->getData();
+        $this->_content = $controller->getContent();
+        $this->_data = $controller->getData();
 
         $_args = array(
-            'controller' => $run,
+            'controller' => $controller,
             'request' => $this
         );
 

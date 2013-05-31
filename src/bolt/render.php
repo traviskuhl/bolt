@@ -1,8 +1,7 @@
 <?php
 
 namespace bolt;
-
-use \b as b;
+use \b;
 
 // render
 b::plug('render', '\bolt\render');
@@ -22,7 +21,7 @@ class render extends plugin {
 
     public function _default($args=array()) {
         if (count($args) > 0) {
-            $render = b::render()->call(p('render', 'handlebars', $args));
+            $render = b::render()->call(b::param('render', 'handlebars', $args));
             return $this->_render($render, $args);
         }
         return $this;
@@ -35,25 +34,6 @@ class render extends plugin {
     public function variable($name, $var) {
       $this->_globals[$name] = $var;
       return $this;
-    }
-
-    public function view($view, $params=array()) {
-
-        // string
-        if (is_string($view) AND class_exists($view, true)) {
-            $view = b::view($view);
-        }
-
-        // make sure view implements bolt\browser\view
-        if (!b::isInterfaceOf($view, '\bolt\browser\iView')) {
-            return false;
-        }
-
-        // set our view
-        return $view
-                ->setParams($params)
-                ->render();
-
     }
 
     private function _render($render, $args) {

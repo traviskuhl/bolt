@@ -48,7 +48,7 @@ class controllerFactory extends \bolt\plugin {
 class controller extends \bolt\event implements iController {
 
     // some things we're going to need
-    private $_guid = false;
+    private $_bguid = false;
     private $_content = null;
     private $_template = null;
     private $_render = 'handlebars';
@@ -73,7 +73,7 @@ class controller extends \bolt\event implements iController {
      * @return void
      */
     final public function __construct($params=array(), \bolt\browser\view $parent=null) {
-        $this->_guid = uniqid();
+        $this->_bguid = uniqid();
         $this->_params = b::bucket($params);
         $this->_parent = $parent;
 
@@ -127,6 +127,15 @@ class controller extends \bolt\event implements iController {
      * @return void
      */
     protected function after() {}
+
+    /**
+     * get the unique id of view
+     *
+     * @return string guid
+     */
+    public function bGuid() {
+        return $this->_bguid;
+    }
 
     /**
      * set the action
@@ -271,15 +280,6 @@ class controller extends \bolt\event implements iController {
     }
 
     /**
-     * get the unique id of view
-     *
-     * @return string guid
-     */
-    public function getGuid() {
-        return $this->_guid;
-    }
-
-    /**
      * get view content
      *
      * @return view content
@@ -306,10 +306,11 @@ class controller extends \bolt\event implements iController {
      * @return self
      */
     public function setLayout($layout) {
-        if (is_string($layout)) {
-            $layout = b::view()
-                        ->setTemplate($layout)
-                        ->setParent($this);
+        if ($layout === false) {
+            $_layout = null;
+        }
+        else if (!file_exists($layout)) {
+            $layout = b::config('project')->value("templates")."/".$layout;
         }
         $this->_layout = $layout;
         return $this;
@@ -330,7 +331,7 @@ class controller extends \bolt\event implements iController {
      * @return bool
      */
     public function hasLayout() {
-        return is_object($this->_layout);
+        return $this->_layout !== null;
     }
 
     /**
@@ -344,7 +345,7 @@ class controller extends \bolt\event implements iController {
             $this->_template = false;
         }
         else if (!file_exists($file)) {
-            $file = b::config()->getValue("project.templates")."/".$file;
+            $file = b::config('project')->value("templates")."/".$file;
         }
         $this->_template = $file;
         return $this;
@@ -473,6 +474,11 @@ class controller extends \bolt\event implements iController {
         // call build
         call_user_func_array($action, $_args);
 
+        // add any set data to the params load
+        foreach ($this->_properties as $name) {
+            $this->_params->set($name, $this->{$name});
+        }
+
         // // no template
         // if (!$this->hasTemplate() AND $this->getTemplate() !== false) {
         //     $root = b::config()->value("project.templates");
@@ -504,7 +510,6 @@ class controller extends \bolt\event implements iController {
         //     }
         // }
 
-
         if ($this->_template !== false AND $this->_content === null) {
             $this->setContent(b::render(array(
                 'render' => $this->_render,
@@ -522,15 +527,18 @@ class controller extends \bolt\event implements iController {
             )));
         }
 
+
+
         // layout
         if ($this->hasLayout()) {
-            $this->setContent(
-                    $this->getLayout()
-                        ->setParent($this)
-                        ->setParams(array('child' => $this->getContent()))
-                        ->render()
-                );
+            $this->setContent(b::render(array(
+                'render' => $this->_render,
+                'file' => $this->_layout,
+                'self' => $this,
+                'vars' => array('child' => $this->_content)
+            )));
         }
+
 
         // after render
         call_user_func(array($this,'after'));

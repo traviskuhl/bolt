@@ -4,39 +4,39 @@ namespace bolt\client;
 use \b;
 
 
-class config extends \bolt\cli\command {
+// class config extends \bolt\cli\command {
 
-    public static $commands = array(
-        'set' => array(
-            'arguments' => array(
-                'vars' => array('multiple' => true)
-            )
-        )
-    );
+//     public static $commands = array(
+//         'set' => array(
+//             'arguments' => array(
+//                 'vars' => array('multiple' => true)
+//             )
+//         )
+//     );
 
-    public function run() {
-
-
-        var_dump(func_get_args()); die;
-
-        // get config data
-        $config = b::config()->asArray();
-
-        $this->out(b::jsonPretty($config));
-
-    }
+//     public function run() {
 
 
-    public function set($vars) {
+//         var_dump(func_get_args()); die;
 
-        var_dump(func_get_args()); die;
+//         // get config data
+//         $config = b::config()->asArray();
 
-        if (count($this->getArgv()) == 0) {
-            return $this->list();
-        }
+//         $this->out(b::jsonPretty($config));
 
-        list($file, $storage) = $this->getStorage();
+//     }
 
-    }
 
-}
+//     public function set($vars) {
+
+//         var_dump(func_get_args()); die;
+
+//         if (count($this->getArgv()) == 0) {
+//             return $this->list();
+//         }
+
+//         list($file, $storage) = $this->getStorage();
+
+//     }
+
+// }

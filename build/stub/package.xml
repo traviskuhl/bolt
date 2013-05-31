@@ -26,7 +26,6 @@
     <dir name="/">
       <file name="bolt" role="script" />
       <file name="bolt.phar" role="php"/>
-      <file name="bolt-install.php" role="php"/>
       <file baseinstalldir="/bolt" name="index.php" role="www"/>
     </dir>
   </contents>
@@ -45,6 +44,11 @@
         <name>Console_CommandLine</name>
         <channel>pear.php.net</channel>
         <min>1.2.0</min>
+      </package>
+      <package>
+        <name>Net_URL2</name>
+        <channel>pear.php.net</channel>
+        <min>2.0.0</min>
       </package>
     </required>
   </dependencies>

@@ -21,7 +21,7 @@ class cli extends plugin {
     private $_commands = array();
 
 
-    // 
+    //
     public function run() {
         global $argv;
 
@@ -32,8 +32,13 @@ class cli extends plugin {
         // parser
         $parser = new Console_CommandLine();
 
+        // classes
+        $map = array();
+
         // loop through
         foreach ($commands as $cmd) {
+
+            $class = $cmd->name;
 
             // desc
             $name = ($cmd->hasProperty('name') AND $cmd->getProperty('name')->isStatic()) ? $cmd->getProperty('name')->getValue() : $cmd->getShortName();
@@ -41,10 +46,8 @@ class cli extends plugin {
             $alias = ($cmd->hasProperty('alias') AND $cmd->getProperty('alias')->isStatic()) ? $cmd->getProperty('alias')->getValue() : array();
             $opts = ($cmd->hasProperty('options') AND $cmd->getProperty('options')->isStatic()) ? $cmd->getProperty('options')->getValue() : array();
             $opts = ($cmd->hasProperty('args') AND $cmd->getProperty('args')->isStatic()) ? $cmd->getProperty('args')->getValue() : array();
-        
-            $commands = ($cmd->hasProperty('commands') AND $cmd->getProperty('commands')->isStatic()) ? $cmd->getProperty('commands')->getValue() : array();
 
-            if (!$cmd->hasMethod('run')) {continue;}
+            $commands = ($cmd->hasMethod('commands') ? $class::commands() : array());
 
             // add the command
             $c = $parser->addCommand($name, array(
@@ -52,22 +55,32 @@ class cli extends plugin {
                     'aliases' => $alias
                 ));
 
+            // map command name to class
+            $map[$name] = $cmd->name;
+
             // add
             foreach ($opts as $oName => $opt) {
                 $c->addOption($oName, $opt);
             }
 
-            $run = $cmd->getMethod('run');
+            $exec = $cmd->getMethod('execute');
 
             // arguments
-            foreach ($args as $aName => $opts) {
-                $c->addArgument($aName, $opts);
+            if ($exec->getNumberOfParameters() > 0) {
+                foreach ($exec->getParameters() as $param) {
+                    $c->addArgument(
+                        $param->name,
+                        array(
+                            'optional' => $param->isOptional()
+                        )
+                    );
+                }
             }
 
             // add commands
             foreach ($commands as $subName => $subOpts) {
                 if ($cmd->hasMethod($subName)) {
-                    $sub = $parser->addCommand(implode(':',array($name, $subName)), array(
+                    $sub = $c->addCommand($subName, array(
                             'description' => p('description', false, $subOpts),
                             'aliases' => p('alias', array(), $subOpts)
                         ));
@@ -76,9 +89,16 @@ class cli extends plugin {
                             $sub->addOption($sName, $opt);
                         }
                     }
-                    if (isset($subOpts['args'])) {
-                        foreach ($args as $aName => $opts) {
-                            $c->addArgument($aName, $opts);
+                    $method = $cmd->getMethod($subName);
+                    // arguments
+                    if ($method->getNumberOfParameters() > 0) {
+                        foreach ($method->getParameters() as $param) {
+                            $sub->addArgument(
+                                $param->name,
+                                array(
+                                    'optional' => $param->isOptional()
+                                )
+                            );
                         }
                     }
                 }
@@ -86,8 +106,42 @@ class cli extends plugin {
 
         }
 
-        var_dump($parser); die;
-   
+        // try to parse
+        try {
+
+            // get the result
+            $result = $parser->parse();
+
+            // run it
+            if ($result->command_name AND array_key_exists($result->command_name, $map)) {
+                $class = new $map[$result->command_name]();
+
+                // holders
+                $name = ($result->command->command_name ? $result->command->command_name : "execute");
+                $cmd = ($result->command->command_name ? $result->command : $result);
+
+                // args
+                $args = array();
+
+                // reflect
+                $method = new \ReflectionMethod($class, $name);
+
+                if ($method->getNumberOfParameters() > 0) {
+                    foreach ($method->getParameters() as $param) {
+                        $args[] = (isset($cmd->args[$param->name]) ? $cmd->args[$param->name] : $param->getDefaultValue());
+                    }
+                }
+
+                call_user_func_array(array($class, $name), $args);
+
+            }
+
+        }
+        catch (Exception $e) {
+
+        }
+
+
     }
 
     public function unknown() {

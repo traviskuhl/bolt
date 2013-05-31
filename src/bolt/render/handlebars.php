@@ -21,7 +21,7 @@ class handlebars extends \bolt\plugin\singleton {
 
         // partials to load
         if (b::config()->exists('project.partials')) {
-            $dir = b::config()->getValue('project.partials');
+            $dir = b::config()->value('project.partials');
             if (file_exists($dir)) {
                 foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($dir)) as $item) {
                     if ($item->isFile()) {

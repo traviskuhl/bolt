@@ -1,17 +1,8 @@
 <?php
 
-$opts = getopt("sld", array("include::", "www::", "bin::", "pear::"));
+error_reporting(E_ALL^E_STRICT^E_DEPRECATED);
+ini_set("display_errors", 1);
 
-// include folder
-if (isset($opts['include'])) {
-    set_include_path(get_include_path().PATH_SEPARATOR.$opts['include']);
-}
-
-// dest
-$pear = rtrim((isset($opts['pear']) ? rtrim($opts['pear'], '/') : (file_exists("/usr/share/pear") ? "/usr/share/pear" : "/usr/share/php")), '/');
-$bin = rtrim((isset($opts['bin']) ? rtrim($opts['bin'], '/') : "/usr/local/bin/"),'/');
-$share = rtrim((isset($opts['www']) ? rtrim($opts['www'], '/') : "/var/www/"),'/');
-$etc = rtrim((isset($opts['etc']) ? rtrim($opts['etc'], '/') : "/etc/"),'/');
 
 // no version global means this version
 // of php is super old
@@ -24,32 +15,82 @@ if (version_compare(PHP_VERSION, 5.3) === -1) {
     exit("Your version of PHP (".PHP_VERSION.") is not compatable with bolt.php\n");
 }
 
+// some opts we want
+$opts = getopt("bs", array("nodep", "include::", "www::", "bin::", "pear::", "etc::"));
+
+// include folder
+if (isset($opts['include'])) {
+    set_include_path(get_include_path().PATH_SEPARATOR.$opts['include']);
+}
+
 // try to include Archive/Tar.php
 if ((include "Archive/Tar.php") === false) {
     exit("You don't seem to have Archive_Tar available in your include_dir. Try installing with `pear install Archive_Tar`\n");
 }
 
-// localx
-if (isset($opts['l'])) {
-    $resp = file_get_contents("./latest/bolt-latest.tar.gz");
+// default variables
+$pear = (file_exists("/usr/share/pear") ? "/usr/share/pear" : "/usr/share/php");
+$bin = "/usr/local/bin";
+$www = "/var/www";
+$etc = "/etc";
+
+// try to include pear
+@include("PEAR/Config.php");
+
+// if we have pear
+if (class_exists('PEAR_Config')) {
+    $c = new PEAR_Config();
+    $pear = $c->get('php_dir');
+    $bin = $c->get('bin_dir');
+    $www = $c->get('www_dir');
+    $etc = $c->get('cfg_dir');
+    define("HAS_PEAR", true);
+}
+else {
+    define("HAS_PEAR", false);  // no pear
 }
 
-// symlink
-else if (isset($opts['s'])) {
+// override from opts
+foreach (array('www','bin','pear','etc') as $opt) {
+    if (isset($opts[$opt])) {
+        ${$opt} = $opts[$opt];
+    }
+}
 
-    // bolt
+// version
+$VERSION = (isset($opts['v']) ? $opts['v'] : 'stable');
+
+// if we heave pear
+if (!HAS_PEAR) {
+    exit("PEAR is required to install");
+}
+
+
+
+// // discover our channel
+// echo `$pear channel-discover pear.bolthq.com\n`;
+
+// // install this version
+// echo `$pear install bolt/bolt-$VERSION\n`;
+
+// if they want a symlink
+if (isset($opts['s'])) {
+
+    // do it
     $bolt = realpath("../src/bolt.php");
-    $target = $pear."/bolt.php";
+    $target = $pear."/bolt.phar";
 
     if (file_exists($target)) {
         unlink($target);
     }
 
+//    var_dump($bolt, $target); die;
+
     // phar
     symlink($bolt,$target);
 
     // make sure
-    $dest = "{$share}/bolt/index.php";
+    $dest = "{$www}/bolt/index.php";
 
     // dir
     if (!file_exists(dirname($dest))) {
@@ -57,127 +98,20 @@ else if (isset($opts['s'])) {
     }
 
     // do it
-    file_put_contents($dest, stub(file_get_contents("./stub/share.inc"), "bolt.php", ""));
+    file_put_contents($dest, stub(file_get_contents("./stub/share.inc"), "bolt.phar", ""));
 
     $dest = "{$bin}/bolt";
 
     // bin
-    file_put_contents($dest, stub(file_get_contents("./stub/bin.inc"), "bolt.php", ""));
+    file_put_contents($dest, stub(file_get_contents("./stub/bin.inc"), "bolt.phar", ""));
 
     // done
     exit("bolt has been symliked to '{$bolt}'. Enjoy\n");
-
 }
 
-// get from remote
-else {
-
-    // pull down the latest version
-    $latest = "https://github.com/traviskuhl/bolt/raw/master/build/latest/bolt-latest.tar.gz";
-
-    // no curl
-    if (function_exists('curl_init')) {
-
-        // get it
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $latest);
-        curl_setopt($ch, CURLOPT_HEADER, 0);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
-        $resp = curl_exec($ch);
-        curl_close($ch);
-
-    }
-    else {
-        $resp = trim(`curl -Ls $latest`);
-    }
-
-}
-
-// nope
-if (!$resp) {
-    exit("Unable to retrieve the source tar at '$latest'.\n");
-}
-
-// write tar to tmp
-$tmp = sys_get_temp_dir().'/bolt'.time();
-mkdir($tmp);
-
-file_put_contents($tmp."/tar", $resp);
-
-// open it
-$tar = new Archive_Tar($tmp."/tar", 'gz');
-
-// get the phar
-$phar = $tar->extractInString('bolt.phar');
-
-// place phar in pear
-file_put_contents("{$pear}/bolt.phar", $phar);
-
-// symlink to bolt.phar => bolt.php
-if (file_exists("{$pear}/bolt.php")) {
-    unlink("{$pear}/bolt.php");
-}
-
-symlink("{$pear}/bolt.phar", "{$pear}/bolt.php");
-
-// make etc
-$etc .= '/bolt';
-if (!file_exists($etc)) {
-    `mkdir -p $etc`;
-}
-
-// bin
-$bin .= "/bolt";
-
-// now symlink the bin file
-if (file_exists($bin)) {
-    unlink($bin);
-}
-file_put_contents($bin, stub($tar->extractInString('bin.inc'), "$pear/bolt.php", $etc)); chmod($bin, 0755);
-
-// share
-$share .= "/bolt/index.php";
-
-// now symlink the share file
-if (!file_exists(dirname($share))) {
-    mkdir(dirname($share), 0644, true);
-}
-if (file_exists($share)) {
-    unlink($share);
-}
-file_put_contents($share, stub($tar->extractInString('share.inc'), "$pear/bolt.phar", $etc));
-
-//
-if (!isset($opts['d'])) {
-
-    // vendor
-    @mkdir("$pear/bolt/");
-    @mkdir("$pear/bolt/vendor");
-
-    // depend
-    mkdir("$tmp/d");
-
-    // open dependency file
-    $depend = json_decode($tar->extractInString("depend.json"), true);
-
-    // loop through
-    foreach ($depend as $pkg) {
-        $u = uniqid();
-        // get it and palce it in tmp
-        $cmd = "git clone {$pkg['repo']['uri']} -b {$pkg['repo']['branch']} $tmp/d/$u";
-        echo `$cmd`;
-        $cmd = "sudo mv -f $tmp/d/$u/{$pkg['lib']} $pear/bolt/vendor";
-        echo `$cmd`;
-    }
-
-}
-
-// delete dir
-`rm -r $tmp`;
-
-// tell them we're done
+// done
 exit("bolt has been installed. Enjoy!\n");
+
 
 /// stub
 function stub($str, $phar, $etc) {

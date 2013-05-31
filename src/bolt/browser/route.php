@@ -56,20 +56,10 @@ class route extends \bolt\plugin\singleton {
     private $_route = false;
     private $_routes = array();
     private $_defaultParser = '\bolt\browser\route\token'; // default route parser
-    private $_baseUri = array(
-            'scheme' => false,
-            'host' => false,
-            'port' => false
-        );
+    private $_baseUri = false;
 
     public function __construct() {
-        if (defined('SELF')) {
-            foreach (parse_url(SELF) as $k => $v) {
-                if (array_key_exists($k, $this->_baseUri)) {
-                    $this->_baseUri[$k] = $v;
-                }
-            }
-        }
+        $this->_baseUri = new \Net_URL2((defined('bSelf') ? bSelf : ""));
     }
 
     /**
@@ -232,24 +222,38 @@ class route extends \bolt\plugin\singleton {
             return b::addUrlParams($name, $data);
         }
 
-        // short cut
-        $args['query'] = \http_build_str($query);
+        // new base
+        $base = clone $this->_baseUri;
 
-        $parts = $this->_baseUri;
+        // reset query
+        if (b::param('use-base-query', false, $args) === false) {
+            $base->query = false;
+        }
 
         // are we in index.php
-        if (substr(parse_url(SELF, PHP_URL_PATH), 0, 11) == '/index.php/') {
+        if (substr($base->path, 0, 11) == '/index.php/') {
             $prefix = "/index.php/";
         }
 
         // no url
         if (!$this->getRouteByName($name)) {
-            $parts['path'] = $prefix . ltrim($name, '/');
-            return \http_build_url(false, $parts);
+            $base->path = $prefix . ltrim($name, '/');
+            return $base->getURL();
         }
 
+        // query
+        if (is_string($query)) {
+            $base->query = $query;
+        }
+        else {
+            foreach ($query as $k => $v) {
+                $base->setQueryVariable($k, $v);
+            }
+        }
+
+        // parts
         foreach ($args as $k => $v) {
-            $parts[$k] = $v;
+            $base->{$k} = $v;
         }
 
         // get our url
@@ -262,10 +266,11 @@ class route extends \bolt\plugin\singleton {
         // anything left over
         $path = preg_replace("#\{[^\}]+\}/?#", "", $path);
 
-        $parts['path'] = $prefix . trim($path, '/');
+        // set it
+        $base->path = $prefix . trim($path, '/');
 
         // return with params
-        return \http_build_url(false, $parts);
+        return $base->getURL();
 
     }
 
@@ -275,7 +280,7 @@ class route extends \bolt\plugin\singleton {
      * @return self
      */
     public function loadClassRoutes() {
-        $classes = b::getDefinedSubClasses('bolt\browser\controller');
+        $classes = b::getDefinedSubClasses('bolt\browser\controller\request');
 
         // register their routes
         foreach ($classes as $class) {

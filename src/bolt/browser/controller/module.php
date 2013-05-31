@@ -5,10 +5,11 @@ use \b;
 
 
 // add our render helper on run
-b::on('run', function() {
+b::render()->once('before', function() {
 
     // render
     b::render()->handlebars->helper('module', function($template, $context, $args, $text) {
+
         $parts = explode(' ', $args);
         $class = trim(array_shift($parts), '"\'');
         $params = array();
@@ -18,7 +19,7 @@ b::on('run', function() {
         else if ($parts) {
             $params = json_decode(trim(implode(" ", $parts)), true);
         }
-        $v =  b::view($class)->setParams($params);
+        $v =  b::controller($class)->setParams($params);
         if ($context->get('controller')) {
             $v->setController($context->get('controller'));
         }
