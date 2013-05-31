@@ -3,7 +3,9 @@
 namespace bolt\browser\response;
 use \b as b;
 
-b::response()->plug('json', '\bolt\browser\response\json');
+b::depend("bolt-browser-response")
+    ->response
+    ->plug('json', '\bolt\browser\response\json');
 
 // json
 class json extends handler {

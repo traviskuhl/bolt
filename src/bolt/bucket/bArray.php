@@ -12,7 +12,7 @@ class bArray implements \bolt\iBucket, \ArrayAccess, \Iterator, \Countable {
     private $_data = array();
 
 
-    public function __construct($data, $root, $parent=false) {
+    public function __construct($data, $root=false, $parent=false) {
         $this->_bguid = uniqid('b');
         $this->_root = $root;
         $this->_parent = $parent;

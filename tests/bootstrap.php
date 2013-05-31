@@ -11,6 +11,7 @@ define("bLogLevel", 0);
 $depend = json_decode(file_get_contents(__DIR__."/../build/depend.json"), true);
 
 $_SERVER['HTTP_HOST'] = 'test.bolthq.com';
+define("bSelf", "http://test.bolthq.com");
 
 // include our bolt
 include_once(dirname(__FILE__)."/../src/bolt.php");

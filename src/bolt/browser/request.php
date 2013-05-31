@@ -4,7 +4,7 @@ namespace bolt\browser;
 use \b;
 
 // plug into b::request();
-b::plug('request', '\bolt\browser\request');
+b::depend('bolt-browser-*')->plug('request', '\bolt\browser\request');
 
 /**
  * browser request class
@@ -39,12 +39,12 @@ class request extends \bolt\plugin\singleton {
 		$this->_accept = array_shift($a);
 
 		// create a bucket of our params
-		$this->_get = b::bucket($_GET);
-		$this->_post = b::bucket($_POST);
-		$this->_request = b::bucket($_REQUEST);
+		$this->_get = b::bucket($_GET, false);
+		$this->_post = b::bucket($_POST, false);
+		$this->_request = b::bucket($_REQUEST, false);
 		$this->_input = file_get_contents("php://input");
         $this->_params = b::bucket();
-        $this->_server = b::bucket(array_change_key_case($_SERVER));
+        $this->_server = b::bucket(array_change_key_case($_SERVER), false);
 
         // if we can get headers
         if (function_exists('getallheaders')) {
@@ -57,7 +57,7 @@ class request extends \bolt\plugin\singleton {
                    $headers[str_replace(' ', '-', strtolower(str_replace('_', ' ', substr($name, 5))))] = $value;
                }
            }
-           $this->_headers = b::bucket($headers);
+           $this->_headers = b::bucket($headers, false);
         }
 
         // when we run
@@ -119,6 +119,7 @@ class request extends \bolt\plugin\singleton {
      */
     public function __set($name, $value) {
         $this->_params->set($name, $value);
+        return $this;
     }
 
     public function getRoute() {
@@ -150,7 +151,7 @@ class request extends \bolt\plugin\singleton {
      * @param route params
      * @return self
      */
-    public function setParams(\bolt\bucket $params) {
+    public function setParams($params) {
         $this->_params = $params;
         return $this;
     }
@@ -297,7 +298,7 @@ class request extends \bolt\plugin\singleton {
         $class = $route->getController();
 
         // rew controller
-        $controller = new $class();
+        $controller = (is_string($class) ? new $class() : $class);
 
         // no never ending loops
         $i = 0;

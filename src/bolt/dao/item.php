@@ -51,7 +51,7 @@ abstract class item implements iItem {
         // loop through our struct and
         // see if theres any class traits
         foreach ($this->_struct as $key => $info) {
-            if (p('type', false, $info) == 'dao') {
+            if (b::param('type', false, $info) == 'dao') {
                 $this->_traits["get{$key}"] = array(
                     '\bolt\dao\traitStorage',
                     $info['class'],

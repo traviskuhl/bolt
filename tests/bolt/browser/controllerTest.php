@@ -1,5 +1,8 @@
 <?php
 
+use bolt\browser\route\parser;
+
+
 class controllerTest extends bolt_test {
 
     private $i = false;
@@ -11,173 +14,149 @@ class controllerTest extends bolt_test {
             'mode' => 'browser'
         ));
 
-        // $this->tc = new testController();
-        // $this->tcd = new testControllerWithDefaults();
-
-        // remove request/response instances to
-        // reset env
-        b::bolt()
-            ->removeInstance('request')
-            ->removeInstance('response');
+        $this->c = new controllerTestController();
 
     }
 
-    public function testPlaceholder() {
-        // test are being reimplemented
-        $this->assertTrue(true);
+
+    public function testFactoryDefault() {
+        $c = b::controller();
+        $this->assertInstanceOf('\bolt\browser\controller', $c);
     }
 
-    // public function testControllerInterface() {
-    //     $this->assertTrue(in_array('bolt\browser\iController', class_implements($this->tc)));
+    public function testFactoryWithClass() {
+        $c = b::controller('controllerTestController');
+        $this->assertInstanceOf('controllerTestController', $c);
+    }
+
+    public function testImplements() {
+        $this->assertTrue(in_array('bolt\browser\iController', class_implements($this->c)));
+    }
+
+    // public function testMagicGet() {
+    //     $this->assertEquals(1, $this->v->testP);
+    //     $this->assertFalse($this->v->test);
+    //     $this->assertFalse($this->v->nope);
+    // }
+    // public function testMagicSet() {
+    //     $this->assertFalse($this->v->test1);
+    //     $this->v->test1 = 1;
+    //     $this->assertEquals(1, $this->v->test1);
+    //     $this->assertFalse($this->v->test2);
+    // }
+    // public function testGetParamsParams() {
+    //     $this->assertInstanceOf('bolt\bucket', $this->v->params);
+    // }
+    // public function testGetParamsParent() {
+    //     $this->assertEquals(1, $this->v->getParam('testC1')->value);
+    // }
+    // public function testGetParamsParam() {
+    //     $this->assertEquals(1, $this->v->getParam('test')->value);
+    //     $this->assertFalse($this->v->getParam('test2')->value);
+    // }
+    // public function testGetParams() {
+    //     $this->assertInstanceOf('bolt\bucket', $this->v->getParams());
+    //     $a = $this->v->getParams()->asArray();
+    //     $this->assertEquals(array('test'=>1), $a);
+    // }
+    // public function testSetParamsBucket() {
+    //     $v = new viewTestView();
+    //     $b = b::bucket();
+    //     $v->setParams($b);
+    //     $this->assertInstanceOf('\bolt\bucket', $v->getParams());
+    //     $v->setParams($b);
+    //     $this->assertEquals($v->getParams()->getGuid(), $b->getGuid());
     // }
 
-    // public function testContructSetLayout() {
-    //     $this->assertFalse($this->tc->hasLayout());
-    //     $this->assertTrue($this->tcd->hasLayout());
+    // public function testGetGuid() {
+    //     $this->assertTrue(is_string($this->v->getGuid()));
+    // }
+
+    // public function testGetSetContent() {
+    //     $this->assertEquals(null, $this->v->getContent());
+    //     $this->v->setContent('test');
+    //     $this->assertEquals('test', $this->v->getContent());
+    // }
+
+    // public function testGetSetTemplate() {
+    //     $this->assertEquals(null, $this->v->getTemplate());
+    //     $this->v->setTemplate('test');
+    //     $this->assertEquals('/test', $this->v->getTemplate());
+    // }
+
+    // public function testGetSetRenderer() {
+    //     $this->assertEquals('handlebars', $this->v->getRenderer());
+    //     $this->v->setRenderer('test');
+    //     $this->assertEquals('test', $this->v->getRenderer());
     // }
 
     // public function testInit() {
-    //     $this->assertTrue($this->tc->initRun);
+    //     $v = new viewTestViewInit();
+    //     $this->assertEquals('init', $v->getContent());
     // }
 
-    // public function testGetAccept() {
-    //     $str = 'accept string';
-    //     b::request()->setAccept($str);
-    //     $this->assertEquals($str, $this->tc->getAccept());
+    // public function testRenderEmpty() {
+    //     $this->v->setContent('test');
+    //     $this->assertEquals('test', $this->v->render());
     // }
 
-    // public function testGetStatus() {
-    //     $status = 418;
-    //     b::response()->setStatus($status);
-    //     $this->assertEquals($status, $this->tc->getStatus());
+    // public function testRenderBuild() {
+    //     $v = new viewTestViewBuild();
+    //     $v->setRenderer(false);
+    //     $this->assertEquals('build', $v->render());
     // }
 
-    // public function testSetStatus() {
-    //     $status = 418;
-    //     $this->tc->setStatus($status);
-    //     $this->assertEquals($status, b::response()->getStatus());
+    // public function testRenderBefore() {
+    //     $v = new viewTestViewBefore();
+    //     $v->setRenderer(false);
+    //     $this->assertEquals('before', $v->render());
     // }
 
-    // public function testRun() {
-    //     $c = new testControlleNoMethod();
-    //     $this->assertEquals('', $c->run());
-    // }
-
-    // public function testBuildDispatch() {
-    //     $c = new testControllerWithDispatch();
-    //     $c->build();
-    //     $this->assertEquals($c->getContent(), 'dispatch');
-    // }
-
-    // public function testBuildStandardMethods() {
-    //     $methods = array('get','post','put','delete','head');
-    //     foreach ($methods as $method) {
-    //         b::request()->setMethod($method);
-    //         $this->tc->build();
-    //         $this->assertEquals($method, $this->tc->getContent());
-    //     }
-    // }
-
-    // public function testBuildUnknownMethod() {
-    //     b::request()->setMethod('unknown');
-    //     $o = new testControlleNoMethod();
-    //     $this->assertEquals($o, $o->build());
-    // }
-
-    // public function testBuildActionMethods() {
-    //     $action = 'Action';
-    //     $methods = array('get','post','put','delete','head');
-    //     b::request()->setAction($action);
-    //     foreach ($methods as $method) {
-    //         b::request()->setMethod($method);
-    //         $this->tc->build();
-    //         $this->assertEquals($method.$action, $this->tc->getContent());
-    //     }
-    // }
-
-    // public function testBuildWithParams() {
-    //     b::request()->setParams(b::bucket(array('param' => 1)));
-    //     $o = new testControllerWithParam();
-    //     $o->build();
-    //     $this->assertEquals(1, $o->getContent());
-    // }
-
-    // public function testBuildWithDefaultParams() {
-    //     b::request()->setMethod('post');
-    //     $o = new testControllerWithParam();
-    //     $o->build();
-    //     $this->assertEquals('default', $o->getContent());
+    // public function testRenderAfter() {
+    //     $v = new viewTestViewAfter();
+    //     $v->setRenderer(false);
+    //     $this->assertEquals('after', $v->render());
     // }
 
 }
 
-class testView extends \bolt\browser\view {
-    public function build() {
-        $this->setContent('test view');
-    }
-}
+class controllerTestController extends \bolt\browser\controller {
 
-class testController extends \bolt\browser\controller {
-    public function init() {
-        $this->initRun = true;
-    }
-    public function get() {
-        $this->setContent('get');
-    }
-    public function post() {
-        $this->setContent('post');
-    }
-    public function put() {
-        $this->setContent('put');
-    }
-    public function delete() {
-        $this->setContent('delete');
-    }
-    public function head() {
-        $this->setContent('head');
-    }
-    public function getAction() {
-        $this->setContent('getAction');
-    }
-    public function postAction() {
-        $this->setContent('postAction');
-    }
-    public function putAction() {
-        $this->setContent('putAction');
-    }
-    public function deleteAction() {
-        $this->setContent('deleteAction');
-    }
-    public function headAction() {
-        $this->setContent('headAction');
-    }
+
 }
 
 
-class testControllerWithDefaults extends \bolt\browser\controller {
-    public $layout = "file";
-    public $templateDir = "folder";
-    public function init() {
-        $this->initRun = true;
-        $this->var = 1;
-    }
-}
+// class viewTestController extends \bolt\browser\controller {
+//     public function init() {
+//         $this->testC1 = 1;
+//     }
+// }
 
-class testControllerWithDispatch extends \bolt\browser\controller {
-    public function dispatch() {
-        $this->setContent("dispatch");
-    }
-}
+// class viewTestView extends \bolt\browser\view {
+//     public $testP = 1;
+// }
 
-class testControllerWithParam extends \bolt\browser\controller {
-    public function get($param) {
-        $this->setContent($param);
-    }
-    public function post($param='default') {
-        $this->setContent($param);
-    }
-}
 
-class testControlleNoMethod extends \bolt\browser\controller {
+// class viewTestViewInit extends \bolt\browser\view {
+//     public function init() {
+//         $this->setContent('init');
+//     }
+// }
 
-}
+// class viewTestViewBuild extends \bolt\browser\view {
+//     public function build() {
+//         $this->setContent('build');
+//     }
+// }
+
+// class viewTestViewBefore extends \bolt\browser\view {
+//     public function before() {
+//         $this->setContent('before');
+//     }
+// }
+
+// class viewTestViewAfter extends \bolt\browser\view {
+//     public function after() {
+//         $this->setContent('after');
+//     }
+// }

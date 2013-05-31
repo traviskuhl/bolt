@@ -15,12 +15,14 @@ class bucketTest extends bolt_test {
         return call_user_func_array(array('\bolt\bucket', 'bytype'), func_get_args());
     }
 
+
+    /// tests
     public function testFactoryNoArgs() {
-        $this->assertFalse($this->factory());
+        $this->assertInstanceOf('\bolt\bucket\bArray', $this->factory());
     }
 
     public function testFactoryString() {
-        $this->assertInstanceOf('bolt\bucket\bString', $this->factory('string'));
+        $this->assertInstanceOf('bolt\bucket\bString', $this->factory('string', false));
     }
     public function testFactoryObject() {
         $this->assertInstanceOf('bolt\bucket\bObject', $this->factory(new StdClass));

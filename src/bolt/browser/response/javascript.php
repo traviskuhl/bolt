@@ -3,7 +3,10 @@
 namespace bolt\browser\response;
 use \b as b;
 
-b::response()->plug('javascript', '\bolt\browser\response\javascript');
+
+b::depend("bolt-browser-response")
+    ->response
+    ->plug('javascript', '\bolt\browser\response\javascript');
 
 // json
 class javascript extends handler {

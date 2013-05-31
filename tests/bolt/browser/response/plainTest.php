@@ -37,7 +37,7 @@ class responsePlainTest extends bolt_test {
 
         $this->assertEquals($this->text, $r);
 
-        $this->assertEquals('text/plain', $this->r->getContentType());
+        $this->assertFalse($this->r->getContentType());
 
     }
 

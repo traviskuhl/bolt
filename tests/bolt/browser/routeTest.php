@@ -157,13 +157,13 @@ class routeTestParser extends \bolt\browser\route\parser {
 
 }
 
-class routeTestController extends \bolt\browser\controller {
+class routeTestController extends \bolt\browser\controller\request {
     public static $routes = array(
             array('route' => 'test1', 'name' => 't1')
         );
 }
 
-class routeTestController2 extends \bolt\browser\controller {
+class routeTestController2 extends \bolt\browser\controller\request {
     public static function getRoutes(){
         return array(
             array('route' => 'test2', 'name' => 't2'),

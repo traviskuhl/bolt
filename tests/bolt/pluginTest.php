@@ -30,8 +30,8 @@ class pluginTest extends bolt_test {
     public function testPlug() {
 
         // add a plugin
-        $this->assertTrue($this->i->plug('testSingle', 'pluginTestPlugSingleton'));
-        $this->assertTrue($this->i->plug('testFactory', 'pluginTestPlugFactory'));
+        $this->assertInstanceOf('\bolt\plugin', $this->i->plug('testSingle', 'pluginTestPlugSingleton'));
+        $this->assertInstanceOf('\bolt\plugin', $this->i->plug('testFactory', 'pluginTestPlugFactory'));
 
         // check that their both there
         $this->assertEquals(2, count($this->i->getPlugins()));
@@ -71,7 +71,7 @@ class pluginTest extends bolt_test {
     // test signel
     public function testCallSingletonInstance() {
 
-        $this->assertTrue($this->i->plug('testSingle', 'pluginTestPlugSingleton'));
+        $this->assertInstanceOf('\bolt\plugin', $this->i->plug('testSingle', 'pluginTestPlugSingleton'));
 
         // get it
         $i = $this->i->call('testSingle'); // testSingleton'
@@ -84,8 +84,8 @@ class pluginTest extends bolt_test {
     // test signel
     public function testCallSingletonMethod() {
 
-        $this->assertTrue($this->i->plug('testSingle', '\pluginTestPlugSingleton'));
-        $this->assertTrue($this->i->plug('testSingleMethod', 'testSingle::testSingleton'));
+        $this->assertInstanceOf('\bolt\plugin', $this->i->plug('testSingle', '\pluginTestPlugSingleton'));
+        $this->assertInstanceOf('\bolt\plugin', $this->i->plug('testSingleMethod', 'testSingle::testSingleton'));
 
         // now call
         $this->assertTrue($this->i->call('testSingleMethod'));
@@ -95,7 +95,7 @@ class pluginTest extends bolt_test {
     // test single method by arg
     public function testCallSingletonMethodByArg() {
 
-        $this->assertTrue($this->i->plug('testSingle', '\pluginTestPlugSingleton'));
+        $this->assertInstanceOf('\bolt\plugin', $this->i->plug('testSingle', '\pluginTestPlugSingleton'));
 
         // now call
         $this->assertTrue($this->i->call('testSingle', array('testSingleton')));
@@ -105,7 +105,7 @@ class pluginTest extends bolt_test {
     // test single _default
     public function testCallSingletonDefault() {
 
-        $this->assertTrue($this->i->plug('testSingleDefault', '\pluginTestPlugSingletonDefault'));
+        $this->assertInstanceOf('\bolt\plugin', $this->i->plug('testSingleDefault', '\pluginTestPlugSingletonDefault'));
 
         // now call
         $this->assertTrue($this->i->call('testSingleDefault'));
@@ -115,7 +115,7 @@ class pluginTest extends bolt_test {
     // test factory
     public function testCallFactory() {
 
-        $this->assertTrue($this->i->plug('testFact', '\pluginTestPlugFactory'));
+        $this->assertInstanceOf('\bolt\plugin', $this->i->plug('testFact', '\pluginTestPlugFactory'));
 
         // factory
         $f = $this->i->call('testFact', array());

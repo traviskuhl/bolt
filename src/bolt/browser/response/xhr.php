@@ -3,7 +3,9 @@
 namespace bolt\browser\response;
 use \b as b;
 
-b::response()->plug('xhr', '\bolt\browser\response\xhr');
+b::depend("bolt-browser-response")
+    ->response
+    ->plug('xhr', '\bolt\browser\response\xhr');
 
 // json
 class xhr extends handler {
@@ -11,7 +13,7 @@ class xhr extends handler {
     // accept or header
     public static $contentType = array(
         100 => 'text/javascript;text/xhr',
-        200 => 'text/javascript;text/xhr;secure',
+        101 => 'text/javascript;text/xhr;secure',
     );
 
 
@@ -60,6 +62,7 @@ class xhr extends handler {
 
         // json
         $j = new json();
+        $j->setStatus($this->getStatus());
         $j->setContentType($this->getContentType());
         $j->setContent(array(
             'content' => $body,

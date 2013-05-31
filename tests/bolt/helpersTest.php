@@ -70,7 +70,7 @@ class helpersTest extends bolt_test {
         $salt = $this->salt;
         $str = 'poop';
         $md5 = md5($salt.$str.strrev($salt));
-        $this->assertEquals($md5, b::md5($str));
+        $this->assertEquals($md5, b::md5($str, $salt));
     }
     public function testUtcTime() {
         $dt = new \DateTime('now',new \DateTimeZone('UTC'));

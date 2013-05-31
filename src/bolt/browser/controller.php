@@ -101,6 +101,15 @@ class controller extends \bolt\event implements iController {
     }
 
     /**
+     * get the unique id of view
+     *
+     * @return string guid
+     */
+    public function bGuid() {
+        return $this->_bguid;
+    }
+
+    /**
      * called by __construct
      *
      * @return void
@@ -127,15 +136,6 @@ class controller extends \bolt\event implements iController {
      * @return void
      */
     protected function after() {}
-
-    /**
-     * get the unique id of view
-     *
-     * @return string guid
-     */
-    public function bGuid() {
-        return $this->_bguid;
-    }
 
     /**
      * set the action
@@ -457,7 +457,7 @@ class controller extends \bolt\event implements iController {
                     $_args[] = b::response();
                 }
                 else if (array_key_exists($name, $args)) {
-                    $_args[] = $args['name'];
+                    $_args[] = $args[$name];
                 }
                 else if ($this->_params->exists($name)) {
                     $_args[] = $this->_params->value($name);
@@ -472,7 +472,12 @@ class controller extends \bolt\event implements iController {
         }
 
         // call build
-        call_user_func_array($action, $_args);
+        $resp = call_user_func_array($action, $_args);
+
+        // resp is a string
+        if (is_string($resp) AND $this->_content === null) {
+            $this->setContent($resp);
+        }
 
         // add any set data to the params load
         foreach ($this->_properties as $name) {

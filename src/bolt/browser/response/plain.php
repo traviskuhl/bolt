@@ -3,7 +3,10 @@
 namespace bolt\browser\response;
 use \b as b;
 
-b::response()->plug('plain', '\bolt\browser\response\plain');
+
+b::depend("bolt-browser-response")
+    ->response
+    ->plug('plain', '\bolt\browser\response\plain');
 
 // json
 class plain extends handler {

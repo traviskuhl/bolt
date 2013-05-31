@@ -29,7 +29,7 @@ class responseTest extends bolt_test {
         $this->assertFalse($this->r->controller);
     }
     public function testMagicGetHeaders() {
-        $this->assertInstanceOf('\bolt\bucket', $this->r->headers);
+        $this->assertInstanceOf('\bolt\bucket\bArray', $this->r->headers);
     }
     public function  testMagicGetEmpty() {
         $this->assertFalse($this->r->none);
@@ -51,7 +51,7 @@ class responseTest extends bolt_test {
     }
 
     public function testGetHeaders() {
-        $this->assertInstanceOf('\bolt\bucket', $this->r->getHeaders());
+        $this->assertInstanceOf('\bolt\bucket\bArray', $this->r->getHeaders());
     }
 
     public function testGetSetStatus() {

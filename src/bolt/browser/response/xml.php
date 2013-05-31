@@ -6,7 +6,9 @@ use \DOMAttr;
 use \DOMDocument;
 use \DOMCDATASection;
 
-b::response()->plug('xml', '\bolt\browser\response\xml');
+b::depend("bolt-browser-response")
+    ->response
+    ->plug('xml', '\bolt\browser\response\xml');
 
 // json
 class xml extends handler {

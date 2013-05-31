@@ -83,7 +83,7 @@ class requestTest extends bolt_test {
     }
 
     public function testSetParams() {
-        $b = b::bucket(array('testvar' => 1));
+        $b = b::bucket(array('testvar' => 1), false);
         $this->assertInstanceOf('\bolt\browser\request', $this->r->setParams($b));
         $this->assertEquals(1, $this->r->testvar->value);
     }
@@ -143,8 +143,10 @@ class requestTest extends bolt_test {
             return 'test';
         });
         $this->assertInstanceOf('\bolt\browser\request', $this->r->run('test_route'));
-        $this->assertInstanceOf('Closure', $this->r->getRoute()->getController());
-        $this->assertEquals('test', $this->r->getContent());
+        $this->assertInstanceOf('\bolt\browser\controller\closure', $this->r->getRoute()->getController());
+
+        $this->assertEquals('test', $this->r->run('test_route')->getContent());
+
     }
 
     public function testRunClosureWithParams() {
@@ -154,32 +156,22 @@ class requestTest extends bolt_test {
             $test->assertEquals(1, $novar);
         });
         $this->assertInstanceOf('\bolt\browser\request', $this->r->run("test_route/{$param}"));
-        $this->assertInstanceOf('Closure', $this->r->getRoute()->getController());
+        $this->assertInstanceOf('\bolt\browser\controller\closure', $this->r->getRoute()->getController());
     }
 
 }
 
-class reqTestController extends \bolt\browser\controller {
+class reqTestController extends \bolt\browser\controller\request {
     public function init() {
 
     }
 }
 
-class reqTestView extends \bolt\browser\view {
-    public function build() {
-        $this->setContent('test');
-    }
+
+class testControllerPassthrough extends \bolt\browser\controller\request {
+
 }
 
+class testControllerPassthroughView extends \bolt\browser\controller\request {
 
-class testControllerPassthrough extends \bolt\browser\controller {
-    public function run() {
-        return new \reqTestController();
-    }
-}
-
-class testControllerPassthroughView extends \bolt\browser\controller {
-    public function run() {
-        return new \reqTestView();
-    }
 }

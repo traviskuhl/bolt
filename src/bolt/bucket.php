@@ -21,13 +21,15 @@ class bucket extends \bolt\plugin\factory {
      *               $args[2] parent of data
      * @return mixed bucket object
      */
-    public static function factory($args=array()) {
-        if (count($args) == 0 AND func_num_args() > 1) {return false;}
-        if (func_num_args() === 1) { $args = array($args); }
-
-        $data = (isset($args[0]) ? $args[0] : array());
-        $key = (isset($args[1]) ? $args[1] : false);
-        $parent = (isset($args[2]) ? $args[2] : false);
+    public static function factory($args=array(), $key=null, $parent=null) {
+        if ($key !== null OR $parent !== null) {
+            $data = $args;
+        }
+        else {
+            $data = (isset($args[0]) ? $args[0] : array());
+            $key = (isset($args[1]) ? $args[1] : false);
+            $parent = (isset($args[2]) ? $args[2] : false);
+        }
 
         // pass to by type
         return self::byType($data, $key, $parent);

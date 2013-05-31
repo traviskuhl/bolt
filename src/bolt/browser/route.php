@@ -147,6 +147,12 @@ class route extends \bolt\plugin\singleton {
      */
     public function register($paths, $class=false) {
 
+        if (is_a($class, 'Closure')) {
+            $tmp = new \bolt\browser\controller\closure();
+            $tmp->setClosure($class);
+            $class = $tmp;
+        }
+
         // if paths is not an object
         if (!is_object($paths)) {
             $cl = $this->_defaultParser;
@@ -218,56 +224,76 @@ class route extends \bolt\plugin\singleton {
     public function url($name, $data=array(), $query=array(), $args=array()) {
         $prefix = "/";
 
+
+        // if we already have url
         if (substr($name, 0, 4) == 'http') {
-            return b::addUrlParams($name, $data);
+            $base = new \Net_URL2($name);
+            $base->setQueryVariables($data);
+            $args = $query;
         }
+        else { // no url close the base and start
 
-        // new base
-        $base = clone $this->_baseUri;
+            // new base
+            $base = clone $this->_baseUri;
 
-        // reset query
-        if (b::param('use-base-query', false, $args) === false) {
-            $base->query = false;
-        }
-
-        // are we in index.php
-        if (substr($base->path, 0, 11) == '/index.php/') {
-            $prefix = "/index.php/";
-        }
-
-        // no url
-        if (!$this->getRouteByName($name)) {
-            $base->path = $prefix . ltrim($name, '/');
-            return $base->getURL();
-        }
-
-        // query
-        if (is_string($query)) {
-            $base->query = $query;
-        }
-        else {
-            foreach ($query as $k => $v) {
-                $base->setQueryVariable($k, $v);
+            // reset query
+            if (b::param('use-base-query', false, $args) === false) {
+                $base->query = false;
             }
+
+            // are we in index.php
+            if (substr($base->path, 0, 11) == '/index.php/') {
+                $prefix = "/index.php/";
+            }
+
+            // no url
+            if (!$this->getRouteByName($name)) {
+                $base->path = $prefix . ltrim($name, '/');
+                return $base->getURL();
+            }
+
+            // query
+            if (is_string($query)) {
+                $base->query = $query;
+            }
+            else {
+                foreach ($query as $k => $v) {
+                    $base->setQueryVariable($k, $v);
+                }
+            }
+
+
+            // get our url
+            $path = $this->getRouteByName($name)->getPath();
+
+            foreach ($data as $k => $v) {
+                $path = str_replace('{'.$k.'}', $v, $path );
+            }
+
+            // anything left over
+            $path = preg_replace("#\{[^\}]+\}/?#", "", $path);
+
+            // set it
+            $base->path = $prefix . trim($path, '/');
+
         }
 
         // parts
         foreach ($args as $k => $v) {
-            $base->{$k} = $v;
+            if ($k == 'user') {
+                $base->setUserinfo($v, $base->getPassword());
+            }
+            else if ($k == 'pass') {
+                $base->setUserinfo($base->getUser(), $v);
+            }
+            else {
+                $m = 'set'.ucfirst($k);
+                if (method_exists($base, $m)) {
+                    call_user_func(array($base, $m), $v);
+                }
+            }
         }
 
-        // get our url
-        $path = $this->getRouteByName($name)->getPath();
-
-        foreach ($data as $k => $v) {
-            $path = str_replace('{'.$k.'}', $v, $path );
-        }
-
-        // anything left over
-        $path = preg_replace("#\{[^\}]+\}/?#", "", $path);
-
-        // set it
-        $base->path = $prefix . trim($path, '/');
 
         // return with params
         return $base->getURL();
