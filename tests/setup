@@ -1,16 +1,13 @@
 <?php
 
+error_reporting(E_ALL);
+ini_set("display_errors", 1);
+
 // get our depend file from build
-$depend = json_decode(file_get_contents(__DIR__."/../build/depend.json"), true);
+$xml =  new SimpleXMLElement(file_get_contents("../build/stub/package.xml"));
 
-$dest = __DIR__."/../vendor";
 
-// vendor
-mkdir($dest);
-
-// loop through
-foreach ($depend as $pkg) {
-    // get it and palce it in tmp
-    $cmd = "git clone {$pkg['repo']['uri']} -b {$pkg['repo']['branch']} $dest/{$pkg['name']}";
+foreach ($xml->dependencies->required->package as $pkg) {
+    $cmd = "pear install {$pkg->channel}/{$pkg->name}";
     echo `$cmd`;
 }
