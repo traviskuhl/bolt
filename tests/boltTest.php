@@ -66,17 +66,6 @@ class boltTest extends bolt_test {
 
     public function testConfig() {
 
-        // config was set
-        $this->assertTrue(b::config()->test->value);
-
-        // config
-        $this->assertTrue(b::_("test")->value);
-
-        // config
-        $this->assertInstanceOf('bolt\bucket', b::_("test2", true));
-
-        // param
-        $this->assertTrue(b::_("test2")->value);
 
     }
 
