@@ -23,5 +23,10 @@ abstract class command  {
         return false;
     }
 
+    public function __call($name, $args) {
+        if (method_exists(b::cli(), $name)) {
+            return call_user_func_array(array(b::cli(), $name), $args);
+        }
+    }
 
 }

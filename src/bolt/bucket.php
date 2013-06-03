@@ -15,25 +15,12 @@ class bucket extends \bolt\plugin\factory {
     /**
      * generate a bucket object
      *
-     * @param $args list of arguments passed to factory
-     *               $args[0] mixed data
-     *               $args[1] key name
-     *               $args[2] parent of data
+     * @param $data list of arguments passed to factory
+     * @see self::byType
      * @return mixed bucket object
      */
-    public static function factory($args=array(), $key=null, $parent=null) {
-        if ($key !== null OR $parent !== null) {
-            $data = $args;
-        }
-        else {
-            $data = (isset($args[0]) ? $args[0] : array());
-            $key = (isset($args[1]) ? $args[1] : false);
-            $parent = (isset($args[2]) ? $args[2] : false);
-        }
-
-        // pass to by type
-        return self::byType($data, $key, $parent);
-
+    public static function factory($data=array()) {
+        return self::byType($data);
     }
 
     /**
@@ -75,5 +62,6 @@ class bucket extends \bolt\plugin\factory {
                 return $value;
         };
     }
+
 
 }

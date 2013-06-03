@@ -45,7 +45,6 @@ class cli extends plugin {
             $desc = ($cmd->hasProperty('desc') AND $cmd->getProperty('desc')->isStatic()) ? $cmd->getProperty('desc')->getValue() : false;
             $alias = ($cmd->hasProperty('alias') AND $cmd->getProperty('alias')->isStatic()) ? $cmd->getProperty('alias')->getValue() : array();
             $opts = ($cmd->hasProperty('options') AND $cmd->getProperty('options')->isStatic()) ? $cmd->getProperty('options')->getValue() : array();
-            $opts = ($cmd->hasProperty('args') AND $cmd->getProperty('args')->isStatic()) ? $cmd->getProperty('args')->getValue() : array();
 
             $commands = ($cmd->hasMethod('commands') ? $class::commands() : array());
 
@@ -120,6 +119,9 @@ class cli extends plugin {
                 $name = ($result->command->command_name ? $result->command->command_name : "execute");
                 $cmd = ($result->command->command_name ? $result->command : $result);
 
+                // opts
+                $class->setOptions(array_merge($result->options, $result->command->options));
+
                 // args
                 $args = array();
 
@@ -165,7 +167,7 @@ class cli extends plugin {
     public function line() {
         if (is_array(func_get_arg(0))) {
             foreach (func_get_arg(0) as $line) {
-                echo call_user_func_array(array($this, 'line'), $line);
+                echo call_user_func_array(array($this, 'line'), (is_string($line) ? array($line) : $line));
             }
             return;
         }
@@ -173,4 +175,15 @@ class cli extends plugin {
             echo call_user_func_array('sprintf', func_get_args())."\n";
         }
     }
+
+    public function done() {
+        call_user_func_array(array($this, 'line'), func_get_args());
+        exit;
+    }
+
+    public function error() {
+        call_user_func_array(array($this, 'line'), func_get_args());
+        exit(0);
+    }
+
 }

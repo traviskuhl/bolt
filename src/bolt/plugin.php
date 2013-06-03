@@ -60,7 +60,6 @@ abstract class plugin extends event {
     /// @brief call one of our plugins
     ////////////////////////////////////////////////////////////
     public function call($name, $args=array()) {
-
         b::log("[b::plugin::call] with name '%s'", array($name));
 
         // func

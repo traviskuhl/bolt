@@ -73,7 +73,7 @@ class controller extends \bolt\event implements iController {
      * @return void
      */
     final public function __construct($params=array(), \bolt\browser\view $parent=null) {
-        $this->_bguid = uniqid();
+        $this->_bguid = uniqid('b');
         $this->_params = b::bucket($params);
         $this->_parent = $parent;
 
@@ -532,15 +532,14 @@ class controller extends \bolt\event implements iController {
             )));
         }
 
-
-
         // layout
         if ($this->hasLayout()) {
+            $this->_params->set('child', $this->getContent());
             $this->setContent(b::render(array(
                 'render' => $this->_render,
                 'file' => $this->_layout,
                 'self' => $this,
-                'vars' => array('child' => $this->_content)
+                'vars' => $this->_params
             )));
         }
 

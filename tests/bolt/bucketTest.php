@@ -9,7 +9,7 @@ class bucketTest extends bolt_test {
     }
 
     private function factory() {
-        return call_user_func(array('\bolt\bucket', 'factory'), func_get_args());
+        return call_user_func_array(array('\bolt\bucket', 'factory'), func_get_args());
     }
     private function bytype() {
         return call_user_func_array(array('\bolt\bucket', 'bytype'), func_get_args());

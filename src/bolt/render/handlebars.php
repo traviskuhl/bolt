@@ -60,7 +60,7 @@ class handlebars extends \bolt\plugin\singleton {
         }
 
         // make sure variables are a bucket
-        if (!is_a($vars, '\bolt\bucket')) {
+        if (!b::isInterfaceOf($vars, '\bolt\iBucket')) {
             $vars = b::bucket($vars);
         }
 

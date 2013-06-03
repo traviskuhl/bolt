@@ -7,17 +7,16 @@ error_reporting(E_ALL^E_STRICT);
 
 define("bSelf", "http://localhost?pooper=1");
 
+
 b::init(array(
+
     ));
 
-b::depend('bolt-browser-*');
 
-b::route('test/{test}', function(){
+$b = b::bucket(array(
+        'a' => 'a',
+        'b' => 'b',
+        'c' => 'c'
+    ));
 
-
-})->name('test');
-
-
-var_dump( b::url("http://poop.com/", array('test' => '1')) );
-
-var_dump( b::url("test", array('test' => '1'), array('poop'=>'a'), array('use-base-query'=>1)) );
+var_dump($b->asArray()); die;

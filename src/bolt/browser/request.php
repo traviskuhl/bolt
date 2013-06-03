@@ -39,12 +39,12 @@ class request extends \bolt\plugin\singleton {
 		$this->_accept = array_shift($a);
 
 		// create a bucket of our params
-		$this->_get = b::bucket($_GET, false);
-		$this->_post = b::bucket($_POST, false);
-		$this->_request = b::bucket($_REQUEST, false);
+		$this->_get = b::bucket($_GET);
+		$this->_post = b::bucket($_POST);
+		$this->_request = b::bucket($_REQUEST);
 		$this->_input = file_get_contents("php://input");
         $this->_params = b::bucket();
-        $this->_server = b::bucket(array_change_key_case($_SERVER), false);
+        $this->_server = b::bucket(array_change_key_case($_SERVER));
 
         // if we can get headers
         if (function_exists('getallheaders')) {
