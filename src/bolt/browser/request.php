@@ -253,13 +253,14 @@ class request extends \bolt\plugin\singleton {
      * @param $path request path
      * @return executed response
      */
-	public function run($path=false) {
+	public function run($path=false, $method=false) {
 
         // ask the router to look for classes
         b::route()->loadClassRoutes();
 
         // pathInfo
-        $pathInfo = trim(ltrim(($path ?: $this->server->get('path_info')),'/'));
+        $pathInfo = trim(ltrim(($path ?: $this->server->value('path_info')),'/'));
+        $method = ($method ?: $this->server->value("request_method", "GET"));
 
         // run start
         $this->fire("run", array('pathInfo' => $pathInfo));
@@ -307,7 +308,7 @@ class request extends \bolt\plugin\singleton {
         while ($i++ < 10) {
 
             // run the response
-            $run = $controller->run($route);
+            $run = $controller->run($method, $route);
 
             // if run is a falsy value
             // we can stop now
@@ -348,7 +349,6 @@ class request extends \bolt\plugin\singleton {
 
     public static function initGlobals() {
         if (defined('bServerInit') AND bServerInit === true) {return;}
-
 
         // always need from server
         $needed = array(

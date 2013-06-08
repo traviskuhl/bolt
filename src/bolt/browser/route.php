@@ -182,6 +182,17 @@ class route extends \bolt\plugin\singleton {
         $controller = false;
         $params = array();
 
+        // sort first by length
+        usort($this->_routes, function($aa, $bb) {
+            $a = strlen($aa->getPath());
+            $b = strlen($bb->getPath());
+            if ($a == $b) {
+                return 0;
+            }
+            return ($a > $b) ? -1 : 1;
+        });
+
+
         // loop through each route and
         // try to match it
         foreach ($this->_routes as $route) {
@@ -324,19 +335,22 @@ class route extends \bolt\plugin\singleton {
                 }
 
                 // dao
-                if ($class->hasProperty('dao') AND $class->getProperty("dao")->isStatic()) {
-                    $dao = $class->getProperty('dao')->getValue();
+                if ($class->hasProperty('model') AND $class->getProperty("model")->isStatic()) {
+                    $model = $class->getProperty('model')->getValue();
                 }
 
+                // base
+                $base = rtrim($class->hasProperty('routeBase') ? $class->getProperty('routeBase')->getValue() : false, '/')."/";
+
                 if (is_string($route)) {
-                    $this->register($route, $class->getName());
+                    $this->register($base.$route, $class->getName());
                 }
                 else if (is_array($route)) {
                     if (isset($route['route']) ) {
                         $route = array($route);
                     }
                     foreach ($route as $item) {
-                        $r = $this->register($item['route'], $class->getName());
+                        $r = $this->register($base.$item['route'], $class->getName());
                         if (count($dao)) {
                             $r->dao($dao);
                         }
@@ -349,6 +363,7 @@ class route extends \bolt\plugin\singleton {
                 }
             }
         }
+
         return $this;
     }
 

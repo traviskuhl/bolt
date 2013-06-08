@@ -105,6 +105,8 @@ class run extends \bolt\cli\command {
             // require
             require "bolt.phar";
 
+            \bolt\browser\request::initGlobals();
+
             // init from server request
             b::init('.var_export($args, true).');
 

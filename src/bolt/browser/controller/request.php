@@ -105,7 +105,8 @@ class request extends \bolt\browser\controller {
      * @param $route route class
      * @return mixed response
      */
-    public function run($route) {
+    public function run($method, $route) {
+        $method = strtolower($method);
 
         // check
         if ($this->_fromInit AND b::isInterfaceOf($this->_fromInit, '\bolt\browser\iController')) {
@@ -114,7 +115,6 @@ class request extends \bolt\browser\controller {
 
         // get some stuff from the route
         $params = $route->getParams();
-        $method = strtolower($route->getMethod());
         $action = $route->getAction();
 
         // figure out how we handle this request

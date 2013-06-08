@@ -15,7 +15,7 @@ class init extends \bolt\cli\command {
         )
     );
 
-    public function run($packageFile=false, $root=false) {
+    public function execute($packageFile=false, $root=false) {
         $package = $src = false;
 
         var_dump($packageFile, $root, $this->hostname); die;

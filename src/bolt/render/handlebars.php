@@ -12,6 +12,7 @@ class handlebars extends \bolt\plugin\singleton {
     private $_helpers = array();
 
     public function __construct() {
+
         $this->_eng = new \Handlebars_Engine(array(
             'delimiter' => "<% %>",
             'escape' => function($value) {
