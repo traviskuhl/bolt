@@ -1,6 +1,6 @@
 <?php
 
-namespace bolt {
+namespace bolt;
 use \b;
 
 b::plug('client', '\bolt\client');
@@ -49,11 +49,10 @@ class client extends \bolt\plugin\singleton {
             ),
             "directories" => array(
                 "assets" => "assets",
-                "templates" => "templates",
-                "partials" => "templates/_partials",
-                "controllers" => "controllers",
                 "views" => "views",
-                "dao" => "dao",
+                "partials" => "views/_partials",
+                "controllers" => "controllers",
+                "models" => "models",
                 "lib" => "lib"
             ),
             "settings" => array(
@@ -65,11 +64,3 @@ class client extends \bolt\plugin\singleton {
         );
     }
 }
-
-}
-
-// namespace bolt\client {
-//     class command extends \bolt\cli\command {
-
-//     }
-// }

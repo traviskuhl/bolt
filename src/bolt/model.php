@@ -4,10 +4,10 @@
 namespace bolt;
 
 // plugin
-\b::plug('dao', '\bolt\dao');
+\b::plug('model', '\bolt\model');
 
 
-class dao extends plugin\factory {
+class model extends plugin\factory {
 
     static $_shortcuts = array();
     static $_traits = array();

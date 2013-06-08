@@ -1,11 +1,9 @@
 <?php
 
-namespace bolt\dao;
+namespace bolt\model;
 use \b;
 
-interface iResult {}
-
-class result implements iResult, \Iterator, \ArrayAccess {
+class result implements \Iterator, \ArrayAccess {
 
     // private
     private $_guid; /// guid for unique objects

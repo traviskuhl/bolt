@@ -11,24 +11,24 @@ class daoResultTest extends bolt_test {
             'config' => array(
                 'autoload' => array()
             ),
-            'core' => array('dao', 'bucket')
+            'core' => array('model', 'bucket')
         ));
 
-        // object
-        $this->result = \bolt\dao\result::create(
-            'daoResultTestClass',
-            array(
-                array(
-                    'id' => 'item1',
-                    'string' => 'pooper'
-                ),
-                array(
-                    'id' => 'item2',
-                    'bool' => true
-                )
-            ),
-            'id'
-        );
+        // // object
+        // $this->result = \bolt\model\result::create(
+        //     'daoResultTestClass',
+        //     array(
+        //         array(
+        //             'id' => 'item1',
+        //             'string' => 'pooper'
+        //         ),
+        //         array(
+        //             'id' => 'item2',
+        //             'bool' => true
+        //         )
+        //     ),
+        //     'id'
+        // );
 
     }
 
@@ -76,7 +76,7 @@ class daoResultTest extends bolt_test {
 
 }
 
-class daoResultTestClass extends \bolt\dao\item {
+class daoResultTestClass extends \bolt\model\base {
 
     // struct
     public function getStruct() {

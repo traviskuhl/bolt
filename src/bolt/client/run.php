@@ -89,12 +89,6 @@ class run extends \bolt\cli\command {
         // move back
         chdir($cwd);
 
-        // set it
-        $this->done(array(
-            str_repeat("-", 40),
-            "Done! Server destroyed."
-        ));
-
     }
 
 
@@ -107,9 +101,6 @@ class run extends \bolt\cli\command {
         return '<?php
 
             $_SERVER["PATH_INFO"] = $_SERVER["REQUEST_URI"];
-
-            error_reporting(E_ALL^E_DEPRECATED);
-            ini_set("display_errors",1);
 
             // require
             require "bolt.phar";

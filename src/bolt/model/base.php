@@ -1,18 +1,16 @@
 <?php
 
-namespace bolt\dao;
+namespace bolt\model;
 use \b;
 
-interface iItem {}
-
-abstract class item implements iItem {
+abstract class base {
 
     // private
     private $_guid; /// guid for unique objects
     private $_loaded = false; // has data been loaded
     private $_struct = array(); /// item struct
     private $_traits = array(); /// traits
-    private $_traitInstance = array('\bolt\dao\traitStorage' => false);
+    private $_traitInstance = array('\bolt\model\traitStorage' => false);
     private $_data = false;
 
     // traits
@@ -29,7 +27,7 @@ abstract class item implements iItem {
     public function find() {return $this;}
 
     ////////////////////////////////////////////////////////////////////
-    /// @brief constrcut a dao item
+    /// @brief constrcut a model item
     ///
     /// @param $data array of data
     /// @return void
@@ -51,9 +49,9 @@ abstract class item implements iItem {
         // loop through our struct and
         // see if theres any class traits
         foreach ($this->_struct as $key => $info) {
-            if (b::param('type', false, $info) == 'dao') {
+            if (b::param('type', false, $info) == 'model') {
                 $this->_traits["get{$key}"] = array(
-                    '\bolt\dao\traitStorage',
+                    '\bolt\model\traitStorage',
                     $info['class'],
                     (array_key_exists('method', $info) ? $info['method'] : 'find'),
                     (array_key_exists('args', $info) ? $info['args'] : array()),
@@ -122,7 +120,7 @@ abstract class item implements iItem {
     }
 
     ////////////////////////////////////////////////////////////////////
-    /// @brief returns a dao results array
+    /// @brief returns a model results array
     ///
     /// @return self
     ////////////////////////////////////////////////////////////////////
@@ -385,7 +383,7 @@ abstract class item implements iItem {
             $i = $this->_traitInstance[$t[0]];
 
             // trait storage
-            if (is_a($i, '\bolt\dao\traitStorage')) {
+            if (is_a($i, '\bolt\model\traitStorage')) {
                 if (!$i->hasInstance($name)) {
                     foreach ($t[3] as $key) {
                         if ($key{0} == '$') {
@@ -445,7 +443,7 @@ class traitStorage {
     }
 
     public function createInstance($name, $class, $method, $args) {
-        $i = b::dao($class);
+        $i = b::model($class);
         $this->_instance[$name] = call_user_func_array(array($i, $method), $args);
     }
 

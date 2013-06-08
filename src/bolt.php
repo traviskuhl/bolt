@@ -96,7 +96,7 @@ final class b {
         // general
         'bolt-core-config'   => "./bolt/config.php",
         'bolt-core-settings' => "./bolt/settings.php",
-        'bolt-core-dao'      => "./bolt/dao.php",
+        'bolt-core-model'      => "./bolt/model.php",
         'bolt-core-source'   => "./bolt/source.php",
         'bolt-core-cache'    => "./bolt/cache.php",
         'bolt-core-bucket'   => "./bolt/bucket.php",

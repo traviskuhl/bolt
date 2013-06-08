@@ -5,18 +5,24 @@ require(__DIR__."/../../src/bolt.php");
 
 error_reporting(E_ALL^E_STRICT);
 
-define("bSelf", "http://localhost?pooper=1");
-
 
 b::init(array(
 
     ));
 
+class testmodel extends \bolt\model\base {
 
-$b = b::bucket(array(
-        'a' => 'a',
-        'b' => 'b',
-        'c' => 'c'
-    ));
+    public function getStruct() {
+        return array(
+            'id' => array('type' => 'unique'),
+            'name' => array()
+        );
+    }
 
-var_dump($b->asArray()); die;
+    public function find() {
+
+
+    }
+
+
+}

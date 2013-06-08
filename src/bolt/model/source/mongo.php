@@ -1,9 +1,9 @@
 <?php
 
-namespace bolt\dao\source;
+namespace bolt\model\source;
 use \b as b;
 
-abstract class mongo extends \bolt\dao\item {
+abstract class mongo extends \bolt\model\base {
 
     // collection
     protected $table = false;

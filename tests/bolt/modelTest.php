@@ -2,7 +2,7 @@
 
 namespace {
 
-class daoTest extends bolt_test {
+class modelTest extends bolt_test {
 
     private $i = false;
 
@@ -13,7 +13,7 @@ class daoTest extends bolt_test {
             'config' => array(
                 'autoload' => array()
             ),
-            'core' => array('dao')
+            'core' => array('model')
         ));
     }
 
@@ -52,7 +52,7 @@ class daoTest extends bolt_test {
 
 }
 
-class daoTestClass {
+class modelTestClass {
     private $_args = array();
     public function __construct($args=array()) {
         $this->_args = $args;
@@ -64,11 +64,11 @@ class daoTestClass {
 
 } // root namespace
 
-namespace daoTestNamespace {
+namespace modelTestNamespace {
 
-class daoTestNamespaceClass {
+class modelTestNamespaceClass {
 
 
 }
 
-} // daoTestNamespace
+} // modelTestNamespace

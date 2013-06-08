@@ -1,6 +1,6 @@
 <?php
 
-class daoItemTest extends bolt_test {
+class modelBaseTest extends bolt_test {
 
     private $i = false;
 
@@ -11,7 +11,7 @@ class daoItemTest extends bolt_test {
             'config' => array(
                 'autoload' => array()
             ),
-            'core' => array('dao', 'bucket')
+            'core' => array('model', 'bucket')
         ));
 
         // object
@@ -131,7 +131,7 @@ class daoItemTest extends bolt_test {
 
 
 
-class daoItemTestClass extends \bolt\dao\item {
+class daoItemTestClass extends \bolt\model\base {
 
     // traits
     public $traits = array('daoTestTraitClass');
