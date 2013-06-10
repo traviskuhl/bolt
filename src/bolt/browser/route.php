@@ -192,16 +192,30 @@ class route extends \bolt\plugin\singleton {
             return ($a > $b) ? -1 : 1;
         });
 
+        $route = false;
+
 
         // loop through each route and
         // try to match it
-        foreach ($this->_routes as $route) {
-            if ($route->match($path) !== false) {
-                $controller = $route->getController();
-                $params = $route->getParams();
-                break;
+        foreach ($this->_routes as $_route) {
+
+            if ($_route->getMethod() AND !in_array($method, $_route->getMethod())) {continue;}
+
+            if (!$route AND $_route->match($path) !== false) {
+                $route = $_route;
             }
+            else if ($path === $_route->getPath()) {
+                $route = $_route; break;
+            }
+
         }
+
+        if (!$route) {
+            return false;
+        }
+
+        $controller = $route->getController();
+        $params = $route->getParams();
 
         if ($method AND $route->getMethod() AND !in_array($method, $route->getMethod())) {
             return false;

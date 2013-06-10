@@ -282,7 +282,7 @@ final class b {
 
         // settings or default project
         if (isset($args['settings'])) {
-            b::settings()->set($args['settings']);
+            b::settings()->set('project', $args['settings']);
         }
 
         // mode

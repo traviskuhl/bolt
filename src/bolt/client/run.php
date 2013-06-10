@@ -55,6 +55,9 @@ class run extends \bolt\cli\command {
         if (file_exists("templates/_partials")) {
             $args['config']['partials'] = realpath("./templates/_partials");
         }
+        if (file_exists("settings.json")) {
+            $args['settings'] = json_decode(file_get_contents("settings.json"), true);
+        }
 
         // stub
         $stub = $this->_getRouterStub($args);
@@ -100,10 +103,9 @@ class run extends \bolt\cli\command {
         // make our stub
         return '<?php
 
-            $_SERVER["PATH_INFO"] = $_SERVER["REQUEST_URI"];
 
             // require
-            require "bolt.phar";
+            require "'.__DIR__.'/../../bolt.php";
 
             \bolt\browser\request::initGlobals();
 

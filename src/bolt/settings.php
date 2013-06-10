@@ -8,29 +8,44 @@ use \b;
 b::plug('settings', "\bolt\settings");
 
 // our settings is singleton
-class settings extends plugin\factory {
+class settings extends plugin\singleton {
 
-    // data
-    private $_bucket;
+     // data
+     private $_bucket;
 
-    // cons
-    public function __construct() {
-        $this->_bucket = b::bucket(array());
-    }
+     public function __construct() {
+         $this->_bucket = b::bucket(array());
+     }
 
-    // __get
-    public function __get($name) {
-        return $this->_bucket->get($name);
-    }
+     // default
+     public function _default($data=false) {
+         if (is_array($data)) {
+             $this->_bucket->set($data);
+         }
+         else if (is_string($data)) {
+             return $this->_bucket->get($data);
+         }
+         return $this;
+     }
 
-    // __set
-    public function __set($name, $value) {
-        return $this->_bucket->set($name, $value);
-    }
+     // __get
+     public function __get($name) {
+         return $this->_bucket->get($name);
+     }
 
-    public function __call($name, $args) {
-        return call_user_func_array(array($this->_bucket, $name), $args);
-    }
+     // __set
+     public function __set($name, $value) {
+         return $this->_bucket->set($name, $value);
+     }
+
+     public function __call($name, $args) {
+         return call_user_func_array(array($this->_bucket, $name), $args);
+     }
+
+     public function asArray() {
+         return $this->_bucket->asArray();
+     }
+
 
 
 }

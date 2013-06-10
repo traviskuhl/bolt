@@ -80,6 +80,14 @@ class result implements \Iterator, \ArrayAccess {
         return $this->_loaded;
     }
 
+    public function asArray() {
+        $resp = array();
+        foreach ($this->_items as $item) {
+            $resp[] = $item->asArray();
+        }
+        return $resp;
+    }
+
     public function item($index) {
         switch($index) {
             case 'first':
@@ -111,7 +119,7 @@ class result implements \Iterator, \ArrayAccess {
                 if (!is_a($item, $this->_class)) {
                     $item = b::dao($this->_class)->set($item);
                 }
-                $this->_items[(string)$item->getValue($key)] = $item;
+                $this->_items[(string)$item->value($key)] = $item;
             }
         }
         $this->_loaded = true;

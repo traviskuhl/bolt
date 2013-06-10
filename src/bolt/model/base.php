@@ -70,6 +70,10 @@ abstract class base {
         return $this->_loaded;
     }
 
+    public function value($name) {
+        return $this->get($name)->value();
+    }
+
     ////////////////////////////////////////////////////////////////////
     /// @brief MAGIC get a value
     ///
@@ -252,7 +256,7 @@ abstract class base {
     /// @return array of values
     ////////////////////////////////////////////////////////////////////
     public function normalize() {
-        $data = $this->_data->getData();
+        $data = $this->_data->asArray();
 
 
         // loop through the struct
@@ -300,6 +304,14 @@ abstract class base {
         // return our normalize array
         return $data;
 
+    }
+
+    public function fields($keys) {
+        $resp = array();
+        foreach ($keys as $name) {
+            $resp[str_replace('.', '_', $name)] = $this->get($name);
+        }
+        return \bolt\bucket::byType($resp);
     }
 
     ////////////////////////////////////////////////////////////////////

@@ -147,6 +147,10 @@ class bString implements \bolt\iBucket {
         return $this;
     }
 
+    public function explode($sep) {
+        return new \bolt\bucket\bArray($this->_value ? explode(',', $this->_value) : array());
+    }
+
     public function exists() {
         return true;
     }

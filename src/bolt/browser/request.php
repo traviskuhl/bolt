@@ -259,15 +259,15 @@ class request extends \bolt\plugin\singleton {
         b::route()->loadClassRoutes();
 
         // pathInfo
-        $pathInfo = trim(ltrim(($path ?: $this->server->value('path_info')),'/'));
-        $method = ($method ?: $this->server->value("request_method", "GET"));
+        $pathInfo = trim(ltrim(($path ?: bPathInfo),'/'));
+        $method = strtolower($method ?: $this->getMethod());
 
         // run start
         $this->fire("run", array('pathInfo' => $pathInfo));
 
 		// fire lets run our router to figure out what
 		// route we need to take
-		$route = b::route()->match($pathInfo);
+		$route = b::route()->match($pathInfo, $method);
 
 			// no route just die right now
 			if (!$route) {
@@ -413,7 +413,7 @@ class request extends \bolt\plugin\singleton {
         define("bPort",          $_SERVER['SERVER_PORT']);
 
         // Path Info
-        if (isset($_SERVER['PATH_INFO'])) {
+        if (isset($_SERVER['PATH_INFO']) AND !empty($_SERVER['PATH_INFO'])) {
             define("bPathInfo", $_SERVER['PATH_INFO']);
         }
         else {

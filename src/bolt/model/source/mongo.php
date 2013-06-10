@@ -9,7 +9,7 @@ abstract class mongo extends \bolt\model\base {
     protected $table = false;
 
     // enableCaching
-    protected $cache = array('enable' => true, 'handler' => 'memcache', 'ttl' => 0);
+    protected $cache = array('enable' => false, 'handler' => 'memcache', 'ttl' => 0);
 
     public function getCacheHandler() {
         if ($this->cache['handler'] == 'memcache') {
@@ -43,7 +43,7 @@ abstract class mongo extends \bolt\model\base {
     public function findOne() {
         $args = func_get_args();
         $resp = call_user_func_array(array($this, 'find'), $args);
-        if (b::isInterfaceOf($resp, '\bolt\dao\iResult')) {
+        if (b::isInterfaceOf($resp, '\bolt\model\iResult')) {
             return $resp->item('first');
         }
         else {
@@ -87,6 +87,7 @@ abstract class mongo extends \bolt\model\base {
 
         // what up
         if ($resp) {
+            unset($resp['_id']);
             $this->set($resp);
         }
 
@@ -102,9 +103,9 @@ abstract class mongo extends \bolt\model\base {
 
         // no fields lets set to get just
         // an id
-        if (!array_key_exists('fields', $args)) {
-            $args['fields'] = array('_id' => 1);
-        }
+        // if (!array_key_exists('fields', $args)) {
+        //     $args['fields'] = array('_id' => 1);
+        // }
 
         // run our query
         $sth = \b::mongo()->query($this->table, $query, $args);
@@ -112,11 +113,12 @@ abstract class mongo extends \bolt\model\base {
         $items = array();
 
         foreach ($sth as $item) {
-            $items[] = b::dao($lsb)->findOne('id', $item['_id']);
+            unset($item['_id']);
+            $items[] = b::model($lsb)->set($item);
         }
 
         // give me this
-        return  \bolt\dao\result::create($lsb, $items, '_id');
+        return  \bolt\model\result::create($lsb, $items, 'id');
 
     }
 

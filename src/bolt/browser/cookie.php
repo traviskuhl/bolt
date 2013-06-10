@@ -24,8 +24,8 @@ class cookie extends plugin\singleton {
 		}
 
 		// domain
-		$domain = b::setting("project.cookies.domain")->value;
-		$prefix = b::setting("project.cookies.prefix")->value;
+		$domain = b::settings("project")->value("cookies.domain");
+		$prefix = b::settings("project")->value("cookies.prefix");
 
 		// get name from config
 		if ( substr($name, 0, 1) == '$' ) {
@@ -36,7 +36,7 @@ class cookie extends plugin\singleton {
 		if ( is_array($value) ) {
 
 			// see if this cookie already exists
-			if ( p($name, false, $_COOKIE) ) {
+			if ( b::param($name, false, $_COOKIE) ) {
 
 				// current
 				$cur = $this->get($name);
@@ -73,8 +73,8 @@ class cookie extends plugin\singleton {
 	public function delete($name) {
 
 		// domain
-		$domain = b::setting("project.cookies.domain")->value;
-		$prefix = b::setting("project.cookies.prefix")->value;
+		$domain = b::settings("project")->value("cookies.domain");
+		$prefix = b::settings("project")->value("cookies.prefix");
 
 		// get name from config
 		if ( substr($name, 0, 1) == '$' ) {
@@ -89,7 +89,8 @@ class cookie extends plugin\singleton {
 	public function get($name) {
 
 		// prefix
-		$prefix = b::setting("project.cookies.prefix")->value;
+		$domain = b::settings("project")->value("cookies.domain");
+		$prefix = b::settings("project")->value("cookies.prefix");
 
 		// get name from config
 		if ( substr($name, 0, 1) == '$' ) {

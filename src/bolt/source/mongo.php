@@ -16,7 +16,7 @@ class mongo extends \bolt\plugin\singleton {
     private $instance = false;
 
     public function __construct($args=array()) {
-        $this->instance = b::source()->mongo(b::setting('mongo')->asArray());
+        $this->instance = b::source()->mongo(b::settings('project.mongo')->asArray());
     }
 
     // call it
@@ -46,11 +46,11 @@ class mongoi extends \bolt\plugin\factory {
 		if ( $this->dbh ) { return; }
 
 		// get some
-		$this->_host = p('host', false, $this->config);
-		$this->_port = p('port', 27017, $this->config);
-		$this->_db = ($this->_db ? $this->_db : p('db', false, $this->config));
-		$this->_user = p('user', false, $this->config);
-		$this->_pass = p('pass', false, $this->config);
+		$this->_host = b::param('host', false, $this->config);
+		$this->_port = b::param('port', 27017, $this->config);
+		$this->_db = ($this->_db ? $this->_db : b::param('db', false, $this->config));
+		$this->_user = b::param('user', false, $this->config);
+		$this->_pass = b::param('pass', false, $this->config);
 
 
 		// try to connect
@@ -108,8 +108,6 @@ class mongoi extends \bolt\plugin\factory {
     }
 
 	public function query($collection, $query, $args=array()) {
-
-var_dump($query);
 
 		// try connecting
 		$this->_connect();
