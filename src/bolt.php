@@ -541,7 +541,7 @@ final class b {
             list($a, $k) = explode('.', $key);
 
             // reset array as p(a);
-            $array = p($a, array(), false, $filter);
+            $array = b::param($a, array(), false, $filter);
 
             // reset key
             $key = $k;
@@ -564,7 +564,7 @@ final class b {
 
             // filter
             array_walk($array[$key],function($item,$key,$a){
-                $item = p($key,$a[1],$a[0]);
+                $item = b::param($key,$a[1],$a[0]);
             },array($filter,$array[$key]));
 
         }

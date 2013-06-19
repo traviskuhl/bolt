@@ -24,14 +24,15 @@ abstract class mongo extends \bolt\model\base {
     public function find() {
 
         // args
-        $args = func_get_args();
+        $args = (func_num_args() > 0 ? func_get_args() : array());
+
 
         // morph
-        if (is_array(func_get_arg(0))) {
-            return call_user_func_array(array($this, 'query'), $args);
+        if ($args AND is_string($args[0])) {
+            return call_user_func_array(array($this, 'row'), $args);
         }
         else {
-            return call_user_func_array(array($this, 'row'), $args);
+            return call_user_func_array(array($this, 'query'), $args);
         }
 
     }
@@ -96,7 +97,7 @@ abstract class mongo extends \bolt\model\base {
 
     }
 
-    public function query($query, $args=array()) {
+    public function query($query=array(), $args=array()) {
 
         // get the called class
         $lsb = get_called_class();

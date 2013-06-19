@@ -24,6 +24,16 @@ class bucket extends \bolt\plugin\factory {
     }
 
     /**
+     * is the provided object a bucket
+     *
+     * @param $obj object to test
+     * @return bool if it is
+     */
+    static function isBucket($obj) {
+        return b::isInterfaceOf($obj, '\bolt\iBucket');
+    }
+
+    /**
      * generate bucket object by type
      *
      * @param $value mixed data

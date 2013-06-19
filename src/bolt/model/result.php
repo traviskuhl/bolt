@@ -14,6 +14,7 @@ class result implements \Iterator, \ArrayAccess {
     private $_limit = 0;
     private $_offset = 0;
     private $_items = array();
+    private $_struct = false;
 
     public static function create($class, $items=array(), $key='id') {
         return new result($class, $items, $key);
@@ -24,11 +25,21 @@ class result implements \Iterator, \ArrayAccess {
     ///
     /// @return void
     ////////////////////////////////////////////////////////////////////
-    public function __construct($class=false, $items=false, $key='id') {
+    public function __construct($class=false, $items=false, $key='id', $struct=false) {
         $this->_class = $class;
+        $this->_struct = $struct;
         if (is_array($items)) {
             $this->setItems($items, $key);
         }
+    }
+
+    public function setClass($class) {
+        $this->_class = $class;
+        return $this;
+    }
+    public function setStruct($struct) {
+        $this->_struct = $struct;
+        return $this;
     }
 
     ////////////////////////////////////////////////////////////////////
@@ -91,7 +102,8 @@ class result implements \Iterator, \ArrayAccess {
     public function item($index) {
         switch($index) {
             case 'first':
-                $index = key($this->_items); break;
+                $keys = array_keys($this->_items);
+                $index = array_shift($keys); break;
         };
 
         if (array_key_exists($index, $this->_items)) {
@@ -100,6 +112,14 @@ class result implements \Iterator, \ArrayAccess {
         else {
             return b::dao($this->_class);
         }
+    }
+
+    public function push($item, $key='id') {
+        if (!is_a($item, $this->_class)) {
+            $item = b::model($this->_class)->setStruct($this->_struct)->set($item);
+        }
+        $id = $item->value($key);
+        $this->_items[$id] = $item;
     }
 
     ////////////////////////////////////////////////////////////////////
@@ -113,11 +133,14 @@ class result implements \Iterator, \ArrayAccess {
     public function setItems($items, $key='id') {
         foreach ($items as $name => $item) {
             if ($key === false) {
+                if (!is_a($item, $this->_class)) {
+                    $item = b::model($this->_class)->setStruct($this->_struct)->set($item);
+                }
                 $this->_items[$name] = $item;
             }
             else {
                 if (!is_a($item, $this->_class)) {
-                    $item = b::dao($this->_class)->set($item);
+                    $item = b::model($this->_class)->setStruct($this->_struct)->set($item);
                 }
                 $this->_items[(string)$item->value($key)] = $item;
             }
