@@ -43,6 +43,7 @@ abstract class base {
                 );
             }
             if (b::param('children', false, $info)) {
+
                 // instnace
                 $i = (b::param('multiple', false, $info) ? new children() : new child());
 

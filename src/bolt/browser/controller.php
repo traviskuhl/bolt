@@ -534,7 +534,7 @@ class controller extends \bolt\event implements iController {
 
         // layout
         if ($this->hasLayout()) {
-            $this->_params->set('child', $this->getContent());
+            $this->_params->set('yield', $this->getContent());
             $this->setContent(b::render(array(
                 'render' => $this->_render,
                 'file' => $this->_layout,

@@ -367,6 +367,8 @@ final class b {
             // loop through each file
             foreach ($files as $oFile) {
 
+                if (basename($oFile) == 'tests') {continue;}
+
                 // see if it's relative
                 if (substr($oFile,0,2) == './') {
                     $file = bRoot."/".ltrim($oFile,'./');

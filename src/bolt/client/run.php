@@ -58,6 +58,12 @@ class run extends \bolt\cli\command {
         if (file_exists("settings.json")) {
             $args['settings'] = json_decode(file_get_contents("settings.json"), true);
         }
+        if (file_exists("config.ini")) {
+            $ini = parse_ini_file("config.ini");
+            if (isset($ini['load'])) {
+                $args['load'] = array_merge($args['load'], $ini['load']);
+            }
+        }
 
         // stub
         $stub = $this->_getRouterStub($args);

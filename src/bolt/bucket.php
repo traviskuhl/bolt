@@ -23,6 +23,10 @@ class bucket extends \bolt\plugin\factory {
         return self::byType($data);
     }
 
+    static function __callStatic($name, $args) {
+        return call_user_func_array(array(self, $name), $args);
+    }
+
     /**
      * is the provided object a bucket
      *
