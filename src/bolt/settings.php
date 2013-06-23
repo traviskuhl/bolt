@@ -7,6 +7,10 @@ use \b;
 // plugin to b
 b::plug('settings', "\bolt\settings");
 
+interface iSettings {
+    public function get();
+}
+
 // our settings is singleton
 class settings extends plugin\singleton {
 
@@ -46,6 +50,12 @@ class settings extends plugin\singleton {
          return $this->_bucket->asArray();
      }
 
+     public function set($name, $value) {
+        if (b::isInterfaceOf($value, '\bolt\iSettings')) {
+            $value = $value->get();
+        }
+        return call_user_func(array($this->_bucket, 'set'), $name, $value);
+     }
 
 
 }

@@ -56,7 +56,7 @@ class run extends \bolt\cli\command {
             $args['config']['partials'] = realpath("./templates/_partials");
         }
         if (file_exists("settings.json")) {
-            $args['settings'] = json_decode(file_get_contents("settings.json"), true);
+            $args['settings'] = new \bolt\settings\json(realpath("./settings.json"));
         }
         if (file_exists("config.ini")) {
             $ini = parse_ini_file("config.ini");

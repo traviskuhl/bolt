@@ -46,6 +46,10 @@ abstract class plugin extends event {
         return $this->_fallback;
     }
 
+    public function pluginExists($name) {
+        return array_key_exists($name, $this->_plugin);
+    }
+
     // get
     public function __get($name) {
         return $this->call($name, array());
@@ -184,18 +188,80 @@ abstract class plugin extends event {
         // is it an array
         if (is_array($name)) {
             foreach ($name as $n => $c) {
-                $this->_plugin[$n] = $c;
+                $this->plug($n, $c);
             }
+            return;
         }
 
         // just one
         else {
+
+            // plugin
             $this->_plugin[$name] = $class;
+
+
+            if (class_exists($class)) {
+
+                // see if the class has events
+                $ref = new \ReflectionClass($class);
+
+                if ($ref->hasProperty('pluginEvents') AND $ref->getProperty('pluginEvents')->isStatic()) {
+
+                    // get the events
+                    $events = $ref->getProperty('pluginEvents')->getValue();
+
+                    foreach ($events as $event => $evt) {
+                        $args = (isset($evt['args']) ? $evt['args'] : array());
+                        $me = $this;
+                        b::on($event, function() use ($me, $name, $evt){
+                            call_user_func_array(array($me->call($name), $evt['func']), func_get_args());
+                        });
+                    }
+
+                }
+
+            }
+            else {
+                // wait fore ready
+                b::on('ready', function() use ($class){
+                    if (class_exists($class)) {
+
+                        // see if the class has events
+                        $ref = new \ReflectionClass($class);
+
+                        if ($ref->hasProperty('pluginEvents') AND $ref->getProperty('pluginEvents')->isStatic()) {
+
+                            // get the events
+                            $events = $ref->getProperty('pluginEvents')->getValue();
+
+                            foreach ($events as $event => $evt) {
+                                $args = (isset($evt['args']) ? $evt['args'] : array());
+                                $me = $this;
+                                if ($event == 'ready') {
+                                    b::trigger(array($me->call($name), $evn['func']), $args);
+                                }
+                                else {
+                                    b::on($event, function() use ($me, $name, $evt){
+                                        call_user_func_array(array($me->call($name), $evt['func']), func_get_args());
+                                    });
+                                }
+                            }
+
+                        }
+                    }
+                });
+            }
+
+
         }
 
         // good
         return $this;
 
+    }
+
+    public function getInstance($plugin) {
+        return (array_key_exists($plugin, $this->_instance) ? $this->_instance[$plugin] : false);
     }
 
     ////////////////////////////////////////////////////////////

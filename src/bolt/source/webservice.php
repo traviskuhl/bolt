@@ -4,21 +4,26 @@
 namespace bolt\source;
 use \b as b;
 
-// plug
-b::plug('webservice', '\bolt\source\webservice');
+class webservice extends base {
 
-class webservice extends \bolt\plugin\factory {
+    const NAME = "webservice";
 
     // config
     private $_config = array(
+
+        // host information
         'host'      => false,
         'port'      => 80,
-        'protocol'  => 'http',
+        'scheme'  => 'http',
+        'user' => false,
+        'pass' => false,
+
+        // some default stuf
         'headers'   => array(),
         'method'    => 'curl',
-        'auth'      => array(),
         'curlOpts'  => array(),
         'timeout'   => 15
+
     );
 
     // oauth
@@ -30,6 +35,27 @@ class webservice extends \bolt\plugin\factory {
     public function __construct($cfg=array()) {
         $this->_config = array_merge($this->_config, $cfg);
     }
+
+    public function query($ep, $query, $args=array()) {
+
+    }
+
+    public function insert($ep, $data, $args=array()) {
+
+    }
+
+    public function update($ep, $id, $data, $args=array()) {
+
+    }
+
+    public function count($ep, $query, $args=array()) {
+
+    }
+
+    public function delete($table, $id, $args=array()) {
+
+    }
+
 
     public function getLastResponse() {
         return $this->_last;
@@ -59,6 +85,7 @@ class webservice extends \bolt\plugin\factory {
         return ($this->_config[$name] = $value);
     }
 
+
     // request
     public function request() {
 
@@ -66,7 +93,7 @@ class webservice extends \bolt\plugin\factory {
         $args = func_get_args();
 
         // url
-        $args[0] = (substr($args[0],0,4) === 'http' ? $args[0] : "{$this->protocol}://{$this->host}".($this->port!=80?":{$this->port}":"")."/".ltrim($args[0],'/'));
+        $args[0] = (substr($args[0],0,4) === 'http' ? $args[0] : "{$this->scheme}://{$this->host}".($this->port!=80?":{$this->port}":"")."/".ltrim($args[0],'/'));
 
         // route to proper func
         switch($this->method) {
@@ -326,6 +353,13 @@ class webserviceResponse {
             case 'info';
             case 'getInfo':
                 return $this->_info;
+
+            // parse
+            case 'parsed':
+            case 'getParsed':
+                $p = array();
+                parse_str($this->_body, $p);
+                return $p;
 
             // req
             case 'request':

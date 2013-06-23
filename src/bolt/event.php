@@ -26,6 +26,7 @@ abstract class event {
                     $args['args'] = $event['args'];
                     $args['eid'] = $event['eid'];
                     $args['this'] = $this;
+                    $args['synthetic'] = false;
                     call_user_func($event['callback'], $args);
                     if ($event['once']) {
                         unset($this->_events[$name][$eid]);
@@ -45,6 +46,16 @@ abstract class event {
 
         b::log("[b::event] fired from {$class} named {$name}");
 
+    }
+
+    public function trigger($cb, $args){
+        call_user_func($cb,array(
+            'args' => $args,
+            'eid' => uniqid(),
+            'this' => $this,
+            'synthetic' => true
+        ));
+        return $this;
     }
 
     public function removeEvent($name, $eid) {

@@ -189,7 +189,7 @@ class controller extends \bolt\event implements iController {
         if ($name == 'params') {
             return $this->_params;
         }
-        else if ($name == 'cookies') {
+        else if ($name == 'cookies' OR $name == 'cookie') {
             return b::cookie();
         }
         else if ($name == 'request') {

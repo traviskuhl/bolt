@@ -24,7 +24,7 @@ class bucket extends \bolt\plugin\factory {
     }
 
     static function __callStatic($name, $args) {
-        return call_user_func_array(array(self, $name), $args);
+        return call_user_func_array(array('\bolt\bucket', 'byType'), $args);
     }
 
     /**

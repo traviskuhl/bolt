@@ -95,12 +95,15 @@ final class b {
 
         // general
         'bolt-core-config'   => "./bolt/config.php",
-        'bolt-core-settings' => "./bolt/settings.php",
         'bolt-core-model'      => "./bolt/model.php",
         'bolt-core-source'   => "./bolt/source.php",
         'bolt-core-cache'    => "./bolt/cache.php",
         'bolt-core-bucket'   => "./bolt/bucket.php",
         'bolt-core-event'    => "./bolt/event.php",
+
+        // settings
+        'bolt-core-settings' => "./bolt/settings.php",
+        'bolt-core-settings-json' => "./bolt/settings/json.php",
 
         // template renders
         'bolt-core-render'          => "./bolt/render.php",
@@ -279,7 +282,6 @@ final class b {
         if (isset($args['config'])) {
             b::config()->set('project',$args['config']);
         }
-
         // settings or default project
         if (isset($args['settings'])) {
             b::settings()->set('project', $args['settings']);

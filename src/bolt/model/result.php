@@ -16,7 +16,7 @@ class result implements \Iterator, \ArrayAccess {
     private $_items = array();
     private $_struct = false;
 
-    public static function create($class, $items=array(), $key='id') {
+    public static function create($class, $items=array()) {
         return new result($class, $items, $key);
     }
 

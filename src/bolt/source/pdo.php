@@ -4,68 +4,49 @@
 namespace bolt\source;
 use \b;
 
-// plugin our global instance directly to bolt
-b::plug('pdo', '\bolt\source\pdo');
 
-// plugin to instance source factory
-b::source()->plug('pdo', '\bolt\source\pdoi');
+// class pdo extends base {
 
-// mongo
-class pdo extends \bolt\plugin\singleton {
+//     const NAME = "pdo";
 
-    private $instance = false;
+// 	// dbh
+// 	private $dbh = false;
+// 	private $config = array();
 
-    public function __construct($args=array()) {  
-        $this->instance = b::source()->pdo(b::config()->pdo);
-    }
-    
-    // call it
-    public function __call($name, $args) {
-        return call_user_func_array(array($this->instance, $name), $args);
-    }
+//     // construct
+// 	public function __construct($config) {
+// 		$this->config = $config;
+// 	}
 
-}
+//     // connect
+// 	private function _connect() {
 
-class pdoi extends \bolt\plugin\factory {
+// 		// already connected
+// 		if ( $this->dbh ) { return; }
 
-	// dbh
-	private $dbh = false;	
-	private $config = array();
+// 		// get some
+//         $this->_dsn = p('dsn', false, $this->config);
+// 		$this->_user = p('user', false, $this->config);
+// 		$this->_pass = p('pass', false, $this->config);
+// 		$this->_opts = p('opts', array(), $this->config);
 
-    // construct
-	public function __construct($config) {	 
-		$this->config = $config;		
-	}
+// 		// try to connect
+// 		try {
+//             $this->dbh = new \PDO($this->_dsn, $this->_user, $this->_pass, $this->_opts);
+// 		}
+// 		catch ( \PDOException $e ) { header("Content-Type:text/html", true, 500); error_log($e->getMessage()); die("database connect fail"); }
 
-    // connect
-	private function _connect() {
+// 	}
 
-		// already connected
-		if ( $this->dbh ) { return; }
+//     // pass to dbh
+//     public function __call($name, $args) {
+//         $this->_connect();
+//         return call_user_func_array(array($this->dbh, $name), $args);
+//     }
 
-		// get some
-        $this->_dsn = p('dsn', false, $this->config);
-		$this->_user = p('user', false, $this->config);
-		$this->_pass = p('pass', false, $this->config);
-		$this->_opts = p('opts', array(), $this->config);
+//     // get
+//     public function __get($name) {
+//         return (property_exists($this->dbh, $name) ? $this->dbh->$name : false);
+//     }
 
-		// try to connect
-		try { 
-            $this->dbh = new \PDO($this->_dsn, $this->_user, $this->_pass, $this->_opts);
-		}
-		catch ( \PDOException $e ) { header("Content-Type:text/html", true, 500); error_log($e->getMessage()); die("database connect fail"); }
-
-	}
-
-    // pass to dbh
-    public function __call($name, $args) {
-        $this->_connect();
-        return call_user_func_array(array($this->dbh, $name), $args);
-    }
-    
-    // get 
-    public function __get($name) {
-        return (property_exists($this->dbh, $name) ? $this->dbh->$name : false);
-    }
-
-}
+// }

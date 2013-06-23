@@ -12,9 +12,34 @@ abstract class base {
     private $_traits = array(); /// traits
     private $_traitInstance = array('\bolt\model\traitStorage' => false);
     private $_data = false;
+    private $_source = false;
 
     // traits
     protected $traits = array();
+
+    ////////////////////////////////////////////////////////////////////
+    /// @brief constrcut a model item
+    ///
+    /// @param $data array of data
+    /// @return void
+    ////////////////////////////////////////////////////////////////////
+    public function __construct($data=array()) {
+        $this->_guid = uniqid();    // guid to compare objects
+
+        // bucket
+        $this->_data = b::bucket($data);
+
+        // traits
+        if (count($this->traits) > 0) {
+            $this->addTrait($this->traits);
+        }
+
+        // set a struct
+        $this->setStruct($this->getStruct());
+
+        $this->_source = b::source();
+
+    }
 
     ////////////////////////////////////////////////////////////////////
     /// @brief get the struct of the item
@@ -60,29 +85,84 @@ abstract class base {
     }
 
     // find
-    public function find() {return $this;}
+    public function find($query, $args=array()) {
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief constrcut a model item
-    ///
-    /// @param $data array of data
-    /// @return void
-    ////////////////////////////////////////////////////////////////////
-    public function __construct($data=array()) {
-        $this->_guid = uniqid();    // guid to compare objects
+        // send to source
+        $resp = $this->_source->query($this->table, $query, $args);
+        $items = array();
 
-        // bucket
-        $this->_data = b::bucket($data);
+        // what am i
+        $class = get_called_class();
 
-        // traits
-        if (count($this->traits) > 0) {
-            $this->addTrait($this->traits);
+        foreach ($resp as $item) {
+            $items[] = (new $class())->set($item->asArray());
         }
 
-        // set a struct
-        $this->setStruct($this->getStruct());
+        // give bacl
+        return new result($items);
+
+    }
 
 
+    public function findOne($field, $value, $args=array()) {
+
+        $resp = $this->_source->query($this->table, array($field => $value), $args);
+
+        // return
+        if ($resp->count() > 0) {
+            $this->set($resp->item('first')->asArray());
+        }
+
+        // me
+        return $this;
+
+    }
+
+    public function findBy() {
+        return call_user_func_array(array($this, 'findOne'), func_get_args());
+    }
+
+    public function findById($value, $args=array()) {
+        return $this->findBy('id', $value, $args);
+    }
+
+    public function count($query, $args=array()) {
+        return $this->_source->count($query, $args);
+    }
+
+    public function save($data=array(), $args=array()) {
+
+        if ($data) {
+            $this->set($data);
+        }
+
+        // normalize
+        $data = $this->normalize();
+
+        // insert or update
+        $key = $this->value($this->getPrimaryKey());
+
+        if ($key === false) {
+            $resp = $this->_source->insert($this->table, $data, $args);
+        }
+        else {
+            $resp = $this->_source->update($this->table, $key, $data, $args);
+        }
+
+        // set data
+        $this->set($resp[1]);
+
+        //
+        return $this;
+
+    }
+
+    public function getPrimaryKey() {
+        foreach ($this->_struct as $name => $field) {
+            if (isset($field['primary']) AND $field['primary'] == 'true') {
+                return $name;
+            }
+        }
     }
 
     ////////////////////////////////////////////////////////////////////

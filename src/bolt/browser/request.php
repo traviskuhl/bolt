@@ -91,6 +91,8 @@ class request extends \bolt\plugin\singleton {
      */
     public function __get($name) {
         switch($name) {
+            case 'qs':
+            case 'query':
             case 'get':
                 return $this->_get;
             case 'post':
@@ -352,13 +354,17 @@ class request extends \bolt\plugin\singleton {
 
         // always need from server
         $needed = array(
-            'SERVER_PORT', 'HTTP_HOST', 'REMOTE_ADDR', 'QUERY_STRING', 'REQUEST_URI', 'SCRIPT_NAME', 'PATH_INFO'
+            'SERVER_PORT', 'HTTP_HOST', 'HTTP_PROTO', 'REMOTE_ADDR', 'QUERY_STRING', 'REQUEST_URI', 'SCRIPT_NAME', 'PATH_INFO'
         );
 
         foreach ($needed as $name) {
             if (!isset($_SERVER[$name])) {
                 $_SERVER[$name] = "";
             }
+        }
+
+        if (empty($_SERVER['HTTP_PROTO'])) {
+            $_SERVER['HTTP_PROTO'] = 'http';
         }
 
         // forward
@@ -383,6 +389,10 @@ class request extends \bolt\plugin\singleton {
             $_SERVER['SERVER_NAME'] = $_SERVER['HTTP_X_FORWARDED_SERVER'];
         }
 
+        if (isset($_SERVER['HTTP_X_FORWARDED_PROTO'])) {
+            $_SERVER['HTTP_PROTO'] = $_SERVER['HTTP_X_FORWARDED_PROTO'];
+        }
+
         // make sure host has a port if it's non-standard
         if (!in_array($_SERVER['SERVER_PORT'],array(80,443)) AND stripos($_SERVER['HTTP_HOST'], ':') === false) {
             $_SERVER['HTTP_HOST'] = $_SERVER['HTTP_HOST'].":".$_SERVER['SERVER_PORT'];
@@ -391,6 +401,11 @@ class request extends \bolt\plugin\singleton {
         // , means it's ben forwarded
         if (stripos($_SERVER['REMOTE_ADDR'], ',') !== false) {
             $_SERVER['REMOTE_ADDR'] = trim(array_shift(explode(',', $_SERVER['REMOTE_ADDR'])));
+        }
+
+        // no proto in host
+        if (stripos($_SERVER['HTTP_HOST'], 'http') === false) {
+            $_SERVER['HTTP_HOST'] = $_SERVER['HTTP_PROTO'] . "://" . $_SERVER['HTTP_HOST'];
         }
 
         // get the file name
@@ -405,7 +420,7 @@ class request extends \bolt\plugin\singleton {
         }
 
         // general
-        define("bProto",         (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) ? $_SERVER['HTTP_X_FORWARDED_PROTO'] : 'http'));
+        define("bProto",         $_SERVER['HTTP_PROTO']);
         define("bHost",          $_SERVER['HTTP_HOST']);
         define("bHostName",       array_shift($hostParts));
         define("bIp",            $_SERVER['REMOTE_ADDR']);
