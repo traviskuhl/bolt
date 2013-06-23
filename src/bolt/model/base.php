@@ -3,16 +3,17 @@
 namespace bolt\model;
 use \b;
 
-abstract class base {
+interface iModelBase {}
+
+abstract class base implements iModelBase {
 
     // private
     private $_guid; /// guid for unique objects
     private $_loaded = false; // has data been loaded
-    private $_struct = array(); /// item struct
-    private $_traits = array(); /// traits
-    private $_traitInstance = array('\bolt\model\traitStorage' => false);
     private $_data = false;
-    private $_source = false;
+    private $_struct = array(); /// item struct
+    private $_source = false; // source holder
+    private $_attr = array(); // attribute classes
 
     // traits
     protected $traits = array();
@@ -26,6 +27,16 @@ abstract class base {
     public function __construct($data=array()) {
         $this->_guid = uniqid();    // guid to compare objects
 
+        // get any defined attributes
+        $classes = b::getDefinedSubClasses('\bolt\model\attr');
+
+        // loop
+        foreach ($classes as $class) {
+            $name = ($class->hasConstant('NAME') ? $class->getConstant('NAME') : $class->getShortName());
+            $this->_attr[$name] = $class->name;
+        }
+
+
         // bucket
         $this->_data = b::bucket($data);
 
@@ -37,6 +48,7 @@ abstract class base {
         // set a struct
         $this->setStruct($this->getStruct());
 
+        // shorthad source
         $this->_source = b::source();
 
     }
@@ -56,31 +68,39 @@ abstract class base {
         // loop through our struct and
         // see if theres any class traits
         foreach ($this->_struct as $key => $info) {
-            if (b::param('type', false, $info) == 'model') {
-                $name = "get{$key}";
-                if (array_key_exists($name, $this->_traits)) {continue;}
+            $type = (array_key_exists('type', $info) ? $info['type'] : 'base');
 
-                $this->_traits[$name] = array(
-                    '\bolt\model\traitStorage',
-                    $info['model'],
-                    (array_key_exists('method', $info) ? $info['method'] : 'findById'),
-                    (array_key_exists('args', $info) ? $info['args'] : array('$'.$key)),
-                );
-            }
-            if (b::param('children', false, $info)) {
+            // create a new attribute holder
+            // for this attr
+            $this->_struct[$key]['_attr'] = new $this->_attr[$type]($key, $info, $this);
 
-                // instnace
-                $i = (b::param('multiple', false, $info) ? new children() : new child());
 
-                // setup with struct
-                $i->setup($info['children']);
+            // if (b::param('type', false, $info) == 'model') {
+            //     $name = "get{$key}";
+            //     if (array_key_exists($name, $this->_traits)) {continue;}
 
-                // add the traits we need
-                $this->_traits["get{$key}"] = array(array($i, '_get'), array('$'.$key));
-                $this->_traits["normalize{$key}"] = array(array($i, '_normalize'), array('$'.$key));
+            //     $this->_traits[$name] = array(
+            //         '\bolt\model\traitStorage',
+            //         $info['model'],
+            //         (array_key_exists('method', $info) ? $info['method'] : 'findById'),
+            //         (array_key_exists('args', $info) ? $info['args'] : array('$'.$key)),
+            //     );
+            // }
+            // if (b::param('children', false, $info)) {
 
-            }
+            //     // instnace
+            //     $i = (b::param('multiple', false, $info) ? new children() : new child());
+
+            //     // setup with struct
+            //     $i->setup($info['children']);
+
+            //     // add the traits we need
+            //     $this->_traits["get{$key}"] = array(array($i, '_get'), array('$'.$key));
+            //     $this->_traits["normalize{$key}"] = array(array($i, '_normalize'), array('$'.$key));
+
+            // }
         }
+
         return $this;
     }
 
@@ -111,6 +131,7 @@ abstract class base {
         // return
         if ($resp->count() > 0) {
             $this->set($resp->item('first')->asArray());
+            $this->_loaded = true;
         }
 
         // me
@@ -151,6 +172,7 @@ abstract class base {
 
         // set data
         $this->set($resp[1]);
+        $this->_loaded = true;
 
         //
         return $this;
@@ -214,9 +236,6 @@ abstract class base {
         if (method_exists($this, $name)) {
             return call_user_func_array(array($this, $name), $args);
         }
-        else if (array_key_exists(strtolower($name), $this->_traits)) {
-            return $this->callTrait($name, $args);
-        }
         else if (method_exists($this->_data, $name)) {
             return call_user_func_array(array($this->_data, $name), $args);
         }
@@ -245,41 +264,22 @@ abstract class base {
     ///
     /// @param $name name of value
     /// @param $default default return if value undefined
-    /// @params $useTraits try to get the value from a trait
+    /// @params $useAttr try to get the value from a attr
     /// @see bucket::get()
     /// @return value
     ////////////////////////////////////////////////////////////////////
-    public function get($name, $default=false, $useTraits=true) {
-        $getName = "get{$name}"; $value = false;
+    public function get($name, $default=false, $useAttr=true) {
+        $getName = "get{$name}"; $value = $this->_data->get($name, $default);
 
-        // default value
-        if (array_key_exists($name, $this->_struct) AND isset($this->_struct[$name]['default'])) {
-            $default = $this->_struct[$name]['default'];
-        }
-
-        // find it
-        if ($useTraits === true AND $name !== 'value' AND method_exists($this, $getName)) {
+        // always try the method first
+        if ($useAttr AND method_exists($this, $getName)) {
             $value = call_user_func(array($this, $getName));
         }
-        else if ($useTraits === true AND array_key_exists(strtolower($getName), $this->_traits)) {
-            $value = $this->callTrait($getName);
-        }
-        else {
-            $value = $this->_data->get($name, $default);
+        else if ($userAttr AND array_key_exists($name, $this->_struct)) {
+            $value = $this->_struct[$name]['_attr']->get($value);
         }
 
-        // cast as something special
-        if (array_key_exists($name, $this->_struct) AND isset($this->_struct[$name]['cast'])) {
-
-            // is it a string
-            if (is_a($value, '\bolt\bucket\bString')) {
-                $value = $value->cast($this->_struct[$name]['cast']);
-            }
-            else {
-                settype($value, $this->_struct[$name]['cast']);
-            }
-        }
-
+        // buketize it
         if (!\bolt\bucket::isBucket($value)) {
             $value = \bolt\bucket::byType($value, $name, $this);
         }
@@ -292,11 +292,11 @@ abstract class base {
     ///
     /// @param $values array of values
     /// @param $default default value is none is returned
-    /// @param $useTraits use traits
+    /// @param $useAttr use attr
     /// @return mixed value
     ////////////////////////////////////////////////////////////////////
-    public function value($name, $default=false, $useTraits=true) {
-        $v = $this->get($name, $default, $useTraits);
+    public function value($name, $default=false, $useAttr=true) {
+        $v = $this->get($name, $default, $useAttr);
         return $v->value();
     }
 
@@ -308,37 +308,31 @@ abstract class base {
     /// @see bucket::set()
     /// @return sefl
     ////////////////////////////////////////////////////////////////////
-    public function set($name, $value=false, $useTraits = true) {
+    public function set($name, $value=false, $useAttr = true) {
+
+        // if name is an array, do that instean
         if (is_array($name)) {
             foreach ($name as $k => $v) {
-                $this->set($k, $v);
+                $this->set($k, $v, $useAttr);
             }
             return $this;
         }
+
+        // set name
         $setName = "set{$name}";
 
-        // cast as something special
-        if (array_key_exists($name, $this->_struct) AND isset($this->_struct[$name]['cast'])) {
-            if (is_a($value, '\bolt\bucket\bString')) {
-                $value = $value->cast($this->_struct[$name]['cast']);
-            }
-            else {
-                settype($value, $this->_struct[$name]['cast']);
-            }
-        }
-
         // find it
-        if (method_exists($this, $setName)) {
+        if ($useAttr AND method_exists($this, $setName)) {
             $value = call_user_func(array($this, $setName), $value);
         }
-        else if ($useTraits AND array_key_exists(strtolower($setName), $this->_traits)) {
-            $value = $this->callTrait($setName, array($value));
+        else if ($useAttr AND array_key_exists($name, $this->_struct)) {
+            $value = $this->_struct[$name]['_attr']->set($value);
         }
 
         // set it
         $this->_data->set($name, $value);
 
-        $this->_loaded = true;
+        // me
         return $this;
     }
 
@@ -351,7 +345,7 @@ abstract class base {
     /// @return self
     ////////////////////////////////////////////////////////////////////
     public function setValue($name, $value) {
-        $this->set($name, $value);
+        $this->set($name, $value, false);
         return $this;
     }
 
@@ -363,7 +357,7 @@ abstract class base {
     ////////////////////////////////////////////////////////////////////
     public function normalize() {
         $data = $this->_data->asArray();
-
+        $done = array();
 
         // loop through the struct
         // and try to normalize the data
@@ -379,32 +373,33 @@ abstract class base {
             if (method_exists($this, $name)) {
                 $data[$key] = call_user_func_array(array($this, $name), $data[$key]);
             }
-            else if (array_key_exists($name, $this->_traits)) {
-                $data[$key] = $this->callTrait($name);
+            else {
+                $data[$key] = $this->_struct[$key]->normalize($data[$key]);
+            }
+
+            // already done
+            $done[] = $key;
+
+        }
+
+        // loop through data and try to normalize
+        // anything that isn't in struct
+        foreach ($data as $key => $value) {
+            if (in_array($key, $done)) { continue; }
+            $name = "normalize$key";
+
+            // call it
+            if (method_exists($this, $name)) {
+                $data[$key] = call_user_func_array(array($this, $name), $data[$key]);
             }
 
             // if we have a bucket or bstring convert
-            if (is_a($data[$key], '\bolt\bucket')) {
-                $data[$key] = $data[$key]->asArray();
+            if (b::isInterfaceOf($data[$key], '\bolt\iBucket')) {
+                $data[$key] = $data[$key]->value();
             }
 
-            if (is_a($data[$key], '\bolt\bucket\bString')) {
-                $data[$key] = $data[$key]->value;
-            }
-
-            // make sure the tair conforms to any cast
-            if (isset($info['cast'])) {
-                if ($info['cast'] == 'array' AND !is_array($data[$key])) {
-                    $data[$key] = array();
-                }
-                else if ($info['cast'] != 'array') {
-                    settype($data[$key], $info['cast']);
-                }
-            }
-
-            // default value
-            if (!$data[$key] AND isset($info['default'])) {
-                $data[$key] = $info['default'];
+            if (b::isInterfaceOf($data[$key], '\bolt\model\iModelBase')) {
+                $data[$key] = $data[$key]->value($data[$key]->getPrimaryKey());
             }
 
         }
@@ -422,150 +417,6 @@ abstract class base {
         return \bolt\bucket::byType($resp);
     }
 
-    ////////////////////////////////////////////////////////////////////
-    /// @brief add trait
-    ///
-    /// @param $class class name or method name
-    /// @param $closure callback
-    /// @param $args arguments to pass to callback
-    /// @return self
-    ////////////////////////////////////////////////////////////////////
-    protected function addTrait($class, $cb=false, $args=array()) {
-        if ($cb AND is_a($cb, 'Closure')) {
-            $this->_traits[strtolower($class)] = array(
-                    $cb,
-                    $args
-                );
-        }
-        else {
-            $classes = (is_array($class) ? $class : array($class));
-            foreach ($classes as $class) {
-                $this->_traitInstance[$class] = false;
-                foreach (get_class_methods($class) as $method) {
-                    $this->_traits[strtolower($method)] = array($class, $method);
-                }
-            }
-        }
-        return $this;
-    }
-
-    ////////////////////////////////////////////////////////////////////
-    /// @brief return the current traits
-    ///
-    /// @return array of traits
-    ////////////////////////////////////////////////////////////////////
-    public function getTraits() {
-        return $this->_traits;
-    }
-
-    ////////////////////////////////////////////////////////////////////
-    /// @brief return an array of trait instances
-    ///
-    /// @return array of traits instances
-    ////////////////////////////////////////////////////////////////////
-    public function getTraitInstances() {
-        return $this->_traitInstance;
-    }
-
-    ////////////////////////////////////////////////////////////////////
-    /// @brief return the current traits
-    ///
-    /// @return array of traits
-    ////////////////////////////////////////////////////////////////////
-    protected function callTrait($name, $args=array()) {
-        $t = $this->_traits[strtolower($name)];
-        $func = false; $_args = array();
-
-        // is trait callable
-        if (is_callable($t[0])) {
-            if (isset($t[1])) {
-                foreach ($t[1] as $key) {
-                    if ($key{0} == '$') {
-                        $_args[] = $this->value(substr($key, 1), false, false);
-                    }
-                    else {
-                        $_args[] = $key;
-                    }
-                }
-            }
-            $func = $t[0];
-        }
-        else {
-
-            // create a new trait class
-            if (!$this->_traitInstance[$t[0]]) {
-                $this->_traitInstance[$t[0]] = new $t[0]($this);
-            }
-
-            // instance
-            $i = $this->_traitInstance[$t[0]];
-
-            // trait storage
-            if (is_a($i, '\bolt\model\traitStorage')) {
-                if (!$i->hasInstance($name)) {
-                    foreach ($t[3] as $key) {
-                        if (is_string($key) AND $key{0} == '$') {
-                            $key = substr($key, 1);
-                            $_args[] = $this->value($key, false, false);
-                        }
-                        else {
-                            $_args[] = $key;
-                        }
-                    }
-                    $i->createInstance($name, $t[1], $t[2], $_args);
-                }
-
-                // reset
-                $func = array($i, 'getInstance');
-                $_args = array($name);
-
-            }
-            else {
-
-                // relect on the class and see what data they might want
-                $ref = new \ReflectionMethod($i, $t[1]);
-
-                // params
-                $params = $ref->getParameters();
-
-                // loop
-                if (count($params) > 0) {
-                    foreach ($params as $parm) {
-                        $_args[] = $this->_data->getValue($param->name, $param->getDefaultValue(), false);
-                    }
-                }
-
-                // this function
-                $func = array($i, $t[1]);
-
-            }
-
-        }
-
-        // give back with args
-        return call_user_func_array($func, $_args);
-
-    }
-
-}
-
-// trait storage
-class traitStorage {
-
-    private $_instance = array();
-
-    public function hasInstance($name) {
-        return array_key_exists($name, $this->_instance);
-    }
-
-    public function createInstance($name, $class, $method, $args) {
-        $i = new $class();
-        $this->_instance[$name] = call_user_func_array(array($i, $method), $args);
-    }
-
-    public function getInstance($name) {
-        return $this->_instance[$name];
-    }
 
 }
 

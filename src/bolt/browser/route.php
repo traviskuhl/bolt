@@ -292,7 +292,9 @@ class route extends \bolt\plugin\singleton {
             $path = $this->getRouteByName($name)->getPath();
 
             foreach ($data as $k => $v) {
-                $path = str_replace('{'.$k.'}', $v, $path );
+                if (is_string($v)) {
+                    $path = str_replace('{'.$k.'}', $v, $path );
+                }
             }
 
             // anything left over
@@ -346,11 +348,6 @@ class route extends \bolt\plugin\singleton {
                 else {
                     $method = $class->getMethod('getRoutes');
                     $route = call_user_func(array($method->class, $method->name));
-                }
-
-                // dao
-                if ($class->hasProperty('model') AND $class->getProperty("model")->isStatic()) {
-                    $model = $class->getProperty('model')->getValue();
                 }
 
                 // base

@@ -303,6 +303,12 @@ class request extends \bolt\plugin\singleton {
         // rew controller
         $controller = (is_string($class) ? new $class() : $class);
 
+        // request before
+        $this->fire("before", array(
+            'route' => $route,
+            'controller' => $controller
+        ));
+
         // no never ending loops
         $i = 0;
 

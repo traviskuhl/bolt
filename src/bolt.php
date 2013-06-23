@@ -95,11 +95,15 @@ final class b {
 
         // general
         'bolt-core-config'   => "./bolt/config.php",
-        'bolt-core-model'      => "./bolt/model.php",
         'bolt-core-source'   => "./bolt/source.php",
         'bolt-core-cache'    => "./bolt/cache.php",
         'bolt-core-bucket'   => "./bolt/bucket.php",
         'bolt-core-event'    => "./bolt/event.php",
+
+        // model
+        'bolt-core-model'       => "./bolt/model.php",
+        'bolt-core-model-attr'  => "./bolt/model/attr.php",
+        'bolt-core-model-attrs'  => "./bolt/model/attr/*.php",
 
         // settings
         'bolt-core-settings' => "./bolt/settings.php",
@@ -363,6 +367,9 @@ final class b {
                 $files = array($pattern);
             }
             else {
+                if (substr($pattern,0,2) == './') {
+                    $pattern = bRoot."/".ltrim($pattern,'./');
+                }
                 $files = glob($pattern);
             }
 

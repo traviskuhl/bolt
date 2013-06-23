@@ -445,6 +445,7 @@ class controller extends \bolt\event implements iController {
         // reflect on build to see what to run
         $ref = (is_array($action) ? new \ReflectionMethod($action[0], $action[1]) : new \ReflectionFunction($action));
 
+        // ref
         if ($ref->getNumberOfParameters() > 0) {
             foreach ($ref->getParameters() as $param) {
                 $name = $param->getName();

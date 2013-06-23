@@ -21,8 +21,9 @@ abstract class parser extends \bolt\event {
     private $_weight = false;
     private $_validators = array();
     private $_params = array();
-    private $_daos = array();
     private $_optional = array();
+    private $_auth = array();
+    private $_model = array();
 
     /**
      * contrcut a new route parser
@@ -32,11 +33,9 @@ abstract class parser extends \bolt\event {
      * @return router object
      */
     final public function __construct($path, $controller) {
+        $this->_name = uniqid('route');
         $this->_path = $path;
         $this->_controller = $controller;
-
-        // before
-        $this->on('before', array($this, 'initDaos'));
     }
 
     /**
@@ -63,33 +62,6 @@ abstract class parser extends \bolt\event {
             return call_user_func_array(array($this, $name), $args);
         }
         return $this;
-    }
-
-    /**
-     * initiate and DAOs defined by the route clas
-     *
-     * @return void
-     */
-    public function initDaos() {
-        if (count($this->_daos) == 0) {return;}
-        $resp = array();
-
-        // loop through each item
-        foreach ($this->_daos as $name => $model) {
-            $o = b::dao($model['class']);
-            $m = (isset($model['method']) ? $model['method'] : 'findById');
-            $args = (isset($model['args']) ? $model['args'] : array());
-            foreach ($args as $i => $value) {
-                if ($value{0} == '$') {
-                    $key = substr($value, 1);
-                    if (array_key_exists($key, $this->_params)) {
-                        $args[$i] = $this->_params[$key];
-                    }
-                }
-            }
-            $this->_params[$name] = call_user_func_array(array($o, $m), $args);
-        }
-
     }
 
     /**
@@ -177,29 +149,6 @@ abstract class parser extends \bolt\event {
     }
 
     /**
-     * add a dao to initate on route start
-     *
-     * @param $name (array|string) array of dao or param name
-     * @param $class dao class
-     * @param $args arguments to pass to constructor
-     * @return self
-     */
-    public function dao($name, $class=false, $args=false) {
-        if (is_array($name)) {
-            if (is_string($name[0])) {
-                $name = array($name);
-            }
-            foreach ($name as $dao) {
-                $args = (isset($dao[2]) ? $dao[2] : false);
-                $this->dao($dao[0], $dao[1], $args);
-            }
-            return $this;
-        }
-        $this->_daos[$name] = array('class' => $class, 'args' => $args);
-        return $this;
-    }
-
-    /**
      * add before event
      *
      * @param $cb callback closure
@@ -220,6 +169,16 @@ abstract class parser extends \bolt\event {
      */
     public function after($cb, $params=array()) {
         $this->on("after", $cb, $params);
+        return $this;
+    }
+
+    public function auth($auth) {
+        $this->_auth = $auth;
+        return $this;
+    }
+
+    public function model($model) {
+        $this->_model = $model;
         return $this;
     }
 

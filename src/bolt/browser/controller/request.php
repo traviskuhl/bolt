@@ -108,14 +108,35 @@ class request extends \bolt\browser\controller {
     public function run($method, $route) {
         $method = strtolower($method);
 
+        // get some stuff from the route
+        $params = $route->getParams();
+        $action = $route->getAction();
+
+        // are there models that need to be setup
+        if (property_exists($this, 'models')) {
+            foreach ($this->models as $name => $info) {
+                $model = b::model($info['model']);
+                if (!isset($info['method'])) {
+                    $info['method'] = 'findById';
+                }
+                if (!isset($info['args'])) {
+                    $info['args'] = array('$'.$model->getPrimaryKey());
+                }
+                foreach ($info['args'] as $i => $arg) {
+                    if ($arg{0} == '$') {
+                        $_ = substr($arg,1);
+                        $info['args'][$i] = (array_key_exists($_, $params) ? $params[$_] : false);
+                    }
+                }
+                $params[$name] = call_user_func_array(array($model, $info['method']), $info['args']);
+            }
+        }
+
+
         // check
         if ($this->_fromInit AND b::isInterfaceOf($this->_fromInit, '\bolt\browser\iController')) {
             return $this->_fromInit;
         }
-
-        // get some stuff from the route
-        $params = $route->getParams();
-        $action = $route->getAction();
 
         // figure out how we handle this request
         // order goes
@@ -145,6 +166,9 @@ class request extends \bolt\browser\controller {
             $act = 'build';
         }
 
+        // route
+        $this->setRoute($route);
+
         // set our action
         $this->setAction($act);
 
@@ -153,6 +177,34 @@ class request extends \bolt\browser\controller {
 
         // return me
         return $this;
+    }
+
+    // modelPost
+    protected function postModel(\bolt\browser\request $req) {
+        $route = $this->getRoute();
+        $name = $route->getModel();
+
+        // no model exsti
+        if (!property_exists($this, $name)) {
+            return b::browser()->error(500, 'unable to load model');
+        }
+
+        // what's the model we need
+        $model = $this->{$name};
+
+        // get all of our post request
+        $post = $req->post->asArray();
+
+
+        // set in our model
+        $model->set($post)->save();
+
+        // url
+        $url = b::url($route->getName(), $model->asArray());
+
+        // relocate there
+        b::location($url);
+
     }
 
 
