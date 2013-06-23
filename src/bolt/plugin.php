@@ -223,7 +223,7 @@ abstract class plugin extends event {
             }
             else {
                 // wait fore ready
-                b::on('ready', function() use ($class){
+                b::on('ready', function() use ($class, $name){
                     if (class_exists($class)) {
 
                         // see if the class has events
@@ -238,7 +238,7 @@ abstract class plugin extends event {
                                 $args = (isset($evt['args']) ? $evt['args'] : array());
                                 $me = $this;
                                 if ($event == 'ready') {
-                                    b::trigger(array($me->call($name), $evn['func']), $args);
+                                    b::trigger(array($me->call($name), $evt['func']), $args);
                                 }
                                 else {
                                     b::on($event, function() use ($me, $name, $evt){
