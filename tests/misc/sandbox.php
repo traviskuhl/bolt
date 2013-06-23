@@ -13,16 +13,26 @@ b::init(array(
 class testmodel extends \bolt\model\base {
 
     public function getStruct() {
-        return array(
-            'id' => array('type' => 'unique'),
-            'name' => array()
-        );
-    }
-
-    public function find() {
-
-
+        return [
+            'id' => ['type' => 'unique', 'primary' => true],
+            'title' => ['type' => 'string'],
+            'data' => ['type' => 'array'],
+            'time' => ['type' => 'datetime'],
+            'poop' => ['type' => 'string']
+        ];
     }
 
 
 }
+
+
+$model = b::model('testmodel');
+
+$model->set([
+    'title' => 'poop',
+    'data' => array('sss'),
+    'time' => time(),
+    'poop' => 'fine'
+]);
+
+var_dump($model->value('poop'));

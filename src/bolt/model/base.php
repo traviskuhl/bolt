@@ -10,7 +10,6 @@ abstract class base implements iModelBase {
     // private
     private $_guid; /// guid for unique objects
     private $_loaded = false; // has data been loaded
-    private $_data = false;
     private $_struct = array(); /// item struct
     private $_source = false; // source holder
     private $_attr = array(); // attribute classes
@@ -70,6 +69,11 @@ abstract class base implements iModelBase {
         foreach ($this->_struct as $key => $info) {
             $type = (array_key_exists('type', $info) ? $info['type'] : 'base');
 
+            // no attr for type
+            if (!array_key_exists($type, $this->_attr)) {
+                $type = 'base';
+            }
+
             // create a new attribute holder
             // for this attr
             $this->_struct[$key]['_attr'] = new $this->_attr[$type]($key, $info, $this);
@@ -125,7 +129,6 @@ abstract class base implements iModelBase {
 
 
     public function findOne($field, $value, $args=array()) {
-
         $resp = $this->_source->query($this->table, array($field => $value), $args);
 
         // return
@@ -220,11 +223,11 @@ abstract class base implements iModelBase {
     }
 
     public function __toString() {
-        return $this->_data->__toString();
+        return $this->asArray();
     }
 
     public function __isset($name) {
-        return $this->get($name);
+        return $this->value($name);
     }
 
     ////////////////////////////////////////////////////////////////////
@@ -235,9 +238,6 @@ abstract class base implements iModelBase {
     public function __call($name, $args) {
         if (method_exists($this, $name)) {
             return call_user_func_array(array($this, $name), $args);
-        }
-        else if (method_exists($this->_data, $name)) {
-            return call_user_func_array(array($this->_data, $name), $args);
         }
         return false;
     }
@@ -250,7 +250,7 @@ abstract class base implements iModelBase {
     public function asArray() {
         $data = array();
         foreach ($this->_struct as $key => $info) {
-            $data[$key] = $this->get($key)->asArray();
+            $data[$key] = $info['_attr']->value();
         }
         return $data;
     }
@@ -268,16 +268,14 @@ abstract class base implements iModelBase {
     /// @see bucket::get()
     /// @return value
     ////////////////////////////////////////////////////////////////////
-    public function get($name, $default=false, $useAttr=true) {
-        $getName = "get{$name}"; $value = $this->_data->get($name, $default);
+    public function get($name, $default=false) {
+        $value = $default;
 
         // always try the method first
-        if ($useAttr AND method_exists($this, $getName)) {
-            $value = call_user_func(array($this, $getName));
+        if (array_key_exists($name, $this->_struct)) {
+            $value = $this->_struct[$name]['_attr']->call('get');
         }
-        else if ($userAttr AND array_key_exists($name, $this->_struct)) {
-            $value = $this->_struct[$name]['_attr']->get($value);
-        }
+
 
         // buketize it
         if (!\bolt\bucket::isBucket($value)) {
@@ -292,12 +290,13 @@ abstract class base implements iModelBase {
     ///
     /// @param $values array of values
     /// @param $default default value is none is returned
-    /// @param $useAttr use attr
     /// @return mixed value
     ////////////////////////////////////////////////////////////////////
-    public function value($name, $default=false, $useAttr=true) {
-        $v = $this->get($name, $default, $useAttr);
-        return $v->value();
+    public function value($name) {
+
+        $value = $this->_struct[$name]['_attr']->call('value');
+
+        return $value;
     }
 
     ////////////////////////////////////////////////////////////////////
@@ -308,44 +307,22 @@ abstract class base implements iModelBase {
     /// @see bucket::set()
     /// @return sefl
     ////////////////////////////////////////////////////////////////////
-    public function set($name, $value=false, $useAttr = true) {
+    public function set($name, $value=false) {
 
         // if name is an array, do that instean
         if (is_array($name)) {
             foreach ($name as $k => $v) {
-                $this->set($k, $v, $useAttr);
+                $this->set($k, $v);
             }
             return $this;
         }
 
-        // set name
-        $setName = "set{$name}";
-
         // find it
-        if ($useAttr AND method_exists($this, $setName)) {
-            $value = call_user_func(array($this, $setName), $value);
+        if (array_key_exists($name, $this->_struct)) {
+            $this->_struct[$name]['_attr']->call('set', array($value));
         }
-        else if ($useAttr AND array_key_exists($name, $this->_struct)) {
-            $value = $this->_struct[$name]['_attr']->set($value);
-        }
-
-        // set it
-        $this->_data->set($name, $value);
 
         // me
-        return $this;
-    }
-
-
-    ////////////////////////////////////////////////////////////////////
-    /// @brief set an array of data
-    ///
-    /// @param $values array of values
-    /// @see setValue
-    /// @return self
-    ////////////////////////////////////////////////////////////////////
-    public function setValue($name, $value) {
-        $this->set($name, $value, false);
         return $this;
     }
 
@@ -356,6 +333,30 @@ abstract class base implements iModelBase {
     /// @return array of values
     ////////////////////////////////////////////////////////////////////
     public function normalize() {
+        $data = $this->_data->asArray();
+        $done = array();
+
+        // loop through the struct
+        // and try to normalize the data
+        foreach ($this->_struct as $key => $info) {
+
+            // check to see if we have a normalization trai
+            $data[$key] = $this->_struct[$key]['_attr']->call('normalize');
+
+            // already done
+            $done[] = $key;
+
+        }
+
+
+        // return our normalize array
+        return $data;
+
+    }
+
+    // validate
+    public function validate() {
+
         $data = $this->_data->asArray();
         $done = array();
 
@@ -382,31 +383,6 @@ abstract class base implements iModelBase {
 
         }
 
-        // loop through data and try to normalize
-        // anything that isn't in struct
-        foreach ($data as $key => $value) {
-            if (in_array($key, $done)) { continue; }
-            $name = "normalize$key";
-
-            // call it
-            if (method_exists($this, $name)) {
-                $data[$key] = call_user_func_array(array($this, $name), $data[$key]);
-            }
-
-            // if we have a bucket or bstring convert
-            if (b::isInterfaceOf($data[$key], '\bolt\iBucket')) {
-                $data[$key] = $data[$key]->value();
-            }
-
-            if (b::isInterfaceOf($data[$key], '\bolt\model\iModelBase')) {
-                $data[$key] = $data[$key]->value($data[$key]->getPrimaryKey());
-            }
-
-        }
-
-        // return our normalize array
-        return $data;
-
     }
 
     public function fields($keys) {
@@ -420,57 +396,58 @@ abstract class base implements iModelBase {
 
 }
 
-class children extends result {
-    private $_first = true;
 
-    public function setup($struct) {
-        $this
-            ->setClass('\bolt\model\child')
-            ->setStruct($struct);
-    }
-    public function _get($data) {
-        if ($this->_first) {
-            $this->setItems($data);
-            $this->_first = false;
-        }
-        return $this;
-    }
-    public function _normalize($data) {
-        if ($this->_first) {
-            $this->setItems($data);
-            $this->_first = false;
-        }
-        $items = array();
-        foreach ($this as $key => $item) {
-            $items[$key] = $item->normalize();
-        }
-        return $items;
-    }
+// class children extends result {
+//     private $_first = true;
 
-}
+//     public function setup($struct) {
+//         $this
+//             ->setClass('\bolt\model\child')
+//             ->setStruct($struct);
+//     }
+//     public function _get($data) {
+//         if ($this->_first) {
+//             $this->setItems($data);
+//             $this->_first = false;
+//         }
+//         return $this;
+//     }
+//     public function _normalize($data) {
+//         if ($this->_first) {
+//             $this->setItems($data);
+//             $this->_first = false;
+//         }
+//         $items = array();
+//         foreach ($this as $key => $item) {
+//             $items[$key] = $item->normalize();
+//         }
+//         return $items;
+//     }
 
-class child extends base {
-    private $first = true;
-    private $results = false;
-    public function getStruct() { return array(); }
+// }
 
-    private function setup($struct) {
-        $this->setStruct($struct);
-    }
+// class child extends base {
+//     private $first = true;
+//     private $results = false;
+//     public function getStruct() { return array(); }
 
-    public function _get($data) {
-        if ($this->first) {
-            $this->set($data);
-            $this->first = false;
-        }
-        return $this;
-    }
-    public function _normalize() {
-        if ($this->first) {
-            $this->set($data);
-            $this->first = false;
-        }
-        return $this->normalize();
-    }
+//     private function setup($struct) {
+//         $this->setStruct($struct);
+//     }
 
-}
+//     public function _get($data) {
+//         if ($this->first) {
+//             $this->set($data);
+//             $this->first = false;
+//         }
+//         return $this;
+//     }
+//     public function _normalize() {
+//         if ($this->first) {
+//             $this->set($data);
+//             $this->first = false;
+//         }
+//         return $this->normalize();
+//     }
+
+// }

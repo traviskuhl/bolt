@@ -178,7 +178,7 @@ abstract class parser extends \bolt\event {
     }
 
     public function model($model) {
-        $this->_model = $model;
+        $this->_model = (is_array($model) ? $model : explode(",", $model));
         return $this;
     }
 

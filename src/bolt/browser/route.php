@@ -194,11 +194,14 @@ class route extends \bolt\plugin\singleton {
 
         $route = false;
 
+        // normalize the path
+        $path = "/".trim($path, '/ ');
 
         // loop through each route and
         // try to match it
         foreach ($this->_routes as $_route) {
 
+            // method match
             if ($_route->getMethod() AND !in_array($method, $_route->getMethod())) {continue;}
 
             if (!$route AND $_route->match($path) !== false) {

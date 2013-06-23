@@ -5,11 +5,9 @@ use \b;
 
 class unique extends \bolt\model\attr\base {
 
-    public function normalize($value) {
-        if (empty($value)) {
-            return uniqid();
-        }
-        return $value;
+    public function _normalize() {
+        $this->_value = ($this->_value ?: uniqid());
+        return $this->_value;
     }
 
 }

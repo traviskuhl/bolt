@@ -38,7 +38,7 @@ class token extends parser {
         }
 
         // make our regex
-        $regex = '#^'.implode($parts,'/').'/?$#';
+        $regex = '#^/?'.implode($parts,'/').'/?$#';
 
         // see if we can find something
         if (preg_match_all($regex, $uri, $matches)) {

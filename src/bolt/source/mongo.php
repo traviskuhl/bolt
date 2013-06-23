@@ -107,7 +107,7 @@ class mongo extends base {
 		if ( isset($query['id']) ) {
 
 			// query _id
-			$query['_id'] = $query['id'];
+			$query['_id'] = new \MongoId($query['id']);
 
 			// unset
 			unset($query['id']);
@@ -143,7 +143,7 @@ class mongo extends base {
 		// get them
 		while ( $sth->hasNext() ) {
 			$row = $sth->getNext();
-			$row['id'] = $row['_id'];
+			$row['id'] = (string)$row['_id']; unset($row['_id']);
 			$resp[] = $row;
 		}
 
@@ -187,10 +187,11 @@ class mongo extends base {
 		$sth = $db->{$collection};
 
 
-		if (isset($data['id'])) {
+		if (isset($data['id']) AND $data['id']) {
 			$data['_id'] = $data['id'];
-			unset($data['id']);
 		}
+
+		unset($data['id']);
 
 		// insert
 		try {

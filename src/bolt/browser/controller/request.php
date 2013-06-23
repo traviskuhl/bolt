@@ -113,8 +113,11 @@ class request extends \bolt\browser\controller {
         $action = $route->getAction();
 
         // are there models that need to be setup
-        if (property_exists($this, 'models')) {
-            foreach ($this->models as $name => $info) {
+        if ($route->getModels() AND property_exists($this, 'models')) {
+            foreach ($route->getModel() as  $name) {
+                if (!array_key_exists($name, $this->models)) {continue;}
+                $info = $this->models[$name];
+
                 $model = b::model($info['model']);
                 if (!isset($info['method'])) {
                     $info['method'] = 'findById';
@@ -128,6 +131,7 @@ class request extends \bolt\browser\controller {
                         $info['args'][$i] = (array_key_exists($_, $params) ? $params[$_] : false);
                     }
                 }
+
                 $params[$name] = call_user_func_array(array($model, $info['method']), $info['args']);
             }
         }
@@ -194,7 +198,6 @@ class request extends \bolt\browser\controller {
 
         // get all of our post request
         $post = $req->post->asArray();
-
 
         // set in our model
         $model->set($post)->save();
