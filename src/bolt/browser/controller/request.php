@@ -183,7 +183,7 @@ class request extends \bolt\browser\controller {
         return $this;
     }
 
-    // modelPost
+    // postModel
     protected function postModel(\bolt\browser\request $req) {
         $route = $this->getRoute();
         $name = $route->getModel();
@@ -210,6 +210,59 @@ class request extends \bolt\browser\controller {
 
     }
 
+    // putModel
+    protected function putModel(\bolt\browser\request $req) {
+        $route = $this->getRoute();
+        $name = $route->getModel();
+
+        // no model exsti
+        if (!property_exists($this, $name)) {
+            return b::browser()->error(500, 'unable to load model');
+        }
+
+        // what's the model we need
+        $model = $this->{$name};
+
+        // get all of our post request
+        $post = $req->post->asArray();
+
+        // set in our model
+        $model->set($post)->save();
+
+        // url
+        $url = b::url($route->getName(), $model->asArray());
+
+        // relocate there
+        b::location($url);
+
+    }
+
+    // deleteModel
+    protected function deleteModel(\bolt\browser\request $req) {
+        $route = $this->getRoute();
+        $name = $route->getModel();
+
+        // no model exsti
+        if (!property_exists($this, $name)) {
+            return b::browser()->error(500, 'unable to load model');
+        }
+
+        // what's the model we need
+        $model = $this->{$name};
+
+        // get all of our post request
+        $post = $req->post->asArray();
+
+        // set in our model
+        $model->set($post)->save();
+
+        // url
+        $url = b::url($route->getName(), $model->asArray());
+
+        // relocate there
+        b::location($url);
+
+    }
 
 
 }
