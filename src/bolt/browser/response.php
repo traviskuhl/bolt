@@ -179,8 +179,7 @@ class response extends \bolt\plugin {
             return ($a[0] > $b[0]) ? -1 : 1;
         });
 
-        // plug
-        $plug = "plain";
+        $plug='plain';
 
         // loop it
         foreach ($map as $item) {

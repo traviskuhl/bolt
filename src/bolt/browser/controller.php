@@ -506,6 +506,7 @@ class controller extends \bolt\event implements iController {
             $this->_params->set($name, $this->{$name});
         }
 
+
         // // no template
         // if (!$this->hasTemplate() AND $this->getTemplate() !== false) {
         //     $root = b::config()->value("project.templates");

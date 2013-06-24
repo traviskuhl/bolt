@@ -24,6 +24,8 @@ abstract class parser extends \bolt\event {
     private $_optional = array();
     private $_auth = array();
     private $_model = array();
+    private $_response = false;
+    private $_responsetype = 'html';
 
     /**
      * contrcut a new route parser
@@ -179,6 +181,16 @@ abstract class parser extends \bolt\event {
 
     public function model($model) {
         $this->_model = (is_array($model) ? $model : explode(",", $model));
+        return $this;
+    }
+
+    public function response($response) {
+        $this->_response = (is_array($response) ? $response : explode(",", $response));
+        return $this;
+    }
+
+    public function responseType($type) {
+        $this->_responsetype = $type;
         return $this;
     }
 
