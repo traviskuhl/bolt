@@ -414,7 +414,7 @@ class controller extends \bolt\event implements iController {
      * @param $args array of argumnets
      * @return content of view
      */
-    final public function render($args=array()) {
+    public function render($args=array()) {
 
         // globalize any args
         foreach ($args as $name => $value) {
@@ -474,6 +474,27 @@ class controller extends \bolt\event implements iController {
 
         // call build
         $resp = call_user_func_array($action, $_args);
+
+        // is it a controller
+        if (b::isInterfaceOf($resp, '\bolt\browser\iController')) {
+            $i = 0; $run = $resp;
+            while ($i++ <= 10) {
+
+                // resp
+                $last = $run->render($args);
+
+                // not a controller we can stop
+                if (!b::isInterfaceOf($resp, '\bolt\browser\iController') OR $last->bGuid() === $run->bGuid()) { break; }
+
+                $run = $last;
+
+            }
+
+            // return run
+            return $run;
+
+        }
+
 
         // resp is a string
         if (is_string($resp) AND $this->_content === null) {
@@ -553,7 +574,7 @@ class controller extends \bolt\event implements iController {
 
         $this->_hasRendered = true;
 
-        return $this->getContent();
+        return $this;
     }
 
 

@@ -11,6 +11,7 @@ class request extends \bolt\browser\controller {
     private $_properties = array();
     private $_hasRendered = false;
     private $_route = false;
+    private $_method = false;
 
     /**
      * set the route
@@ -32,6 +33,14 @@ class request extends \bolt\browser\controller {
         return $this->_route;
     }
 
+    public function setMethod($method) {
+        $this->_method = $method;
+        return $this;
+    }
+
+    public function getMethod() {
+        return $this->_method;
+    }
 
     /**
      * get the accept header from b::request
@@ -102,40 +111,50 @@ class request extends \bolt\browser\controller {
     /**
      * execute the controller
      *
-     * @param $route route class
      * @return mixed response
      */
-    public function run($method, $route) {
-        $method = strtolower($method);
+    public function render($args=array()) {
+        $method = $this->_method;
+        $route = $this->_route;
 
-        // get some stuff from the route
-        $params = $route->getParams();
-        $action = $route->getAction();
+        // defaults
+        $params = array();
+        $action = false;
 
-        // are there models that need to be setup
-        if ($route->getModels() AND property_exists($this, 'models')) {
-            foreach ($route->getModel() as  $name) {
-                if (!array_key_exists($name, $this->models)) {continue;}
-                $info = $this->models[$name];
+        // not all request controllers
+        // will have a route. they really should
+        // but dirrect forward won't
+        if ($route) {
 
-                $model = b::model($info['model']);
-                if (!isset($info['method'])) {
-                    $info['method'] = 'findById';
-                }
-                if (!isset($info['args'])) {
-                    $info['args'] = array('$'.$model->getPrimaryKey());
-                }
-                foreach ($info['args'] as $i => $arg) {
-                    if ($arg{0} == '$') {
-                        $_ = substr($arg,1);
-                        $info['args'][$i] = (array_key_exists($_, $params) ? $params[$_] : false);
+            // get some stuff from the route
+            $params = $route->getParams();
+            $action = $route->getAction();
+
+            // are there models that need to be setup
+            if ($route->getModels() AND property_exists($this, 'models')) {
+                foreach ($route->getModel() as  $name) {
+                    if (!array_key_exists($name, $this->models)) {continue;}
+                    $info = $this->models[$name];
+
+                    $model = b::model($info['model']);
+                    if (!isset($info['method'])) {
+                        $info['method'] = 'findById';
                     }
+                    if (!isset($info['args'])) {
+                        $info['args'] = array('$'.$model->getPrimaryKey());
+                    }
+                    foreach ($info['args'] as $i => $arg) {
+                        if ($arg{0} == '$') {
+                            $_ = substr($arg,1);
+                            $info['args'][$i] = (array_key_exists($_, $params) ? $params[$_] : false);
+                        }
+                    }
+
+                    $params[$name] = call_user_func_array(array($model, $info['method']), $info['args']);
                 }
-
-                $params[$name] = call_user_func_array(array($model, $info['method']), $info['args']);
             }
-        }
 
+        }
 
         // check
         if ($this->_fromInit AND b::isInterfaceOf($this->_fromInit, '\bolt\browser\iController')) {
@@ -169,18 +188,17 @@ class request extends \bolt\browser\controller {
         else {
             $act = 'build';
         }
-
-        // route
-        $this->setRoute($route);
-
         // set our action
         $this->setAction($act);
 
         // execute render
-        $this->render($params);
+        return parent::render($params);
 
-        // return me
-        return $this;
+    }
+
+    protected function build() {
+
+        return true;
     }
 
     // postModel

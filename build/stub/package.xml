@@ -52,6 +52,11 @@
                 <channel>pear.php.net</channel>
                 <min>2.0.0</min>
             </package>
+            <package>
+                <name>Crypt_Blowfish</name>
+                <channel>pear.php.net</channel>
+                <min>1.1.0RC2</min>
+            </package>
             <extension>
                 <name>curl</name>
             </extension>

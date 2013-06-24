@@ -271,37 +271,40 @@ class request extends \bolt\plugin\singleton {
 		// route we need to take
 		$route = b::route()->match($pathInfo, $method);
 
-			// no route just die right now
-			if (!$route) {
-				return false;
-			}
+		// no route just die right now
+		if (!$route) {
+			$controller = b::browser()->error('404', "No route for path '".strtoupper($method)." {$pathInfo}'");
+		}
+        else  {
 
-        // route matc
-        $_route = $this->fire("routeMatch", array(
+            // route matc
+            $_route = $this->fire("routeMatch", array(
+                    'route' => $route
+                ));
+
+                // route is false we assume bad callback and stop
+                if ($_route !== false AND $_route !== null) {
+                    $route = $_route;
+                }
+
+            // globalize route
+            $this->_route = $route;
+
+            // call before
+            $route->fire("before", array(
                 'route' => $route
             ));
 
-            // route is false we assume bad callback and stop
-            if ($_route !== false AND $_route !== null) {
-                $route = $_route;
-            }
+            // our aciton
+            $this->_action = $route->getAction();
 
-        // globalize route
-        $this->_route = $route;
+            // class
+            $class = $route->getController();
 
-        // call before
-        $route->fire("before", array(
-            'route' => $route
-        ));
+            // rew controller
+            $controller = (is_string($class) ? new $class() : $class);
 
-        // our aciton
-        $this->_action = $route->getAction();
-
-        // class
-        $class = $route->getController();
-
-        // rew controller
-        $controller = (is_string($class) ? new $class() : $class);
+        }
 
         // request before
         $this->fire("before", array(
@@ -309,31 +312,11 @@ class request extends \bolt\plugin\singleton {
             'controller' => $controller
         ));
 
-        // no never ending loops
-        $i = 0;
-
-        // run our controller and see what comes back
-        while ($i++ < 10) {
-
-            // run the response
-            $run = $controller->run($method, $route);
-
-            // if run is a falsy value
-            // we can stop now
-            if (!$run) { break; }
-
-            // if run isn't an object we stop
-            if (!is_object($run)) { break; }
-
-            // if run is another controller
-            if (b::isInterfaceOf($run, '\bolt\browser\iController') AND $run->bGuid() == $controller->bGuid()) {
-                break;
-            }
-
-            // level up
-            $controller = $run;
-
-        }
+        // run our controller
+        $controller = $controller
+                        ->setMethod($method)
+                        ->setRoute($route)
+                        ->render();
 
         // set the controller
         $this->_content = $controller->getContent();
@@ -348,7 +331,7 @@ class request extends \bolt\plugin\singleton {
         $this->fire("after", $_args);
 
         // call before
-        $route->fire("after", $_args);
+        if ($route) { $route->fire("after", $_args); }
 
 		// set our response and run
 		return $this;

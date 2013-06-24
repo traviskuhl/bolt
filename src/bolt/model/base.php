@@ -293,8 +293,13 @@ abstract class base implements iModelBase {
     /// @return mixed value
     ////////////////////////////////////////////////////////////////////
     public function value($name) {
+        $value = false;
 
-        $value = $this->_struct[$name]['_attr']->call('value');
+        // always try the method first
+        if (array_key_exists($name, $this->_struct)) {
+            $value = $this->_struct[$name]['_attr']->call('value');
+        }
+
 
         return $value;
     }
