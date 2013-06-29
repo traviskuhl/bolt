@@ -107,7 +107,12 @@ class mongo extends base {
 		if ( isset($query['id']) ) {
 
 			// query _id
-			$query['_id'] = new \MongoId($query['id']);
+            if (strlen($query['id']) >= 24) {
+                $query['_id'] = new \MongoId($query['id']);
+            }
+            else {
+                return \bolt\bucket::a(array());
+            }
 
 			// unset
 			unset($query['id']);

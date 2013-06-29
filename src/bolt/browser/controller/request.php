@@ -130,8 +130,9 @@ class request extends \bolt\browser\controller {
             $params = $route->getParams();
             $action = $route->getAction();
 
+
             // are there models that need to be setup
-            if ($route->getModels() AND property_exists($this, 'models')) {
+            if ($route->getModel() AND property_exists($this, 'models')) {
                 foreach ($route->getModel() as  $name) {
                     if (!array_key_exists($name, $this->models)) {continue;}
                     $info = $this->models[$name];
@@ -149,7 +150,6 @@ class request extends \bolt\browser\controller {
                             $info['args'][$i] = (array_key_exists($_, $params) ? $params[$_] : false);
                         }
                     }
-
                     $params[$name] = call_user_func_array(array($model, $info['method']), $info['args']);
                 }
             }
@@ -188,6 +188,7 @@ class request extends \bolt\browser\controller {
         else {
             $act = 'build';
         }
+
         // set our action
         $this->setAction($act);
 
@@ -196,15 +197,13 @@ class request extends \bolt\browser\controller {
 
     }
 
-    protected function build() {
-
-        return true;
-    }
+    protected function build() {}
 
     // postModel
     protected function postModel(\bolt\browser\request $req) {
         $route = $this->getRoute();
-        $name = $route->getModel();
+        $models = $route->getModel();
+        $name = array_shift($models);
 
         // no model exsti
         if (!property_exists($this, $name)) {

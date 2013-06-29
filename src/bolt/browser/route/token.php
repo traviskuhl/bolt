@@ -38,7 +38,7 @@ class token extends parser {
         }
 
         // make our regex
-        $regex = '#^/?'.implode($parts,'/').'/?$#';
+        $regex = '#^/?'.implode($parts,'/').'$#';
 
         // see if we can find something
         if (preg_match_all($regex, $uri, $matches)) {
@@ -48,6 +48,11 @@ class token extends parser {
                 if (array_key_exists($name, $params)) {
                     $params[$name] = $match[0];
                 }
+            }
+
+            // response
+            if (array_key_exists('_b_response', $params)) {
+                var_dump($params); die;
             }
 
             // set our params for later
