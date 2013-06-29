@@ -127,41 +127,7 @@ class init extends \bolt\cli\command {
 
         $ini = b::bucket($package['config'])->asIni();
 
-        // lok
-        $fp = fopen($pconfig, "wr+");
-
-        // write our config
-        if (flock($fp, LOCK_EX)) {
-            ftruncate($fp, 0);
-            fwrite($fp, $ini);
-            fflush($fp);
-            flock($fp, LOCK_UN);
-        }
-        else {
-            return $this->err("Unable to write global config file.");
-        }
-
-        // add our package
-        b::config()->get('global')->set($package['name'], array(
-            'hostname' => ($this->hostnames ? explode(",", $this->hostnames) : array()),
-            'config' => $pconfig
-        ));
-
-        // to
-        $ini = b::config()->asIni('global');
-
-        // fp
-        $fp = fopen(bConfig."/config.ini", "r+");
-
-        if (flock($fp, LOCK_EX)) {
-            ftruncate($fp, 0);
-            fwrite($fp, $ini);
-            fflush($fp);
-            flock($fp, LOCK_UN);
-        }
-        else {
-            return $this->err("Unable to write global config file.");
-        }
+        // place
 
         // unset our server sepecifc stuff
         unset($package['config']);
