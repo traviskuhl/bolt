@@ -233,8 +233,12 @@ class mongo extends base {
 			unset($data['id']);
 		}
 
+        $id = $data['_id'];
+
+        unset($data['_id']);
+
 		// run it
-		$r = $sth->update($query, $data, $opts);
+		$r = $sth->update(array('_id' => $id), array('$set' => $data), $opts);
 
 		// return
 		return array($r, $data);

@@ -47,6 +47,9 @@ class controllerFactory extends \bolt\plugin {
  */
 class controller extends \bolt\event implements iController {
 
+    // globals
+    public static $globals = array();
+
     // some things we're going to need
     private $_bguid = false;
     private $_content = null;
@@ -200,6 +203,9 @@ class controller extends \bolt\event implements iController {
         }
         else if (array_key_exists($name, $this->_properties)) {
             return $this->{$name};
+        }
+        else if (array_key_exists($name, self::$globals)) {
+            return self::$globals[$name];
         }
         return false;
     }
@@ -499,6 +505,11 @@ class controller extends \bolt\event implements iController {
         // resp is a string
         if (is_string($resp) AND $this->_content === null) {
             $this->setContent($resp);
+        }
+
+        // globals
+        foreach (self::$globals as $name => $value) {
+            $this->_params->set($name, $value);
         }
 
         // add any set data to the params load

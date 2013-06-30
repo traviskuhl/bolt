@@ -194,6 +194,7 @@ abstract class parser extends \bolt\event {
         return $this;
     }
 
+
     /**
      * match a string and method
      * @abstract
