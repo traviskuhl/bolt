@@ -270,6 +270,13 @@ final class b {
           b::config()->import(bConfig."/config.ini", array('key' => 'global'));
         }
 
+        // autoload
+        if (isset($args['autoload'])) {
+            foreach ($args['autoload'] as $dir) {
+                self::$autoload[] = $dir;
+            }
+        }
+
         // include
         if (b::config()->exists("global.autoload")) {
             foreach (b::config()->get("global.autoload") as $dir) {

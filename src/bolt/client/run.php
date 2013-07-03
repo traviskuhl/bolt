@@ -37,7 +37,6 @@ class run extends \bolt\cli\command {
                 'root' => realpath($src)
             ),
             'load' => array(
-                "{$src}/../handlebars.php/Handlebars/",
                 realpath($src)
             )
         );
@@ -62,6 +61,9 @@ class run extends \bolt\cli\command {
             $ini = parse_ini_file("config.ini");
             if (isset($ini['load'])) {
                 $args['load'] = array_merge($args['load'], $ini['load']);
+            }
+            if (isset($ini['autoload'])) {
+                $args['autoload'] = $ini['autoload'];
             }
         }
 

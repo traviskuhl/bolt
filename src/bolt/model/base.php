@@ -79,30 +79,6 @@ abstract class base implements iModelBase {
             $this->_struct[$key]['_attr'] = new $this->_attr[$type]($key, $info, $this);
 
 
-            // if (b::param('type', false, $info) == 'model') {
-            //     $name = "get{$key}";
-            //     if (array_key_exists($name, $this->_traits)) {continue;}
-
-            //     $this->_traits[$name] = array(
-            //         '\bolt\model\traitStorage',
-            //         $info['model'],
-            //         (array_key_exists('method', $info) ? $info['method'] : 'findById'),
-            //         (array_key_exists('args', $info) ? $info['args'] : array('$'.$key)),
-            //     );
-            // }
-            // if (b::param('children', false, $info)) {
-
-            //     // instnace
-            //     $i = (b::param('multiple', false, $info) ? new children() : new child());
-
-            //     // setup with struct
-            //     $i->setup($info['children']);
-
-            //     // add the traits we need
-            //     $this->_traits["get{$key}"] = array(array($i, '_get'), array('$'.$key));
-            //     $this->_traits["normalize{$key}"] = array(array($i, '_normalize'), array('$'.$key));
-
-            // }
         }
 
         return $this;
@@ -227,7 +203,7 @@ abstract class base implements iModelBase {
     }
 
     public function __isset($name) {
-        return $this->value($name);
+        return $this->get($name)->value;
     }
 
     ////////////////////////////////////////////////////////////////////
@@ -275,7 +251,9 @@ abstract class base implements iModelBase {
         if (array_key_exists($name, $this->_struct)) {
             $value = $this->_struct[$name]['_attr']->call('get');
         }
-
+        else if (method_exists($this, "get{$name}")) {
+            $value = call_user_func_array(array($this, "get{$name}"), array());
+        }
 
         // buketize it
         if (!\bolt\bucket::isBucket($value)) {
@@ -299,7 +277,6 @@ abstract class base implements iModelBase {
         if (array_key_exists($name, $this->_struct)) {
             $value = $this->_struct[$name]['_attr']->call('value');
         }
-
 
         return $value;
     }

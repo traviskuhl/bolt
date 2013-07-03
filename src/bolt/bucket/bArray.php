@@ -101,6 +101,7 @@ class bArray implements \bolt\iBucket, \ArrayAccess, \Iterator, \Countable {
     }
 
     public function __get($name){
+        if ($name == 'value') { return $this->value(); }
         return $this->get($name);
     }
 

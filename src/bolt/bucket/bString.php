@@ -55,7 +55,7 @@ class bString implements \bolt\iBucket {
     }
 
     public function __call($name, $args) {
-        return $this->_value;
+        return (string)$this->_value;
     }
 
     public function __toString() {
@@ -147,8 +147,44 @@ class bString implements \bolt\iBucket {
         return $this;
     }
 
+    public function urldecode() {
+        $this->_value = urldecode($this->_value);
+        return $this;
+    }
+
+    public function urlencode() {
+        $this->_value = urlencode($this->_value);
+        return $this;
+    }
+
+    public function base64Decode() {
+        $this->_value = base64_decode($this->_value);
+        return $this;
+    }
+
+    public function base64Encode() {
+        $this->_value = base64_encode($this->_value);
+        return $this;
+    }
+
     public function explode($sep) {
         return new \bolt\bucket\bArray($this->_value ? explode(',', $this->_value) : array());
+    }
+
+    public function jsonDecode($type='bArray') {
+        switch($type) {
+            case false:
+                return json_decode($this->_value, $type);
+            case true:
+                return json_decode($this->_value, $type);
+            default:
+                return new \bolt\bucket\bArray(json_decode($this->_value, true));
+        };
+    }
+
+    public function substr($s, $e=false) {
+        $this->_value = substr($this->_value, $s, $e);
+        return $this;
     }
 
     public function exists() {

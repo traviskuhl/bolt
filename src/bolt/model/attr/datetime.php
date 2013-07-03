@@ -9,11 +9,13 @@ use \DatePeriod;
 
 class attr_datetime extends \bolt\model\attr\base {
     private $_dt = false;
+    private $_format = false;
 
     const NAME = 'datetime';
 
     public function init() {
         $this->_dt = new DateTime();
+        $this->_format = $this->cfg('format', DateTime::ISO8601);
     }
 
     public function get() {
@@ -31,7 +33,7 @@ class attr_datetime extends \bolt\model\attr\base {
     }
 
     public function normalize() {
-        return $this->_dt->format(DateTime::ISO8601);
+        return $this->_dt->format($this->_format);
     }
 
     public function value() {

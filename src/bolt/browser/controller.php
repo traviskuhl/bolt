@@ -101,6 +101,11 @@ class controller extends \bolt\event implements iController {
         // init
         $this->_fromInit = $this->init();
 
+        // globals
+        self::$globals['request'] = b::request();
+        self::$globals['response'] = b::response();
+        self::$globals['settings'] = b::settings();
+
     }
 
     /**
@@ -200,6 +205,9 @@ class controller extends \bolt\event implements iController {
         }
         else if ($name == 'response') {
             return b::response();
+        }
+        else if ($name == 'settings') {
+            return b::settings();
         }
         else if (array_key_exists($name, $this->_properties)) {
             return $this->{$name};

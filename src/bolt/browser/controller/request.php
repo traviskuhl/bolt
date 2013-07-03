@@ -150,7 +150,14 @@ class request extends \bolt\browser\controller {
                             $info['args'][$i] = (array_key_exists($_, $params) ? $params[$_] : false);
                         }
                     }
+
                     $params[$name] = call_user_func_array(array($model, $info['method']), $info['args']);
+
+                    // unless model is optional
+                    if (b::param('optional', false, $info) === false AND $params[$name]->loaded() === false) {
+                        return b::browser()->error("Unable to load model '$name' ({$info['model']})", 404);
+                    }
+
                 }
             }
 
