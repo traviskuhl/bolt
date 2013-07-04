@@ -18,7 +18,7 @@ class bArray implements \bolt\iBucket, \ArrayAccess, \Iterator, \Countable {
         $this->_parent = $parent;
 
         // set our data
-        $this->set($data);
+        $this->set(is_array($data) ? $data : array());
     }
 
     public function bGuid() {
@@ -42,6 +42,10 @@ class bArray implements \bolt\iBucket, \ArrayAccess, \Iterator, \Countable {
 
     public function get($name, $default=false, $useDotNamespace=true) {
         $oName = $name; // placeholder for future use
+
+        if (is_object($name)) {
+            $name = (string)$name;
+        }
 
         // does default have any .
         if (stripos($name, '.') !== false AND $useDotNamespace === true) {
@@ -101,7 +105,7 @@ class bArray implements \bolt\iBucket, \ArrayAccess, \Iterator, \Countable {
     }
 
     public function __get($name){
-        if ($name == 'value') { return $this->value(); }
+        if ($name == 'value') {return $this->value(); }
         return $this->get($name);
     }
 
@@ -339,7 +343,7 @@ class bArray implements \bolt\iBucket, \ArrayAccess, \Iterator, \Countable {
      * @return bool if it exists
      */
     public function exists($name) {
-        return ($this->value($name, false) !== false);
+        return array_key_exists($name, $this->_data);
     }
 
     /**

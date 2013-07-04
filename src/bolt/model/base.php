@@ -99,7 +99,7 @@ abstract class base implements iModelBase {
         }
 
         // give bacl
-        return new result($items);
+        return new result($class, $items);
 
     }
 

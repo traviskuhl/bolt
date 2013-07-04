@@ -30,7 +30,7 @@ class model extends \bolt\model\attr\base {
     }
 
     public function set($value) {
-        $this->_key = $value;
+        $this->_key = (string)$value;
     }
 
     public function normalize() {

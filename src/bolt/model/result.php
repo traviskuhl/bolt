@@ -3,7 +3,7 @@
 namespace bolt\model;
 use \b;
 
-class result implements \Iterator, \ArrayAccess {
+class result implements \bolt\iBucket, \ArrayAccess, \Iterator, \Countable {
 
     // private
     private $_guid; /// guid for unique objects
@@ -66,7 +66,10 @@ class result implements \Iterator, \ArrayAccess {
     /// @return variable
     ////////////////////////////////////////////////////////////////////
     public function __get($name) {
-        if ($this->_meta) {
+        if ($name == 'value') {
+            return $this->_items;
+        }
+        else if ($this->_meta) {
             return call_user_func(array($this->_meta, '__get'), $name);
         }
     }
@@ -80,6 +83,10 @@ class result implements \Iterator, \ArrayAccess {
     ////////////////////////////////////////////////////////////////////
     public function __set($name, $value) {
         return call_user_func(array($this->_meta, '__set'), $name, $value);
+    }
+
+    public function __isset($name) {
+        return array_key_exists($name, $this->_items);
     }
 
     ////////////////////////////////////////////////////////////////////
