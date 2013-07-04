@@ -25,6 +25,7 @@ class request extends \bolt\plugin\singleton {
     private $_route = false;
     private $_content = false;
     private $_data = array();
+    private $_responseType = "html";
 
     /**
      * construct a new instance
@@ -249,6 +250,10 @@ class request extends \bolt\plugin\singleton {
         return $this->_data;
     }
 
+    public function getResponseType() {
+        return $this->_responseType;
+    }
+
     /**
      * execute the request
      *
@@ -270,6 +275,7 @@ class request extends \bolt\plugin\singleton {
 		// fire lets run our router to figure out what
 		// route we need to take
 		$route = b::route()->match($pathInfo, $method);
+
 
 		// no route just die right now
 		if (!$route) {
@@ -304,6 +310,11 @@ class request extends \bolt\plugin\singleton {
             // rew controller
             $controller = (is_string($class) ? new $class() : $class);
 
+            $controller->setRoute($route);
+
+            // route
+            $this->_responseType = $route->getResponseType();
+
         }
 
         // request before
@@ -315,11 +326,10 @@ class request extends \bolt\plugin\singleton {
         // run our controller
         $controller = $controller
                         ->setMethod($method)
-                        ->setRoute($route)
                         ->render();
 
         // set the controller
-        $this->_content = $controller->getContent();
+        $this->_content = $controller->getContent($this->_responseType);
         $this->_data = $controller->getData();
 
         $_args = array(

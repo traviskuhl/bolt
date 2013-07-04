@@ -316,6 +316,9 @@ class bArray implements \bolt\iBucket, \ArrayAccess, \Iterator, \Countable {
         return $s;
     }
 
+    public function reverse() {
+        return array_reverse($this->asArray());
+    }
 
     /**
      * @brief is the needle in the array

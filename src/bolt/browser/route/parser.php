@@ -26,6 +26,7 @@ abstract class parser extends \bolt\event {
     private $_model = array();
     private $_response = false;
     private $_responsetype = 'html';
+    private $_autoResponseType = false;
 
     /**
      * contrcut a new route parser
@@ -36,8 +37,26 @@ abstract class parser extends \bolt\event {
      */
     final public function __construct($path, $controller) {
         $this->_name = uniqid('route');
-        $this->_path = $path;
+        $this->_opath = $this->_path = $path;
         $this->_controller = $controller;
+    }
+
+    public function setPath($path) {
+        $this->_path = $path;
+        return $this;
+    }
+
+    public function getOriginalPath() {
+        return $this->_opath;
+    }
+
+    public function setAutoResponseType() {
+        $this->_autoResponseType = true;
+        return $this;
+    }
+
+    public function getAutoResponseType() {
+        return $this->_autoResponseType;
     }
 
     /**
@@ -66,6 +85,13 @@ abstract class parser extends \bolt\event {
         return $this;
     }
 
+    public function set($name, $value) {
+        if (property_exists($this, "_$name")) {
+            $this->{"_$name"} = $value;
+        }
+        return $this;
+    }
+
     /**
      * validate a route param
      *
@@ -84,6 +110,12 @@ abstract class parser extends \bolt\event {
         return $this;
     }
 
+    public function getControllerInstance() {
+        $class = $this->_controller;
+        $c = new $class();
+        $c->setRoute($this);
+        return $c;
+    }
 
     /**
      * get a validator for a given route param name
@@ -92,8 +124,12 @@ abstract class parser extends \bolt\event {
      * @param $default default regexp
      * @return validator
      */
-    public function getValidator($name, $default='[^\/]+') {
+    public function getValidator($name, $default='[^/]+') {
         return (array_key_exists($name, $this->_validators) ? $this->_validators[$name] : $default);
+    }
+
+    public function hasValidator($name) {
+        return array_key_exists($name, $this->_validators);
     }
 
     /**
@@ -192,6 +228,10 @@ abstract class parser extends \bolt\event {
     public function responseType($type) {
         $this->_responsetype = $type;
         return $this;
+    }
+
+    public function getResponseType() {
+        return $this->_responsetype;
     }
 
 

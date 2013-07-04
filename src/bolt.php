@@ -345,6 +345,7 @@ final class b {
 
             // response
             $resp = b::response()
+                        ->setResponseType(b::request()->getResponseType())
                         ->setContent(b::request()->getContent())
                         ->setData(b::request()->getData());
 

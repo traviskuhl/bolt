@@ -52,7 +52,7 @@ class controller extends \bolt\event implements iController {
 
     // some things we're going to need
     private $_bguid = false;
-    private $_content = null;
+    private $_content = array('plain'=>"");
     private $_template = null;
     private $_render = 'handlebars';
     private $_properties = array();
@@ -298,8 +298,8 @@ class controller extends \bolt\event implements iController {
      *
      * @return view content
      */
-    public function getContent() {
-        return $this->_content;
+    public function getContent($type=false) {
+        return ($type ? $this->_content[$type] : $this->_content);
     }
 
     /**
@@ -308,10 +308,21 @@ class controller extends \bolt\event implements iController {
      * @param $content view content
      * @return self
      */
-    public function setContent($content) {
-        $this->_content = $content;
+    public function setContent($type, $content=false) {
+        if (is_array($type)) {
+            foreach ($type as $t => $c) {
+                $this->setContent($t, $c);
+            }
+            return $this;
+        }
+        if ($type AND !$content) {
+            $content = $type;
+            $type = 'html';
+        }
+        $this->_content[$type] = $content;
         return $this;
     }
+
 
     /**
      * set the layout view
@@ -440,8 +451,6 @@ class controller extends \bolt\event implements iController {
             $this->_params->set($name, $this->{$name});
         }
 
-        // add our view to the vars
-        $this->_params->self = $this;
 
         // before
         $this->fire('before');
@@ -509,83 +518,6 @@ class controller extends \bolt\event implements iController {
 
         }
 
-
-        // resp is a string
-        if (is_string($resp) AND $this->_content === null) {
-            $this->setContent($resp);
-        }
-
-        // globals
-        foreach (self::$globals as $name => $value) {
-            $this->_params->set($name, $value);
-        }
-
-        // add any set data to the params load
-        foreach ($this->_properties as $name) {
-            $this->_params->set($name, $this->{$name});
-        }
-
-
-        // // no template
-        // if (!$this->hasTemplate() AND $this->getTemplate() !== false) {
-        //     $root = b::config()->value("project.templates");
-        //     $parts = explode(DIRECTORY_SEPARATOR, str_replace('\\', DIRECTORY_SEPARATOR, $m->getDeclaringClass()->name));
-        //     while(count($parts) > 0) {
-        //         $file = $root."/".implode("/", $parts).".template.php";
-        //         if (file_exists($file)) {
-        //             $this->setTemplate($file); break;
-        //         }
-        //         array_shift($parts);
-        //     }
-        // }
-
-        // // no template
-        // if (!$this->hasLayout() AND $this->getLayout() !== false) {
-        //     $root = b::config()->value("project.templates")."/layouts";
-        //     $parts = explode(DIRECTORY_SEPARATOR, str_replace('\\', DIRECTORY_SEPARATOR, $m->getDeclaringClass()->getParentClass()->name));
-
-        //     while(count($parts) > 0) {
-        //         $file = $root."/".implode("/", $parts).".template.php";
-        //         if (file_exists($file)) {
-        //             $this->setLayout($file); break;
-        //         }
-        //         array_shift($parts);
-        //     }
-        //     $file = b::config()->value("project.templates")."/layout.template.php";
-        //     if (file_exists($file)) {
-        //         $this->setLayout($file);
-        //     }
-        // }
-
-        if ($this->_template !== false AND $this->_content === null) {
-            $this->setContent(b::render(array(
-                'render' => $this->_render,
-                'file' => $this->_template,
-                'self' => $this,
-                'vars' => $this->_params
-            )));
-        }
-        else if ($this->_render AND $this->_content === null) {
-            $this->setContent(b::render(array(
-                'render' => $this->_render,
-                'string' => $this->_content,
-                'self' => $this,
-                'vars' => $this->_params
-            )));
-        }
-
-        // layout
-        if ($this->hasLayout()) {
-            $this->_params->set('yield', $this->getContent());
-            $this->setContent(b::render(array(
-                'render' => $this->_render,
-                'file' => $this->_layout,
-                'self' => $this,
-                'vars' => $this->_params
-            )));
-        }
-
-
         // after render
         call_user_func(array($this,'after'));
 
@@ -607,13 +539,51 @@ class controller extends \bolt\event implements iController {
      * @param $render name of render plugin
      * @return self
      */
-    public function renderTemplate($file, $vars=array(), $render=false) {
-        return b::render(array(
+    public function template($file, $vars=array(), $render=false) {
+
+        if (!file_exists($file)) {
+            $file = b::config('project')->value("templates")."/".$file;
+        }
+
+        if (stripos($file, '.template.php') === false) {
+            $file .= '.template.php';
+        }
+
+        $params = $this->_params;
+
+        // globals
+        foreach (self::$globals as $name => $value) {
+            $params->set($name, $value);
+        }
+
+        // add any set data to the params load
+        foreach ($this->_properties as $name) {
+            $params->set($name, $this->{$name});
+        }
+
+        foreach ($vars as $name => $value) {
+            $params->set($name, $value);
+        }
+
+        $html = b::render(array(
+            'render' => $this->_render,
             'file' => $file,
-            'vars' => $vars,
-            'render' => $render,
-            'self' => $this
+            'self' => $this,
+            'vars' => $params
         ));
+
+        if ($this->hasLayout()) {
+            $params->set('yield', $html);
+            $html = b::render(array(
+                'render' => $this->_render,
+                'file' => $this->_layout,
+                'self' => $this,
+                'vars' => $params
+            ));
+        }
+
+
+        return $html;
     }
 
     /**

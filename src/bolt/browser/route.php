@@ -145,7 +145,7 @@ class route extends \bolt\plugin\singleton {
      * @param $class controller class (default b::config->router)
      * @return router object
      */
-    public function register($paths, $class=false) {
+    public function register($path, $class=false) {
 
         if (is_a($class, 'Closure')) {
             $tmp = new \bolt\browser\controller\closure();
@@ -154,18 +154,18 @@ class route extends \bolt\plugin\singleton {
         }
 
         // if paths is not an object
-        if (!is_object($paths)) {
+        if (!is_object($path)) {
             $cl = $this->_defaultParser;
-            $paths = new $cl($paths, $class);
+            $route = new $cl($path, $class);
         }
 
         // bad parent class
-        if (!in_array('bolt\browser\route\parser', class_parents($paths))) {
+        if (!in_array('bolt\browser\route\parser', class_parents($route))) {
             return false;
         }
 
         // add it
-        return ($this->_routes[] = $paths);
+        return ($this->_routes[] = $route);
 
     }
 
@@ -192,26 +192,70 @@ class route extends \bolt\plugin\singleton {
             return ($a > $b) ? -1 : 1;
         });
 
-        $route = false;
-
         // normalize the path
-        $path = "/".trim($path, '/ ');
+        $path = $opath = "/".trim($path, '/ ');
 
+        $routes = array();
+        $route = false;
+        $rTypes = array('html' => true);
 
         // loop through each route and
         // try to match it
-        foreach ($this->_routes as $_route) {
+        foreach ($this->_routes as $item) {
 
-            // see if path has .response
-            if ($_route->getResponse()) {
-                foreach ($_route->getResponse() as $ext) {
-                    if (preg_match('#\.('.$ext.')$/?#', $path)) {
-                        $path = preg_replace('#\.('.$ext.')$#', '', $path);
-                        $_route->responseType($ext);
-                        break;
-                    }
+            // see if there are responses
+            if ($item->getResponse()) {
+                $response = $item->getResponse();
+
+                foreach ($item->getResponse() as $ext) {
+                    if ($ext == 'html') {continue;}
+
+                    $i = clone $item;
+
+                    $rTypes[$ext] = true;
+
+                    $i->name($i->getName()."_{$ext}");
+
+                    // set the response type
+                    $i->responseType($ext);
+
+                    // update our ext
+                    $i->setPath($i->getPath().'{__b_response}');
+                    $i->validate('__b_response', "\.{$ext}");
+
+                    // add to the list
+                    $routes[] = $i;
                 }
+
+
+                // set the response type
+                $item
+                    ->responseType('html')
+                    ->setPath($item->getPath().'{__b_response}')
+                    ->validate('__b_response', "\.html")
+                    ->setAutoResponseType();
+
+                $routes[] = $item;
+
+
             }
+            else {
+                // set the response type
+                $item
+                    ->responseType('html')
+                    ->setPath($item->getPath().'{__b_response}')
+                    ->validate('__b_response', "\.html")
+                    ->setAutoResponseType();
+                $routes[] = $item;
+            }
+
+        }
+
+        if (!preg_match("#\.".implode("|", array_keys($rTypes))."$#", $path)) {
+            $path .= '.html';
+        }
+
+        foreach ($routes as $_route) {
 
             // method match
             if ($_route->getMethod() AND !in_array($method, $_route->getMethod())) {continue;}
@@ -226,6 +270,11 @@ class route extends \bolt\plugin\singleton {
         }
 
         if (!$route) {
+            return false;
+        }
+
+        // if we forced a match and oPath != path, don't work
+        if ($route->getAutoResponseType() AND !$route->setPath($route->getOriginalPath())->match($opath)) {
             return false;
         }
 
@@ -377,9 +426,6 @@ class route extends \bolt\plugin\singleton {
                     }
                     foreach ($route as $item) {
                         $r = $this->register($base.$item['route'], $class->getName());
-                        if (count($dao)) {
-                            $r->dao($dao);
-                        }
                         foreach ($item as $name => $value) {
                             if ($name != 'route') {
                                 call_user_func(array($r, $name), $value);

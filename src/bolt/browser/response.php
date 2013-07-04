@@ -18,9 +18,9 @@ class response extends \bolt\plugin {
 
     private $_headers;
     private $_status = 200;
-    private $_contentType = false;
     private $_content = false;
     private $_data = array();
+    private $_responseType = 'html';
 
     /**
      * construct a response
@@ -83,8 +83,8 @@ class response extends \bolt\plugin {
      *
      * @return self
      */
-    public function getContentType() {
-        return $this->_contentType;
+    public function getResponseType() {
+        return $this->_responseType;
     }
 
     /**
@@ -93,8 +93,8 @@ class response extends \bolt\plugin {
      * @param $type content type string
      * @return self
      */
-    public function setContentType($type) {
-        $this->_contentType = $type;
+    public function setResponseType($type) {
+        $this->_responseType = $type;
         return $this;
     }
 
@@ -154,42 +154,19 @@ class response extends \bolt\plugin {
      *
      * @return response plugin
      */
-    public function getOutputHandler() {
+    public function getOutputHandler($rType) {
 
-        // content type
-        if ($this->_contentType === false) {
-            $this->_contentType = b::request()->getAccept();
-        }
-
-        $map = array();
 
         // loop through all our plugins
         // to figure out which render to use
         foreach ($this->getPlugins() as $plug => $class) {
-            foreach ($class::$contentType as $weight => $str) {
-                $map[] = array($weight, $str, $plug);
+            if ($plug == $rType) {
+                return $this->call($plug);
             }
         }
 
-        // sort renders by weight
-        uasort($map, function($a,$b){
-            if ($a[0] == $b[0]) {
-                return 0;
-            }
-            return ($a[0] > $b[0]) ? -1 : 1;
-        });
-
-        $plug='plain';
-
-        // loop it
-        foreach ($map as $item) {
-            if ($item[1] == $this->_contentType) {
-                $plug = $item[2]; break;
-            }
-        }
-
-        // get our
-        return $this->call($plug);
+        // plain
+        return $this->call('plain');
 
     }
 
@@ -203,8 +180,10 @@ class response extends \bolt\plugin {
         // before
         $this->fire('before');
 
+        $rType = $this->_responseType;
+
         // handler
-        $handler = $this->getOutputHandler();
+        $handler = $this->getOutputHandler($rType);
 
         $content = $this->_content;
         $status = $this->_status;
@@ -216,13 +195,11 @@ class response extends \bolt\plugin {
 
             // set some things for the handler
             $handler
-                ->setContentType($this->_contentType)
                 ->setStatus($this->_status)
                 ->setData($this->_data)
                 ->setContent($this->_content);
 
             $content = $handler->handle();
-
             $status = $handler->getStatus();
             $data = $handler->getData();
             $type = $handler->getContentType();

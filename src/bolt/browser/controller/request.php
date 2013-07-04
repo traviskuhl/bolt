@@ -6,12 +6,12 @@ use \b;
 class request extends \bolt\browser\controller {
 
     // render
-    private $_content = false;
     private $_data = array();
     private $_properties = array();
     private $_hasRendered = false;
     private $_route = false;
     private $_method = false;
+
 
     /**
      * set the route
@@ -130,6 +130,7 @@ class request extends \bolt\browser\controller {
             $params = $route->getParams();
             $action = $route->getAction();
 
+            var_dump($route); die;
 
             // are there models that need to be setup
             if ($route->getModel() AND property_exists($this, 'models')) {
@@ -150,6 +151,8 @@ class request extends \bolt\browser\controller {
                             $info['args'][$i] = (array_key_exists($_, $params) ? $params[$_] : false);
                         }
                     }
+
+                    var_dump($info); die;
 
                     $params[$name] = call_user_func_array(array($model, $info['method']), $info['args']);
 
