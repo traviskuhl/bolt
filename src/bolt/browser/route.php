@@ -195,86 +195,22 @@ class route extends \bolt\plugin\singleton {
         // normalize the path
         $path = $opath = "/".trim($path, '/ ');
 
-        $routes = array();
         $route = false;
-        $rTypes = array('html' => true);
 
-        // loop through each route and
-        // try to match it
+        // routes
         foreach ($this->_routes as $item) {
 
-            // see if there are responses
-            if ($item->getResponse()) {
-                $response = $item->getResponse();
-
-                foreach ($item->getResponse() as $ext) {
-                    if ($ext == 'html') {continue;}
-
-                    $i = clone $item;
-
-                    $rTypes[$ext] = true;
-
-                    $i->name($i->getName()."_{$ext}");
-
-                    // set the response type
-                    $i->responseType($ext);
-
-                    // update our ext
-                    $i->setPath($i->getPath().'{__b_response}');
-                    $i->validate('__b_response', "\.{$ext}");
-
-                    // add to the list
-                    $routes[] = $i;
-                }
-
-
-                // set the response type
-                $item
-                    ->responseType('html')
-                    ->setPath($item->getPath().'{__b_response}')
-                    ->validate('__b_response', "\.html")
-                    ->setAutoResponseType();
-
-                $routes[] = $item;
-
-
-            }
-            else {
-                // set the response type
-                $item
-                    ->responseType('html')
-                    ->setPath($item->getPath().'{__b_response}')
-                    ->validate('__b_response', "\.html")
-                    ->setAutoResponseType();
-                $routes[] = $item;
-            }
-
-        }
-
-        if (!preg_match("#\.".implode("|", array_keys($rTypes))."$#", $path)) {
-            $path .= '.html';
-        }
-
-        foreach ($routes as $_route) {
-
             // method match
-            if ($_route->getMethod() AND !in_array($method, $_route->getMethod())) {continue;}
+            if ($item->getMethod() AND !in_array($method, $item->getMethod())) {continue;}
 
-            if (!$route AND $_route->match($path) !== false) {
-                $route = $_route;
-            }
-            else if ($path === $_route->getPath()) {
-                $route = $_route; break;
+            if ($item->match($path) !== false) {
+                $route = $item; break;
             }
 
         }
+
 
         if (!$route) {
-            return false;
-        }
-
-        // if we forced a match and oPath != path, don't work
-        if ($route->getAutoResponseType() AND !$route->setPath($route->getOriginalPath())->match($opath)) {
             return false;
         }
 

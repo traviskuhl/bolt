@@ -298,8 +298,13 @@ class controller extends \bolt\event implements iController {
      *
      * @return view content
      */
-    public function getContent($type=false) {
-        return ($type ? $this->_content[$type] : $this->_content);
+    public function getContent($type=false, $render=false) {
+        if ($type AND !array_key_exists($type, $this->_content)) {return false; }
+        $resp = ($type ? $this->_content[$type] : $this->_content);
+        if ($render AND is_object($resp) AND method_exists($resp, 'render')) {
+            return $resp->render();
+        }
+        return $resp;
     }
 
     /**
@@ -332,7 +337,7 @@ class controller extends \bolt\event implements iController {
      */
     public function setLayout($layout) {
         if ($layout === false) {
-            $_layout = null;
+            $layout = null;
         }
         else if (!file_exists($layout)) {
             $layout = b::config('project')->value("templates")."/".$layout;
@@ -517,6 +522,9 @@ class controller extends \bolt\event implements iController {
             return $run;
 
         }
+        else if (is_a($resp, '\bolt\browser\template') || is_array($resp) || is_string($resp)) {
+            $this->setContent($resp);
+        }
 
         // after render
         call_user_func(array($this,'after'));
@@ -565,25 +573,10 @@ class controller extends \bolt\event implements iController {
             $params->set($name, $value);
         }
 
-        $html = b::render(array(
-            'render' => $this->_render,
-            'file' => $file,
-            'self' => $this,
-            'vars' => $params
-        ));
+        // return a template object
+        // to delay render until we need it
+        return new template($this, $file, $this->_layout, $params, $this->_render);
 
-        if ($this->hasLayout()) {
-            $params->set('yield', $html);
-            $html = b::render(array(
-                'render' => $this->_render,
-                'file' => $this->_layout,
-                'self' => $this,
-                'vars' => $params
-            ));
-        }
-
-
-        return $html;
     }
 
     /**
@@ -602,6 +595,46 @@ class controller extends \bolt\event implements iController {
             'render' => $render,
             'self' => $this
         ));
+    }
+
+}
+
+class template {
+    private $_file;
+    private $_vars;
+    private $_layout = false;
+    private $_render;
+    private $_parent;
+
+    public function __construct($parent, $file, $layout, $vars, $render) {
+        $this->_parent = $parent;
+        $this->_file = $file;
+        $this->_layout = $layout;
+        $this->_vars = $vars;
+        $this->_render = $render;
+    }
+
+    public function render() {
+
+        $html = b::render(array(
+            'render' => $this->_render,
+            'file' => $this->_file,
+            'self' => $this->_parent,
+            'vars' => $this->_vars
+        ));
+
+        if ($this->_layout) {
+            $this->_vars->set('yield', $html);
+            $html = b::render(array(
+                'render' => $this->_render,
+                'file' => $this->_layout,
+                'self' => $this->_parent,
+                'vars' => $this->_vars
+            ));
+        }
+
+        return $html;
+
     }
 
 }

@@ -21,6 +21,7 @@ class response extends \bolt\plugin {
     private $_content = false;
     private $_data = array();
     private $_responseType = 'html';
+    private $_contentType = 'text/plain';
 
     /**
      * construct a response
@@ -98,6 +99,15 @@ class response extends \bolt\plugin {
         return $this;
     }
 
+    public function setContentType($type) {
+        $this->_contentType = $type;
+        return $this;
+    }
+
+    public function getContentType() {
+        return $this->_contentType;
+    }
+
     /**
      * get response headers
      *
@@ -166,7 +176,7 @@ class response extends \bolt\plugin {
         }
 
         // plain
-        return $this->call('plain');
+        return false;
 
     }
 
@@ -189,6 +199,7 @@ class response extends \bolt\plugin {
         $status = $this->_status;
         $data = $this->_data;
         $type = $this->_contentType;
+
 
         // is there a handler
         if ($handler) {

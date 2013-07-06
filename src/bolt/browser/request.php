@@ -25,7 +25,6 @@ class request extends \bolt\plugin\singleton {
     private $_route = false;
     private $_content = false;
     private $_data = array();
-    private $_responseType = "html";
 
     /**
      * construct a new instance
@@ -251,7 +250,12 @@ class request extends \bolt\plugin\singleton {
     }
 
     public function getResponseType() {
-        return $this->_responseType;
+        return b::response()->getResponseType();
+    }
+
+    public function setResponseType($type) {
+        b::response()->setResponseType($type);
+        return $this;
     }
 
     /**
@@ -313,7 +317,7 @@ class request extends \bolt\plugin\singleton {
             $controller->setRoute($route);
 
             // route
-            $this->_responseType = $route->getResponseType();
+            $this->setResponseType($route->getResponseType());
 
         }
 
@@ -329,7 +333,7 @@ class request extends \bolt\plugin\singleton {
                         ->render();
 
         // set the controller
-        $this->_content = $controller->getContent($this->_responseType);
+        $this->_content = $controller->getContent($this->getResponseType(), true);
         $this->_data = $controller->getData();
 
         $_args = array(

@@ -26,7 +26,9 @@ abstract class parser extends \bolt\event {
     private $_model = array();
     private $_response = false;
     private $_responsetype = 'html';
-    private $_autoResponseType = false;
+
+    // compiled
+    protected $_compiled = false;
 
     /**
      * contrcut a new route parser
@@ -39,6 +41,7 @@ abstract class parser extends \bolt\event {
         $this->_name = uniqid('route');
         $this->_opath = $this->_path = $path;
         $this->_controller = $controller;
+        $this->init();
     }
 
     public function setPath($path) {
@@ -50,14 +53,6 @@ abstract class parser extends \bolt\event {
         return $this->_opath;
     }
 
-    public function setAutoResponseType() {
-        $this->_autoResponseType = true;
-        return $this;
-    }
-
-    public function getAutoResponseType() {
-        return $this->_autoResponseType;
-    }
 
     /**
      * MAGIC call a method
@@ -171,7 +166,7 @@ abstract class parser extends \bolt\event {
      * @return self
      */
     public function optional($params) {
-        $this->_optional = array_merge($this->_optional, $params);
+        $this->_optional = array_merge($this->_optional, (is_array($params) ? $params : explode(",", $params)));
         return $this;
     }
 
@@ -243,5 +238,9 @@ abstract class parser extends \bolt\event {
      * @return route object
      */
     abstract public function match($path);
+
+    protected function compile() {
+
+    }
 
 }

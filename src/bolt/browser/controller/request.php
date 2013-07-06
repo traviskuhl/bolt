@@ -108,6 +108,12 @@ class request extends \bolt\browser\controller {
         return $this;
     }
 
+
+    public function setResponseType($type) {
+        b::response()->setResponseType($type);
+        return $this;
+    }
+
     /**
      * execute the controller
      *
@@ -130,8 +136,6 @@ class request extends \bolt\browser\controller {
             $params = $route->getParams();
             $action = $route->getAction();
 
-            var_dump($route); die;
-
             // are there models that need to be setup
             if ($route->getModel() AND property_exists($this, 'models')) {
                 foreach ($route->getModel() as  $name) {
@@ -151,9 +155,6 @@ class request extends \bolt\browser\controller {
                             $info['args'][$i] = (array_key_exists($_, $params) ? $params[$_] : false);
                         }
                     }
-
-                    var_dump($info); die;
-
                     $params[$name] = call_user_func_array(array($model, $info['method']), $info['args']);
 
                     // unless model is optional
