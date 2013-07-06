@@ -233,7 +233,7 @@ class mongo extends base {
 			unset($data['id']);
 		}
 
-        $id = $data['_id'];
+        $id = new \MongoId((string)$data['_id']);
 
         unset($data['_id']);
 

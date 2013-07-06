@@ -12,7 +12,8 @@ b::plug(array(
 
 // add our url helper
 b::render()->once('before', function() {
-    b::render()->handlebars->helper('url', function($template, $context, $args, $text) {
+
+    b::render()->helper('url', function($template, $context, $args, $text) {
         if (empty($args)) {return;}
         if (preg_match_all('#\$([a-zA-Z0-9_\.]+)#', $args, $matches, PREG_SET_ORDER)) {
             foreach ($matches as $match) {
@@ -23,7 +24,8 @@ b::render()->once('before', function() {
                 $args = str_replace($match[0], $val, $args);
             }
         }
-        $parts = explode(",", trim($args));
+
+        $parts = explode(" ", trim($args));
         if (count($parts) == 0) return;
         $name = trim(array_shift($parts));
         $params = array();

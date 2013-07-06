@@ -62,11 +62,10 @@ class controller extends \bolt\event implements iController {
     private $_params;
     private $_data;
     private $_action = 'build';
+    private $_templateBasePath = false;
 
     // static
     protected $_fromInit = false;
-    protected $layout = null;
-    protected $template = null;
 
     /**
      * contruct a new view
@@ -79,14 +78,6 @@ class controller extends \bolt\event implements iController {
         $this->_bguid = uniqid('b');
         $this->_params = b::bucket($params);
         $this->_parent = $parent;
-
-        // check if a layout property is set
-        if ($this->layout !== null) {
-            $this->setLayout($this->layout);
-        }
-        if ($this->template !== null) {
-            $this->setTemplate($this->template);
-        }
 
         // any properties
         $ref = new \ReflectionClass($this);
@@ -124,12 +115,6 @@ class controller extends \bolt\event implements iController {
      */
     protected function init() {}
 
-    /**
-     * called by render to set content
-     *
-     * @return void
-     */
-    protected function build() {}
 
     /**
      * called by render before build
@@ -336,12 +321,6 @@ class controller extends \bolt\event implements iController {
      * @return self
      */
     public function setLayout($layout) {
-        if ($layout === false) {
-            $layout = null;
-        }
-        else if (!file_exists($layout)) {
-            $layout = b::config('project')->value("templates")."/".$layout;
-        }
         $this->_layout = $layout;
         return $this;
     }
@@ -361,7 +340,7 @@ class controller extends \bolt\event implements iController {
      * @return bool
      */
     public function hasLayout() {
-        return $this->_layout !== null;
+        return $this->_layout;
     }
 
     /**
@@ -371,13 +350,12 @@ class controller extends \bolt\event implements iController {
      * @return self
      */
     public function setTemplate($file) {
-        if ($file === false) {
-            $this->_template = false;
-        }
-        else if (!file_exists($file)) {
-            $file = b::config('project')->value("templates")."/".$file;
-        }
         $this->_template = $file;
+        return $this;
+    }
+
+    public function setBaseTemplatePath($path) {
+        $this->_templateBasePath = $path;
         return $this;
     }
 
@@ -547,16 +525,54 @@ class controller extends \bolt\event implements iController {
      * @param $render name of render plugin
      * @return self
      */
-    public function template($file, $vars=array(), $render=false) {
+    public function template($file, $vars=array(), $layout=null) {
+        if ($layout === null) {
+            $layout = $this->_layout;
+        }
 
+        // file exists
         if (!file_exists($file)) {
-            $file = b::config('project')->value("templates")."/".$file;
+            $file = b::config('project')->value("templates")."/".ltrim($this->_templateBasePath,'/').$file;
         }
 
-        if (stripos($file, '.template.php') === false) {
-            $file .= '.template.php';
+        // still no file
+        // lets glob for any file extension that matches
+        if (!file_exists($file) AND ($found = glob("{$file}.*")) != false) {
+            $file = array_shift($found);
         }
 
+        // get our final list of params
+        $params = $this->_compileFinalParams($vars);
+
+        // return a template object
+        // to delay render until we need it
+        return new template($this, $file, $layout, $params);
+
+    }
+
+    // render template
+    public function renderTemplate($file, $vars=array(), $layout=false) {
+        return $this->template($file, $vars, $layout)->render();
+    }
+
+    /**
+     * render a string and set as controller content
+     *
+     *
+     * @param $str string to render
+     * @param $vars array of variable
+     * @return self
+     */
+    public function renderString($str, $vars=array()) {
+        $params = $this->_compileFinalParams($vars);
+        return b::render(array(
+            'string' => $str,
+            'vars' => $params,
+            'self' => $this
+        ));
+    }
+
+    private function _compileFinalParams($vars) {
         $params = $this->_params;
 
         // globals
@@ -573,28 +589,7 @@ class controller extends \bolt\event implements iController {
             $params->set($name, $value);
         }
 
-        // return a template object
-        // to delay render until we need it
-        return new template($this, $file, $this->_layout, $params, $this->_render);
-
-    }
-
-    /**
-     * render a string and set as controller content
-     *
-     *
-     * @param $str string to render
-     * @param $vars array of variable
-     * @param $render name of render plugin
-     * @return self
-     */
-    public function renderString($str, $vars=array(), $render=false) {
-        return b::render(array(
-            'string' => $str,
-            'vars' => $vars,
-            'render' => $render,
-            'self' => $this
-        ));
+        return $params;
     }
 
 }
@@ -603,21 +598,18 @@ class template {
     private $_file;
     private $_vars;
     private $_layout = false;
-    private $_render;
     private $_parent;
 
-    public function __construct($parent, $file, $layout, $vars, $render) {
+    public function __construct($parent, $file, $layout, $vars) {
         $this->_parent = $parent;
         $this->_file = $file;
         $this->_layout = $layout;
         $this->_vars = $vars;
-        $this->_render = $render;
     }
 
     public function render() {
 
         $html = b::render(array(
-            'render' => $this->_render,
             'file' => $this->_file,
             'self' => $this->_parent,
             'vars' => $this->_vars
@@ -626,7 +618,6 @@ class template {
         if ($this->_layout) {
             $this->_vars->set('yield', $html);
             $html = b::render(array(
-                'render' => $this->_render,
                 'file' => $this->_layout,
                 'self' => $this->_parent,
                 'vars' => $this->_vars

@@ -112,6 +112,7 @@ final class b {
         // template renders
         'bolt-core-render'          => "./bolt/render.php",
         'bolt-core-render-handlebars' => "./bolt/render/handlebars.php",
+        'bolt-core-render-php' => "./bolt/render/php.php",
 
         // source
         'bolt-core-source-mongo'      => "./bolt/source/mongo.php",

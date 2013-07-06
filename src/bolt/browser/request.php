@@ -25,6 +25,7 @@ class request extends \bolt\plugin\singleton {
     private $_route = false;
     private $_content = false;
     private $_data = array();
+    private $_parsedInput = false;
 
     /**
      * construct a new instance
@@ -97,6 +98,9 @@ class request extends \bolt\plugin\singleton {
                 return $this->_get;
             case 'post':
                 return $this->_post;
+            case 'patch':
+            case 'put':
+                return $this->getParsedInput();
             case 'request':
                 return $this->_request;
             case 'server':
@@ -107,6 +111,8 @@ class request extends \bolt\plugin\singleton {
                 return $this->getHeaders();
             case 'input':
                 return $this->getInput();
+            case 'parsedInput':
+                return $this->getParsedInput();
             default:
                 return $this->_params->get($name);
         };
@@ -174,6 +180,20 @@ class request extends \bolt\plugin\singleton {
      */
     public function getInput() {
         return $this->_input;
+    }
+
+    public function getParsedInput() {
+        if (!$this->_parsedInput) {
+            $params = [];
+            if (($this->_input{0} == '{' OR $this->_input{0} == '[') AND ($json = json_decode($this->_input, true)) != false) {
+                $params = $json;
+            }
+            else {
+                parse_str($this->_input, $params);
+            }
+            $this->_parsedInput = b::bucket($params);
+        }
+        return $this->_parsedInput;
     }
 
     /**

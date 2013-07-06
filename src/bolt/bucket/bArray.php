@@ -93,6 +93,13 @@ class bArray implements \bolt\iBucket, \ArrayAccess, \Iterator, \Countable {
 
     }
 
+    public function remove($name) {
+        if (array_key_exists($name, $this->_data)) {
+            unset($this->_data[$name]);
+        }
+        return $this;
+    }
+
     /**
      * MAGIC test if a value is set
      *
@@ -102,6 +109,10 @@ class bArray implements \bolt\iBucket, \ArrayAccess, \Iterator, \Countable {
      */
     public function __isset($name) {
         return $this->exists($name);
+    }
+
+    public function __unset($name) {
+        return $this->remove($name);
     }
 
     public function __get($name){
@@ -210,14 +221,12 @@ class bArray implements \bolt\iBucket, \ArrayAccess, \Iterator, \Countable {
      * @return self
      */
     public function push($value, $key=null) {
+
         if ($key !== null) {
-            $this->_data[$key] = $value;
+            $this->_data[$key] = \bolt\bucket::byType($value, $key, $this);
         }
         else {
-            $this->_data[] = $value;
-        }
-        if ($this->_parent) {
-            $this->_parent->set($this->_root, $this->_data);
+            $this->_data[] = \bolt\bucket::byType($value, false, $this);
         }
         return $this;
     }

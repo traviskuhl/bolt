@@ -13,6 +13,7 @@ class bObject implements \bolt\iBucket {
     }
 
     public function __get($name) {
+        if ($name == 'value') { return $this->_obj; }
         return $this->_obj->$name;
     }
     public function __set($name, $value) {

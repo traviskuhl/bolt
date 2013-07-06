@@ -7,23 +7,48 @@ use \b;
 // add our render helper on run
 b::render()->once('before', function() {
 
-    // render
-    b::render()->handlebars->helper('module', function($template, $context, $args, $text) {
+    // find all named modules
+    $modules = b::getDefinedSubClasses('\bolt\browser\controller\module');
 
-        $parts = explode(' ', $args);
-        $class = trim(array_shift($parts), '"\'');
-        $params = array();
-        if (trim($text) AND is_array(json_decode(trim($text), true))) {
-            $params += array_merge($params, json_decode(trim($text), true));
+    foreach ($modules as $module) {
+        if (!$module->hasConstant('NAME')) {continue;}
+        $name = $module->getConstant('NAME');
+        module::$_modules[$name] = $module->name;
+    }
+
+    // render
+    b::render()->helper('module', function($template, $context, $args, $text) {
+        $args = explode(' ', trim($args));
+        $name = array_shift($args);
+        $class = false;
+        if (array_key_exists($name, module::$_modules)) {
+            $class = module::$_modules[$name];
         }
-        else if ($parts) {
-            $params = json_decode(trim(implode(" ", $parts)), true);
+        else if (class_exists($name)) {
+            $class = $name;
         }
-        $v =  b::controller($class)->setParams($params);
-        if ($context->get('controller')) {
-            $v->setController($context->get('controller'));
+        else {
+            return '';
         }
-        return $v->render();
+        $params = b::bucket(array());
+        if ($context->get('self')) {
+            $params = $context->get('self')->getParams();
+        }
+        if (count($args)) {
+            foreach ($args as $arg) {
+                if (stripos($arg, '=') !== false) {
+                    list($k, $v) = explode('=', $arg);
+                    $params[$k] = $v;
+                }
+            }
+        }
+        if (!empty($text) AND ($json = json_decode(trim($text), true)) !== null) {
+            foreach ($json as $k => $v) {
+                $params[$k] = $v;
+            }
+        }
+        $mod = new $class();
+        return $mod->render($params);
     });
 
 });
@@ -31,6 +56,13 @@ b::render()->once('before', function() {
 
 class module extends \bolt\browser\controller {
 
+    static $_modules = array();
+
     protected $_action = 'build';
+
+    public function render($args=array()) {
+        parent::render($args);
+        return $this->getContent('html', true);
+    }
 
 }

@@ -78,6 +78,7 @@ class token extends parser {
 
         $params = $this->_tokens;
 
+
         // see if we can find something
         if (preg_match_all($this->_compiled, $uri, $matches)) {
 

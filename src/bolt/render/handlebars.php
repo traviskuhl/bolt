@@ -3,13 +3,11 @@
 namespace bolt\render;
 use \b;
 
-b::render()->plug('handlebars', '\bolt\render\handlebars');
+class handlebars extends base {
 
-class handlebars extends \bolt\plugin\singleton {
+    public static $extension = array('hbr');
 
     private $_eng = false;
-    private $_partials = array();
-    private $_helpers = array();
 
     public function __construct() {
 
@@ -20,44 +18,22 @@ class handlebars extends \bolt\plugin\singleton {
             }
         ));
 
-        // partials to load
-        if (b::config()->exists('project.partials')) {
-            $dir = b::config()->value('project.partials');
-            if (file_exists($dir)) {
-                foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($dir)) as $item) {
-                    if ($item->isFile()) {
-                        $name = trim(str_replace(array($dir, '.template', '.'.$item->getExtension()), '', $item->getPathname()), '/');
-                        $this->partial($name, $item->getPathname());
-                    }
-                }
-            }
-        }
-
         // add our default helpers
         $this->_addHelpers();
-    }
-
-    public function partial($name, $file) {
-        $this->_partials[$name] = $file;
-    }
-
-    public function helper($name, $cb) {
-        $this->_helpers[$name] = $cb;
     }
 
     public function render($str, $vars=array()) {
 
         // load any unload partials
-        foreach ($this->_partials as $name => $file) {
+        foreach ($this->getPartials() as $name => $file) {
             if (!array_key_exists($name, $this->_eng->_partials)) {
                 $this->_eng->_partials[$name] = $file;
             }
         }
 
         // helpers
-        foreach ($this->_helpers as $name => $file) {
-            $this->_eng->addHelper($name, $file);
-            unset($this->_helpers[$name]);
+        foreach ($this->getHelpers() as $name => $cb) {
+            $this->_eng->addHelper($name, $cb[0]);
         }
 
         // make sure variables are a bucket
