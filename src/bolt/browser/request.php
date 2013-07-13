@@ -300,7 +300,6 @@ class request extends \bolt\plugin\singleton {
 		// route we need to take
 		$route = b::route()->match($pathInfo, $method);
 
-
 		// no route just die right now
 		if (!$route) {
 			$controller = b::browser()->error('404', "No route for path '".strtoupper($method)." {$pathInfo}'");

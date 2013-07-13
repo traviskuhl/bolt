@@ -10,7 +10,7 @@ class request extends \bolt\browser\controller {
     private $_properties = array();
     private $_hasRendered = false;
     private $_route = false;
-    private $_method = false;
+    private $_method = "GET";
 
 
     /**
