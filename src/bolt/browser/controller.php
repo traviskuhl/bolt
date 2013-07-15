@@ -321,7 +321,7 @@ class controller extends \bolt\event implements iController {
      * @return self
      */
     public function setLayout($layout) {
-        $this->_layout = $layout;
+        $this->_layout = $this->_getFilePath($layout);
         return $this;
     }
 
@@ -496,8 +496,12 @@ class controller extends \bolt\event implements iController {
 
             }
 
+            if (b::isInterfaceOf($last, '\bolt\browser\iController')) {
+                $last = $last->getContent();
+            }
+
             // return run
-            return $run;
+            $this->setContent($last);
 
         }
         else if (is_a($resp, '\bolt\browser\template') || is_array($resp) || is_string($resp)) {
@@ -531,15 +535,7 @@ class controller extends \bolt\event implements iController {
         }
 
         // file exists
-        if (!file_exists($file)) {
-            $file = b::config('project')->value("templates")."/".ltrim($this->_templateBasePath,'/').$file;
-        }
-
-        // still no file
-        // lets glob for any file extension that matches
-        if (!file_exists($file) AND ($found = glob("{$file}.*")) != false) {
-            $file = array_shift($found);
-        }
+        $file = $this->_getFilePath($file);
 
         // get our final list of params
         $params = $this->_compileFinalParams($vars);
@@ -570,6 +566,22 @@ class controller extends \bolt\event implements iController {
             'vars' => $params,
             'self' => $this
         ));
+    }
+
+    private function _getFilePath($file) {
+
+        // file exists
+        if (!file_exists($file)) {
+            $file = b::config('project')->value("templates")."/".ltrim($this->_templateBasePath,'/').$file;
+        }
+
+        // still no file
+        // lets glob for any file extension that matches
+        if (!file_exists($file) AND ($found = glob("{$file}.*")) != false) {
+            $file = array_shift($found);
+        }
+
+        return $file;
     }
 
     private function _compileFinalParams($vars) {

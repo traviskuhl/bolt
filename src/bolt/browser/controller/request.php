@@ -184,11 +184,16 @@ class request extends \bolt\browser\controller {
         if (method_exists($this, 'dispatch')) {
             $act = 'dispatch';
         }
-        else if (method_exists($this, $method.$action)) {
-            $act = $method.$action;
-        }
-        else if (method_exists($this, $action)) {
-            $act = $action;
+        else if ($action) {
+            if (method_exists($this, $method.$action)) {
+                $act = $method.$action;
+            }
+            else if (method_exists($this, $action)) {
+                $act = $action;
+            }
+            else {
+                $act = 'noRouteActionError';
+            }
         }
         else if (method_exists($this, $method)) {
             $act = $method;
@@ -209,6 +214,12 @@ class request extends \bolt\browser\controller {
     }
 
     protected function build() {}
+
+    protected function noRouteActionError() {
+        $method = $this->_method;
+        $action = $this->_route->getAction();
+        return b::browser()->error("Unable to find route action '$method $action'", 404);
+    }
 
     // postModel
     protected function postModel(\bolt\browser\request $req) {

@@ -355,7 +355,7 @@ class bArray implements \bolt\iBucket, \ArrayAccess, \Iterator, \Countable {
      * @return bool if it exists
      */
     public function exists($name) {
-        return array_key_exists($name, $this->_data);
+        return $this->get($name, -1) !== -1;
     }
 
     /**

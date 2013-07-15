@@ -217,6 +217,7 @@ class response extends \bolt\plugin {
 
         }
 
+
         // print a content type
         if (!headers_sent()) {
 

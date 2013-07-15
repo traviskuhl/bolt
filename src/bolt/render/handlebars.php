@@ -69,6 +69,18 @@ class handlebars extends base {
                 var_dump($args); die;
                 if (substr($args,-1) !== ';') { $args .=';'; }
                 return eval("return $args");
+            },
+            'b' => function($template, $context, $args, $text) {
+                $args = explode(' ', $args);
+
+                $plugins = explode('.', array_shift($args));
+                $last = array_pop($plugins);
+                $b = b::bolt();
+                foreach ($plugins as $plug) {
+                    $b = call_user_func(array($b, $plug));
+                }
+                if (!is_object($b) OR !method_exists($b, $last)) {return;}
+                return call_user_func_array(array($b, $last),$args);
             }
         );
         foreach ($helpers as $name => $cb) {
