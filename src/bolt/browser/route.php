@@ -205,8 +205,11 @@ class route extends \bolt\plugin\singleton {
             // method match
             if ($item->getMethod() AND !in_array($method, $item->getMethod())) {continue;}
 
-            if ($item->match($path) !== false) {
-                $route = $item; break;
+            if ($item->getPath() == $path) {
+                $route = $item;
+            }
+            else if (!$route AND $item->match($path) !== false) {
+                $route = $item;
             }
 
         }

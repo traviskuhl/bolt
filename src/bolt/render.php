@@ -104,6 +104,7 @@ class render extends plugin\singleton {
 
         // uniq
         $vars["_buid"] = uniqid("b");
+        $vars["b"] = b::bolt();
 
         // if we have a file, lets try to load it
         if ($file) {
