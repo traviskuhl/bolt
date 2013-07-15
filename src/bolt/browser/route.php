@@ -214,7 +214,6 @@ class route extends \bolt\plugin\singleton {
 
         }
 
-
         if (!$route) {
             return false;
         }
@@ -254,9 +253,12 @@ class route extends \bolt\plugin\singleton {
     public function url($name, $data=array(), $query=array(), $args=array()) {
         $prefix = "/";
 
-
         // if we already have url
-        if (substr($name, 0, 4) == 'http') {
+        if (is_array($name)) {
+            $base = new \Net_URL2("");
+            $args = $name;
+        }
+        else if (substr($name, 0, 4) == 'http') {
             $base = new \Net_URL2($name);
             $base->setQueryVariables($data);
             $args = $query;
@@ -357,6 +359,7 @@ class route extends \bolt\plugin\singleton {
 
                 // base
                 $base = rtrim($class->hasProperty('routeBase') ? $class->getProperty('routeBase')->getValue() : false, '/')."/";
+                $resp = rtrim($class->hasProperty('routeResponse') ? $class->getProperty('routeResponse')->getValue() : false, '/');
 
                 if (is_string($route)) {
                     $this->register($base.$route, $class->getName());
@@ -367,6 +370,9 @@ class route extends \bolt\plugin\singleton {
                     }
                     foreach ($route as $item) {
                         $r = $this->register($base.$item['route'], $class->getName());
+                        if (!array_key_exists('response', $item)) {
+                            $item['response'] = $resp;
+                        }
                         foreach ($item as $name => $value) {
                             if ($name != 'route') {
                                 call_user_func(array($r, $name), $value);

@@ -90,7 +90,7 @@ class helpers {
         }
         else if ( isset($a[1]) ) {
             if ( stripos($url,'http') === false )  {
-                $url = URI.trim($url,'/');
+                $url = b::url(trim($url,'/'));
             }
             $url = self::addUrlParams($url, $a[1]);
         }
