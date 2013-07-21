@@ -114,6 +114,11 @@ class request extends \bolt\browser\controller {
         return $this;
     }
 
+    public function setHeader($name, $value) {
+        b::response()->setHeader($name, $value);
+        return $this;
+    }
+
     /**
      * execute the controller
      *

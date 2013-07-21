@@ -168,7 +168,7 @@ class bString implements \bolt\iBucket {
     }
 
     public function explode($sep) {
-        return new \bolt\bucket\bArray($this->_value ? explode(',', $this->_value) : array());
+        return new \bolt\bucket\bArray($this->_value ? explode($sep, $this->_value) : array());
     }
 
     public function jsonDecode($type='bArray') {
