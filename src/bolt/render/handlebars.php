@@ -14,7 +14,7 @@ class handlebars extends base {
         $this->_eng = new \Handlebars_Engine(array(
             'delimiter' => "<% %>",
             'escape' => function($value) {
-                return htmlentities($value, ENT_QUOTES, 'UTF-8', false);
+                return (is_string($value) ? htmlentities($value, ENT_QUOTES, 'UTF-8', false) : $value);
             }
         ));
 

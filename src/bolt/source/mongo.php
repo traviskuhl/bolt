@@ -128,13 +128,13 @@ class mongo extends base {
 		}
 
 		// limit
-		if ( isset($args['per']) ) {
-			$sth->limit($args['per']);
+		if ( isset($args['limit']) ) {
+			$sth->limit($args['limit']);
 		}
 
 		// skip
-		if( isset($args['start']) ) {
-			$sth->skip($args['skip']);
+		if( isset($args['offset']) ) {
+			$sth->skip($args['offset']);
 		}
 
 		// sort
