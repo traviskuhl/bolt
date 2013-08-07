@@ -108,12 +108,6 @@ class request extends \bolt\browser\controller {
         return $this;
     }
 
-
-    public function setResponseType($type) {
-        b::response()->setResponseType($type);
-        return $this;
-    }
-
     public function setHeader($name, $value) {
         b::response()->setHeader($name, $value);
         return $this;
@@ -148,6 +142,7 @@ class request extends \bolt\browser\controller {
                     $info = $this->models[$name];
 
                     $model = b::model($info['model']);
+
                     if (!isset($info['method'])) {
                         $info['method'] = 'findById';
                     }
@@ -163,7 +158,7 @@ class request extends \bolt\browser\controller {
                     $params[$name] = call_user_func_array(array($model, $info['method']), $info['args']);
 
                     // unless model is optional
-                    if (b::param('optional', false, $info) === false AND $params[$name]->loaded() === false) {
+                    if ($method !== 'post' AND b::param('optional', false, $info) === false AND $params[$name]->loaded() === false) {
                         return b::browser()->error("Unable to load model '$name' ({$info['model']})", 404);
                     }
 
@@ -241,7 +236,7 @@ class request extends \bolt\browser\controller {
         $model = $this->{$name};
 
         // get all of our post request
-        $post = $req->post->asArray();
+        $post = $req->post->get($name)->asArray();
 
         // set in our model
         $model->set($post)->save();

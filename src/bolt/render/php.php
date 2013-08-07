@@ -16,7 +16,10 @@ class php extends base {
 
         ob_start();
 
-            eval(' ?>'.$string.'<?php ');
+        // eval is evil. you should never ever do this
+        // but i'm doing it anways... because i'm evil
+        // and not the diet coke kind of evil
+        eval(' ?>'.$string.'<?php ');
 
         $content = ob_get_contents(); ob_end_clean();
 

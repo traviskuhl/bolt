@@ -3,7 +3,9 @@
 namespace bolt\bucket;
 use \b;
 
-
+/**
+ * bucket array wrapper
+ */
 class bArray implements \bolt\iBucket, \ArrayAccess, \Iterator, \Countable {
 
     private $_bguid = false;
@@ -11,7 +13,15 @@ class bArray implements \bolt\iBucket, \ArrayAccess, \Iterator, \Countable {
     private $_parent = false;
     private $_data = array();
 
-
+    /**
+     * construct a new bArray object
+     *
+     * @param array $data array of data
+     * @param string $root key name
+     * @param object $parent parent objects
+     *
+     * @return \bolt\bucket\bArray new instances
+     */
     public function __construct($data, $root=false, $parent=false) {
         $this->_bguid = uniqid('b');
         $this->_root = $root;
@@ -21,10 +31,83 @@ class bArray implements \bolt\iBucket, \ArrayAccess, \Iterator, \Countable {
         $this->set(is_array($data) ? $data : array());
     }
 
+    /**
+     * unique id for this instance
+     *
+     * @return string guid
+     */
     public function bGuid() {
         return $this->_bguid;
     }
 
+    /**
+     * test if a value is set
+     *
+     * @param $name name of variable
+     * @see \bolt\bucket\bArray::exists()
+     * @return bool if value exists
+     */
+    public function __isset($name) {
+        return $this->exists($name);
+    }
+
+    /**
+     * unset a value
+     *
+     * @param string $name name of key to unset
+     * @see \bolt\bucket\bArray::remove
+     *
+     * @return bool
+     */
+    public function __unset($name) {
+        return $this->remove($name);
+    }
+
+    /**
+     * get a value
+     *
+     * @param string $name name of value to get
+     * @see \bolt\bucket\bArray::get
+     *
+     * @return mixed value
+     */
+    public function __get($name){
+        if ($name == 'value') {return $this->value(); }
+        return $this->get($name);
+    }
+
+    /**
+     * set a value
+     *
+     * @param string $name name of key to set
+     * @param mixed $value value
+     * @see \bolt\bucket\bArray::set
+     *
+     * @return self
+     */
+    public function __set($name, $value) {
+        $this->set($name, $value);
+        return $this;
+    }
+
+    /**
+     * return data as json string
+     *
+     * @see \bolt\bucket\bArray::toJson()
+     * @return json string
+     */
+    public function __toString() {
+        return $this->asJson();
+    }
+
+    /**
+     * return native array value
+     *
+     * @param string $name key name of requested value
+     * @param mixed $default default value to return if key doesn't exist
+     *
+     * @return mixed[] value of key
+     */
     public function value($name=false, $default=false) {
         if ($name) {
             return $this->get($name, $default)->value();
@@ -32,6 +115,11 @@ class bArray implements \bolt\iBucket, \ArrayAccess, \Iterator, \Countable {
         return $this->normalize();
     }
 
+    /**
+     * return a normalized/native array
+     *
+     * @return array normalized array
+     */
     public function normalize() {
         $normal = array();
         foreach ($this->_data as $k => $v) {
@@ -40,6 +128,15 @@ class bArray implements \bolt\iBucket, \ArrayAccess, \Iterator, \Countable {
         return $normal;
     }
 
+    /**
+     * return a value for a give key name
+     *
+     * @param mixed $name name of key
+     * @param mixed $default default value to return if no key exists
+     * @param bool $useDotNamespace expand dot notation in name
+     *
+     * @param \bolt\iBucket data value for name or $default as bucket
+     */
     public function get($name, $default=false, $useDotNamespace=true) {
         $oName = $name; // placeholder for future use
 
@@ -72,6 +169,14 @@ class bArray implements \bolt\iBucket, \ArrayAccess, \Iterator, \Countable {
 
     }
 
+    /**
+     * set a value for named key
+     *
+     * @param mixed $name name of key or array of values to set
+     * @param mixed[] value of named key
+     *
+     * @return self
+     */
     public function set($name, $value=false) {
         if (is_array($name)) {
             foreach ($name as $key => $value) {
@@ -81,58 +186,31 @@ class bArray implements \bolt\iBucket, \ArrayAccess, \Iterator, \Countable {
         }
 
         // set the data
-        $this->_data[$name] = \bolt\bucket::byType($value, $name, $this);
-
-        // if we're a parent
-        if ($this->_parent) {
-            // $this->_parent->set($this->root, $this->_data);
-        }
+        $this->_data[$name] = \bolt\bucket::byType($value, $name);
 
         // give me back
         return $this;
 
     }
 
+    /**
+     * unset a value from teh array
+     *
+     * @param string $name name or array of names to unset
+     *
+     * @return self
+     */
     public function remove($name) {
+        if (is_array($name)) {
+            foreach ($name as $key) {
+                $this->remove($key);
+            }
+            return $this;
+        }
         if (array_key_exists($name, $this->_data)) {
             unset($this->_data[$name]);
         }
         return $this;
-    }
-
-    /**
-     * MAGIC test if a value is set
-     *
-     * @param $name name of variable
-     * @see exists()
-     * @return bool if value exists
-     */
-    public function __isset($name) {
-        return $this->exists($name);
-    }
-
-    public function __unset($name) {
-        return $this->remove($name);
-    }
-
-    public function __get($name){
-        if ($name == 'value') {return $this->value(); }
-        return $this->get($name);
-    }
-
-    public function __set($name, $value) {
-        $this->set($name, $value);
-        return $this;
-    }
-
-    /**
-     * MAGIC return data as json string
-     *
-     * @see toJson()
-     * @return json string
-     */
-    public function __toString() {
-        return $this->asJson();
     }
 
     /**

@@ -66,7 +66,6 @@ class handlebars extends base {
                         ${$match[1]} = $val;
                     }
                 }
-                var_dump($args); die;
                 if (substr($args,-1) !== ';') { $args .=';'; }
                 return eval("return $args");
             },

@@ -48,11 +48,11 @@ class run extends \bolt\cli\command {
         chdir($src);
 
         // check for some things
-        if (file_exists("templates")) {
-            $args['config']['templates'] = realpath("./templates");
+        if (file_exists("views")) {
+            $args['config']['views'] = realpath("./views");
         }
-        if (file_exists("templates/_partials")) {
-            $args['config']['partials'] = realpath("./templates/_partials");
+        if (file_exists("views/_partials")) {
+            $args['config']['partials'] = realpath("./views/_partials");
         }
         if (file_exists("settings.json")) {
             $args['settings'] = new \bolt\settings\json(realpath("./settings.json"));

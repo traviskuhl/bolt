@@ -97,8 +97,13 @@ final class b {
         'bolt-core-config'   => "./bolt/config.php",
         'bolt-core-source'   => "./bolt/source.php",
         'bolt-core-cache'    => "./bolt/cache.php",
-        'bolt-core-bucket'   => "./bolt/bucket.php",
         'bolt-core-event'    => "./bolt/event.php",
+
+        // bucket
+        'bolt-core-bucket'          => "./bolt/bucket.php",
+        'bolt-core-bycket-array'    => "./bolt/bucket/bArray.php",
+        'bolt-core-bycket-string'    => "./bolt/bucket/bString.php",
+        'bolt-core-bycket-object'    => "./bolt/bucket/bObject.php",
 
         // model
         'bolt-core-model'       => "./bolt/model.php",

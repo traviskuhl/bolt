@@ -53,16 +53,14 @@ class controller extends \bolt\event implements iController {
     // some things we're going to need
     private $_bguid = false;
     private $_content = array('plain'=>"");
-    private $_template = null;
-    private $_render = 'handlebars';
     private $_properties = array();
-    private $_layout = null;
     private $_parent = false;
-    private $_hasRendered = false;
     private $_params;
     private $_data;
     private $_action = 'build';
-    private $_templateBasePath = false;
+    private $_responseType = 'html';
+    private $_layout = null;
+    private $_view = null;
 
     // static
     protected $_fromInit = false;
@@ -284,6 +282,7 @@ class controller extends \bolt\event implements iController {
      * @return view content
      */
     public function getContent($type=false, $render=false) {
+        $type = $type ?: $this->_responseType;
         if ($type AND !array_key_exists($type, $this->_content)) {return false; }
         $resp = ($type ? $this->_content[$type] : $this->_content);
         if ($render AND is_object($resp) AND method_exists($resp, 'render')) {
@@ -311,6 +310,15 @@ class controller extends \bolt\event implements iController {
         }
         $this->_content[$type] = $content;
         return $this;
+    }
+
+    public function setResponseType($type) {
+        $this->_responseType = $type;
+        return $this;
+    }
+
+    public function getResponseType() {
+        return $this->_responseType;
     }
 
 
@@ -343,69 +351,6 @@ class controller extends \bolt\event implements iController {
         return $this->_layout;
     }
 
-    /**
-     * set the view file
-     *
-     * @param $file path to file
-     * @return self
-     */
-    public function setTemplate($file) {
-        $this->_template = $file;
-        return $this;
-    }
-
-    public function setBaseTemplatePath($path) {
-        $this->_templateBasePath = $path;
-        return $this;
-    }
-
-    /**
-     * get the view file
-     *
-     * @return view file
-     */
-    public function getTemplate() {
-        return $this->_template;
-    }
-
-    /**
-     * has a template
-     *
-     * @return bool
-     */
-    public function hasTemplate() {
-        return $this->_template !== null;
-    }
-
-
-    /**
-     * set renderer
-     *
-     * @param $name render name
-     * @return self
-     */
-    public function setRenderer($name) {
-        $this->_render = $name;
-        return $this;
-    }
-
-    /**
-     * get renderer
-     *
-     * @return renderer
-     */
-    public function getRenderer() {
-        return $this->_render;
-    }
-
-    /**
-     * has the view been rendered
-     *
-     * @return renderer
-     */
-    public function hasRendered() {
-        return $this->_hasRendered;
-    }
 
     public function setData($data) {
         $this->_data = $data;
@@ -504,8 +449,18 @@ class controller extends \bolt\event implements iController {
             $this->setContent($last);
 
         }
-        else if (is_a($resp, '\bolt\browser\template') || is_array($resp) || is_string($resp)) {
+        else if (b::isInterfaceOf($resp, '\bolt\browser\iView') || is_array($resp) || is_string($resp)) {
             $this->setContent($resp);
+        }
+        else if ($this->getContent() AND $this->_layout) {
+            $this->_params->set;
+            $this->setContent(
+                b::render(array(
+                    'file' => $this->_layout,
+                    'self' => $this->_parent,
+                    'vars' => array('yield' => $this->getContent())
+                ))
+            );
         }
 
         // after render
@@ -521,15 +476,14 @@ class controller extends \bolt\event implements iController {
 
 
     /**
-     * render a template file and set controller content
-     * @see \bolt\render::render
+     * render a view file and set controller content
      *
      * @param $file path to template file
      * @param $vars array of variable
      * @param $render name of render plugin
      * @return self
      */
-    public function template($file, $vars=array(), $layout=null) {
+    public function view($file, $vars=array(), $layout=null) {
         if ($layout === null) {
             $layout = $this->_layout;
         }
@@ -542,13 +496,22 @@ class controller extends \bolt\event implements iController {
 
         // return a template object
         // to delay render until we need it
-        return new template($this, $file, $layout, $params);
+        return new view($this, $file, $layout, $params);
 
     }
 
     // render template
-    public function renderTemplate($file, $vars=array(), $layout=false) {
-        return $this->template($file, $vars, $layout)->render();
+    public function renderView($file, $vars=array(), $layout=false) {
+
+        // if it's a view
+        if (b::isInterfaceOf($file, '\bolt\browser\iView')) {
+            if ($vars) { $file->setVars($vars); }
+            if ($layout) {$file->setLayoutFile($layout); }
+            return $file->render();
+        }
+
+        // the view
+        return $this->view($file, $vars, $layout)->render();
     }
 
     /**
@@ -572,7 +535,7 @@ class controller extends \bolt\event implements iController {
 
         // file exists
         if (!file_exists($file)) {
-            $file = b::config('project')->value("templates")."/".ltrim($this->_templateBasePath,'/').$file;
+            $file = b::config('project')->value("views")."/".ltrim($this->_templateBasePath,'/').$file;
         }
 
         // still no file
@@ -602,42 +565,6 @@ class controller extends \bolt\event implements iController {
         }
 
         return $params;
-    }
-
-}
-
-class template {
-    private $_file;
-    private $_vars;
-    private $_layout = false;
-    private $_parent;
-
-    public function __construct($parent, $file, $layout, $vars) {
-        $this->_parent = $parent;
-        $this->_file = $file;
-        $this->_layout = $layout;
-        $this->_vars = $vars;
-    }
-
-    public function render() {
-
-        $html = b::render(array(
-            'file' => $this->_file,
-            'self' => $this->_parent,
-            'vars' => $this->_vars
-        ));
-
-        if ($this->_layout) {
-            $this->_vars->set('yield', $html);
-            $html = b::render(array(
-                'file' => $this->_layout,
-                'self' => $this->_parent,
-                'vars' => $this->_vars
-            ));
-        }
-
-        return $html;
-
     }
 
 }

@@ -6,6 +6,7 @@ class bArrayTest extends bolt_test {
 
     public function setUp() {
 
+        b::depend('bolt-core-bucket-*');
 
         // data array
         $this->data = array(
@@ -23,16 +24,102 @@ class bArrayTest extends bolt_test {
             ),
             'bool' => true,
             'int' => 1,
-            'float' => 1.1
-
+            'float' => 1.1,
+            'object' => new StdClass()
         );
 
         $this->bucket = new \bolt\bucket\bArray($this->data);
 
     }
 
-    public function testPlaceholder() {
-        $this->assertTrue(true);
+    public function testBGuid() {
+        $this->assertTrue(is_string($this->bucket->bGuid()));
+    }
+
+    public function testValueWithKey() {
+        $this->assertEquals($this->data['string'], $this->bucket->value('string'));
+    }
+
+    public function testValueWithKeyDefault() {
+        $this->assertTrue($this->bucket->value('does not exist', true));
+    }
+
+    public function testValueWithNoKey() {
+        $this->assertEquals($this->data, $this->bucket->value());
+    }
+
+    public function testNormalize() {
+        $this->assertEquals($this->data, $this->bucket->normalize());
+    }
+
+    public function testGetWithValue() {
+        $this->assertInstanceOf('\bolt\bucket\bString', $this->bucket->get('string'));
+        $this->assertInstanceOf('\bolt\bucket\bObject', $this->bucket->get('object'));
+        $this->assertInstanceOf('\bolt\bucket\bArray', $this->bucket->get('array'));
+    }
+
+    public function testGetWithNoValue() {
+        $r = $this->bucket->get('no value', true);
+        $this->assertInstanceOf('\bolt\bucket\bString', $r);
+        $this->assertTrue($r->value);
+    }
+
+    public function testGetWithNoValueNoDefault() {
+        $r = $this->bucket->get('no value');
+        $this->assertInstanceOf('\bolt\bucket\bString', $r);
+        $this->assertFalse($r->value);
+    }
+
+    public function testGetDotNotation() {
+        $r = $this->bucket->get('array.key1');
+        $this->assertInstanceOf('\bolt\bucket\bString', $r);
+        $this->assertEquals($this->data['array']['key1'], $r->value);
+    }
+
+    public function testGetDotNotationDefault() {
+        $r = $this->bucket->get('array.nokey1', true);
+        $this->assertInstanceOf('\bolt\bucket\bString', $r);
+        $this->assertTrue($r->value);
+    }
+
+    public function testSetSingleValue() {
+        $self = $this->bucket->set("new", 'poop');
+        $this->assertInstanceOf('\bolt\bucket\bArray', $self);
+        $this->assertEquals($self->bGuid(), $this->bucket->bGuid());
+        $this->assertEquals('poop', $self->value('new'));
+    }
+
+    public function testSetArray() {
+        $self = $this->bucket->set(array('new1' => 'poop1', 'new2' => 'poop2'));
+        $this->assertInstanceOf('\bolt\bucket\bArray', $self);
+        $this->assertEquals($self->bGuid(), $this->bucket->bGuid());
+        $this->assertEquals('poop1', $self->value('new1'));
+        $this->assertEquals('poop2', $self->value('new2'));
+    }
+
+    public function testRemoveSingleValue() {
+        $this->bucket->set(array('new1' => 'poop1', 'new2' => 'poop2'));
+        $self = $this->bucket->remove('new1');
+        $this->assertInstanceOf('\bolt\bucket\bArray', $self);
+        $this->assertEquals($self->bGuid(), $this->bucket->bGuid());
+        $this->assertFalse($this->bucket->get('new1')->value);
+    }
+
+    public function testRemoveNultipleValue() {
+        $this->bucket->set(array('new1' => 'poop1', 'new2' => 'poop2'));
+        $self = $this->bucket->remove(array('new1','new2'));
+        $this->assertInstanceOf('\bolt\bucket\bArray', $self);
+        $this->assertEquals($self->bGuid(), $this->bucket->bGuid());
+        $this->assertFalse($this->bucket->get('new1')->value);
+        $this->assertFalse($this->bucket->get('new2')->value);
+    }
+
+    public function testAsJsonString() {
+        $this->assertEquals(json_encode($this->data), $this->bucket->asJson());
+    }
+
+    public function testAsSerialized() {
+        $this->assertEquals(serialize($this->data), $this->bucket->asSerialized());
     }
 
     // // global properties
