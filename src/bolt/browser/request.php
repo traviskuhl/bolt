@@ -435,16 +435,18 @@ class request extends \bolt\plugin\singleton {
 
         // need to get base tree
         $uri = explode('/',$_SERVER['SCRIPT_NAME']);
-        $hostParts = explode(":", $_SERVER['HTTP_HOST']);
 
-        if (isset($hostParts[1])) {
-            $_SERVER['SERVER_PORT'] = $hostParts[1];
+        // hostparts
+        $hostParts = parse_url($_SERVER['HTTP_HOST']);
+
+        if (isset($hostParts['port'])) {
+            $_SERVER['SERVER_PORT'] = $hostParts['port'];
         }
 
         // general
         define("bProto",         $_SERVER['HTTP_PROTO']);
         define("bHost",          $_SERVER['HTTP_HOST']);
-        define("bHostName",       array_shift($hostParts));
+        define("bHostName",      $hostParts['host']);
         define("bIp",            $_SERVER['REMOTE_ADDR']);
         define("bSelf",          bHost.$_SERVER['REQUEST_URI']);
         define("bPort",          $_SERVER['SERVER_PORT']);

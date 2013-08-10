@@ -453,7 +453,6 @@ class controller extends \bolt\event implements iController {
             $this->setContent($resp);
         }
         else if ($this->getContent() AND $this->_layout) {
-            $this->_params->set;
             $this->setContent(
                 b::render(array(
                     'file' => $this->_layout,
@@ -535,7 +534,7 @@ class controller extends \bolt\event implements iController {
 
         // file exists
         if (!file_exists($file)) {
-            $file = b::config('project')->value("views")."/".ltrim($this->_templateBasePath,'/').$file;
+            $file = b::config('global')->value("views")."/".ltrim($this->_templateBasePath,'/').$file;
         }
 
         // still no file

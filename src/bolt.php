@@ -129,6 +129,7 @@ final class b {
         'bolt-browser-request' => "./bolt/browser/request.php",
         'bolt-browser-cookie' => "./bolt/browser/cookie.php",
         'bolt-browser-helpers' => "./bolt/browser/helpers.php",
+        'bolt-browser-view' => "./bolt/browser/view.php",
 
         'bolt-browser-controller' => "./bolt/browser/controller.php",
         'bolt-browser-controller-callback' => "./bolt/browser/controller/callback.php",
@@ -299,6 +300,7 @@ final class b {
         if (isset($args['config'])) {
             b::config()->set('project',$args['config']);
         }
+
         // settings or default project
         if (isset($args['settings'])) {
             b::settings()->set('project', $args['settings']);

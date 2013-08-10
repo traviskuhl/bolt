@@ -80,6 +80,28 @@ class handlebars extends base {
                 }
                 if (!is_object($b) OR !method_exists($b, $last)) {return;}
                 return call_user_func_array(array($b, $last),$args);
+            },
+            'tag' => function($template, $context, $args, $text) {
+                $var = $context->get('.');
+                $tag = trim($args);
+
+                $tag = '<'.$tag;
+
+                if (isset($var->attr)) {
+                    foreach ($var->attr as $k => $v) {
+                        $tag .= ' '.$k.'="'.$v->encode().'"';
+                    }
+                }
+
+                $tag .= '>';
+
+                if (isset($var->text)) {
+                    $tag .= $var->text;
+                    $tag .= '</'.$tag.'>';
+                }
+
+                return $tag."\n";
+
             }
         );
         foreach ($helpers as $name => $cb) {

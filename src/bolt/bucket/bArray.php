@@ -137,7 +137,7 @@ class bArray implements \bolt\iBucket, \ArrayAccess, \Iterator, \Countable {
      *
      * @param \bolt\iBucket data value for name or $default as bucket
      */
-    public function get($name, $default=false, $useDotNamespace=true) {
+    public function get($name, $default=array(), $useDotNamespace=true) {
         $oName = $name; // placeholder for future use
 
         if (is_object($name)) {
@@ -433,7 +433,7 @@ class bArray implements \bolt\iBucket, \ArrayAccess, \Iterator, \Countable {
      * @return bool if it exists
      */
     public function exists($name) {
-        return $this->get($name, -1) !== -1;
+        return $this->value($name, -1) !== -1;
     }
 
     /**

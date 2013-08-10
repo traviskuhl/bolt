@@ -119,7 +119,7 @@ class bString implements \bolt\iBucket {
         return $this;
     }
     public function encode($q=ENT_QUOTES) {
-        $this->_value = htmlentities($this->_value, $q, 'utf-8', false);
+        $this->_value = htmlentities(html_entity_decode($this->_value, $q, 'utf-8'), $q, 'utf-8', false);
         return $this;
     }
     public function decode($q=ENT_QUOTES) {

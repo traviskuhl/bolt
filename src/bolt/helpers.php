@@ -11,6 +11,7 @@ class helpers {
     public function getDefinedSubClasses($parent) {
         $classes = array();
         foreach (get_declared_classes() as $class) {
+            if (!is_string($class)) {return;}
             $c = new \ReflectionClass($class);
             if ($c->isSubclassOf($parent)) {
                 $classes[] = $c;
