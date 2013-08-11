@@ -201,6 +201,10 @@ class controller extends \bolt\event implements iController {
         return false;
     }
 
+    public function model($model) {
+        return b::model($model);
+    }
+
     /**
      * MAGIC set a param to params bucket
      * @see bucket::set

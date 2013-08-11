@@ -226,6 +226,7 @@ final class b {
      */
     public static function depend($name) {
         $load = array();
+        if ($name == 'bolt-core' OR $name == 'core') { $name = 'bolt-core-*'; }
 
         if (strpos($name, '*') !== false) {
             // trim *- and try to load
