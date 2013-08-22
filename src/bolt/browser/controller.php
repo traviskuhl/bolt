@@ -62,6 +62,10 @@ class controller extends \bolt\event implements iController {
     private $_layout = null;
     private $_view = null;
 
+
+    // stuff the will be set
+    protected $viewFolders = array();
+
     // static
     protected $_fromInit = false;
 
@@ -535,19 +539,20 @@ class controller extends \bolt\event implements iController {
     }
 
     private function _getFilePath($file) {
+        $root = b::config('global')->value("views");
 
-        // file exists
-        if (!file_exists($file)) {
-            $file = b::config('global')->value("views")."/".ltrim($this->_templateBasePath,'/').$file;
+        // check
+        $check = array_merge(array($file, "$root/$file", "$root/"), array_map(function($val) use ($root, $file){ return b::path($root,$val,$file); }, $this->viewFolders));
+
+        while (($file = array_shift($check)) !== null) {
+            if (is_file($file)) {
+                return $file;
+            }
         }
 
-        // still no file
-        // lets glob for any file extension that matches
-        if (!file_exists($file) AND ($found = glob("{$file}.*")) != false) {
-            $file = array_shift($found);
-        }
-
+        // bad!
         return $file;
+
     }
 
     private function _compileFinalParams($vars) {

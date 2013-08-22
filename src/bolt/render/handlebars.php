@@ -102,6 +102,23 @@ class handlebars extends base {
 
                 return $tag."\n";
 
+            },
+            'php' => function($template, $context, $args, $text) {
+                if (preg_match_all('#\$([^\b]+)#i', $args, $matches, PREG_SET_ORDER)) {
+                    foreach ($matches as $match) {
+                        $resp = $context->get($match[1]);
+
+                        var_dump($context->get($match[1]), $match[1]); die;
+
+                        if (b::isInterfaceOf($resp, '\bolt\iBucket')) {
+                            $args = str_replace($match[0], $resp->export(), $args);
+                        }
+                    }
+                }
+
+                var_dump($args); die;
+
+
             }
         );
         foreach ($helpers as $name => $cb) {

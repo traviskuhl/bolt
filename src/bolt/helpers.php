@@ -8,6 +8,17 @@ use \b;
 // helpers
 class helpers {
 
+    public function path() {
+        $path = array();
+        foreach (func_get_args() as $part) {
+            $v = trim($part,"/");
+            if (!empty($v)) {
+                $path[] = $v;
+            }
+        }
+        return "/".implode($path, "/");
+    }
+
     public function getDefinedSubClasses($parent) {
         $classes = array();
         foreach (get_declared_classes() as $class) {

@@ -97,7 +97,7 @@ class bArray implements \bolt\iBucket, \ArrayAccess, \Iterator, \Countable {
      * @return json string
      */
     public function __toString() {
-        return $this->asJson();
+        return ($this->_data ? $this->asJson() : "");
     }
 
     /**
@@ -108,8 +108,8 @@ class bArray implements \bolt\iBucket, \ArrayAccess, \Iterator, \Countable {
      *
      * @return mixed[] value of key
      */
-    public function value($name=false, $default=false) {
-        if ($name) {
+    public function value($name=null, $default=array()) {
+        if ($name !== null) {
             return $this->get($name, $default)->value();
         }
         return $this->normalize();
@@ -128,6 +128,10 @@ class bArray implements \bolt\iBucket, \ArrayAccess, \Iterator, \Countable {
         return $normal;
     }
 
+    public function export() {
+        return var_export($this->normalize(), true);
+    }
+
     /**
      * return a value for a give key name
      *
@@ -137,7 +141,7 @@ class bArray implements \bolt\iBucket, \ArrayAccess, \Iterator, \Countable {
      *
      * @param \bolt\iBucket data value for name or $default as bucket
      */
-    public function get($name, $default=array(), $useDotNamespace=true) {
+    public function get($name, $default=null, $useDotNamespace=true) {
         $oName = $name; // placeholder for future use
 
         if (is_object($name)) {
@@ -145,7 +149,16 @@ class bArray implements \bolt\iBucket, \ArrayAccess, \Iterator, \Countable {
         }
 
         // does default have any .
-        if (stripos($name, '.') !== false AND $useDotNamespace === true) {
+        if ($name!==null && stripos($name,'(') !== false ) {
+            $x = stripos($name,'(');
+            $func = substr($name, 0, $x);
+            if (method_exists($this, $func)) {
+                $args = explode(',', trim(substr($name, $x), '()'));
+                return call_user_func_array(array($this, $func), $args);
+            }
+            return $default;
+        }
+        else if (stripos($name, '.') !== false AND $useDotNamespace === true) {
             $parts = explode('.', $name);
             $name = array_pop($parts);
             $var = $this;
@@ -163,6 +176,10 @@ class bArray implements \bolt\iBucket, \ArrayAccess, \Iterator, \Countable {
         // is data set
         if (array_key_exists($name, $this->_data)) {
             $default = $this->_data[$name];
+        }
+
+        if ($default === null) {
+            $default = array();
         }
 
         return \bolt\bucket::byType($default, $name, $this);
@@ -433,8 +450,8 @@ class bArray implements \bolt\iBucket, \ArrayAccess, \Iterator, \Countable {
      * @return bool if it exists
      */
     public function exists($name) {
-        return true;
-        // return $this->value($name, -1) !== -1;
+        if (stripos($name,'(')!==false) { return true;}
+        return $this->value($name, -1) !== -1;
     }
 
     /**

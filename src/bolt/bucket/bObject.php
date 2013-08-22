@@ -21,7 +21,7 @@ class bObject implements \bolt\iBucket {
     }
 
     public function __toString() {
-        return call_user_func(array($this, '__call'), '__toString', func_get_args());
+        return (string)call_user_func(array($this, '__call'), '__toString', func_get_args());
     }
 
     public function __isset($name) {
