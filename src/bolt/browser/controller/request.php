@@ -12,6 +12,9 @@ class request extends \bolt\browser\controller {
     private $_route = false;
     private $_method = "GET";
 
+    public function location() {
+        return call_user_func_array(array(b::bolt(),'location'), func_get_args());
+    }
 
     /**
      * set the route

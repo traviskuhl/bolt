@@ -2,27 +2,29 @@
 
 // namespace me
 namespace bolt\source;
-use \b as b;
+use \b;
 
-class webservice extends base {
+class curl extends base {
 
-    const NAME = "webservice";
+    const NAME = "curl";
 
     // config
     private $_config = array(
 
         // host information
         'host'      => false,
-        'port'      => 80,
-        'scheme'  => 'http',
-        'user' => false,
-        'pass' => false,
+        'port'      => false,
+        'scheme'    => 'http',
+        'user'      => false,
+        'pass'      => false,
+        'basePath'  => false,
 
-        // some default stuf
+        // some default stuff
         'headers'   => array(),
         'method'    => 'curl',
         'curlOpts'  => array(),
-        'timeout'   => 15
+        'timeout'   => 15,
+        'models'    => array()
 
     );
 
@@ -36,16 +38,98 @@ class webservice extends base {
         $this->_config = array_merge($this->_config, $cfg);
     }
 
-    public function query($ep, $query, $args=array()) {
+    private function _mapModelEp($type, $model, $data=array()) {
+        $name = get_class($model);
+        $map = (array_key_exists($name, $this->_config['models']) ? $this->_config['models'][$name] : array());
+
+        // model has endpoints
+        if (is_array($model->endpoints)) {
+            $map = $model->endpoints;
+        }
+
+        // this type has an endpoint
+        if (array_key_exists($name, $map) AND array_key_exists($type, $map[$name])) {
+            return b::tokenize($map[$name][$type], $data);
+        }
+        else if (array_key_exists('uri', $map)) {
+            switch($type) {
+                case 'query':
+                case 'insert':
+                    return $map['uri'];
+                default:
+                    return b::tokenize($map['item'], array("key" => $data[$model->getPrimaryKey()]));
+            };
+        }
+
+        return false;
+    }
+
+    private function _getResponse($model, $resp) {
+        $data = $resp->data();
+        $name = get_class($model);
+        $map = (array_key_exists($name, $this->_config['models']) ? $this->_config['models'][$name] : array());
+
+        // model has endpoints
+        if (is_array($model->endpoints)) {
+            $map = $model->endpoints;
+        }
+
+        if (is_array($map) AND is_array($data) AND isset($map['root']) AND array_key_exists($map['root'], $data)) {
+            return \bolt\bucket::byType($data[$map['root']]);
+        }
+        return \bolt\bucket::byType(array());
+    }
+
+    public function model(/* $model, $type, ... */) {
+        $args = func_get_args();
+        $model = array_shift($args);
+        $type = array_shift($args);
+        $mapRow = false;
+
+        if ($type == 'row' AND $args[0] !== $model->getPrimaryKey()) {
+            $type = 'query';
+            $args[0] = array($args[0] => $args[1]);
+            $args[1] = array();
+            $mapRow = true;
+        }
+
+        if ($type == 'row') {
+            $path = $this->_mapModelEp($type, $model, array($args[0] => $args[1]));
+        }
+        else {
+            $path = $this->_mapModelEp($type, $model, $args[0]);
+        }
+
+        // get our table
+        array_unshift($args, $path);
+
+        // call it
+        $resp = $this->_getResponse($model, call_user_func_array(array($this, $type), $args));
+
+        if ($mapRow) {
+            $resp = $resp->item(0);
+        }
+
+        // return a result
+        return  $resp;
 
     }
 
-    public function insert($ep, $data, $args=array()) {
-
+    public function query($path, $query, $args=array()) {
+        return $this->request($path, array_merge(array('query' => $query), $args), 'GET');
     }
 
-    public function update($ep, $id, $data, $args=array()) {
+    public function row($path, $field, $value, $args=array()) {
+        return $this->request($path, $args, 'GET');
+    }
 
+    public function insert($path, $data, $args=array()) {
+        $resp = $this->request($path, $data, 'POST');
+        return $resp;
+    }
+
+    public function update($path, $id, $data, $args=array()) {
+        return $this->request($path, $args, 'PUT');
     }
 
     public function count($ep, $query, $args=array()) {
@@ -55,7 +139,6 @@ class webservice extends base {
     public function delete($table, $id, $args=array()) {
 
     }
-
 
     public function getLastResponse() {
         return $this->_last;
@@ -85,42 +168,28 @@ class webservice extends base {
         return ($this->_config[$name] = $value);
     }
 
-
-    // request
-    public function request() {
-
-        // args
-        $args = func_get_args();
-
-        // url
-        $args[0] = (substr($args[0],0,4) === 'http' ? $args[0] : "{$this->scheme}://{$this->host}".($this->port!=80?":{$this->port}":"")."/".ltrim($args[0],'/'));
-
-        // route to proper func
-        switch($this->method) {
-
-            // straight curl request
-            case 'curl':
-                return call_user_func_array(array($this, 'curlRequest'), $args);
-
-            // oauth request
-            case 'oauth':
-                return call_user_func_array(array($this, 'oauthRequest'), $args);
-
-        };
-
-    }
-
     public function getCurl() {
         return $this->_curl;
     }
-    public function getOauth() {
-        return $this->_oauth;
-    }
 
-    protected function curlRequest($url, $params=array(), $method="GET", $headers=array(), $useIniFilePost=false) {
+    // request
+    public function request($path, $params=array(), $method="GET", $headers=array(), $useIniFilePost=false) {
+
+        if (is_string($path)) {
+            $path = array(
+                    'scheme' => $this->scheme,
+                    'host' => $this->host,
+                    'port' => $this->port,
+                    'path' => b::path($this->basePath, $path)
+                );
+        }
+
+        $url = b::buildUrl($path);
 
 		// headers
-		$headers = array_merge($this->headers, $headers);
+        if (is_array($headers)) {
+		  $headers = array_merge($this->headers, $headers);
+        }
 
         // add our params
         if ($method == 'GET' AND count($params) > 0) {
@@ -133,13 +202,15 @@ class webservice extends base {
         // set some stuff
         curl_setopt($this->_curl, CURLOPT_URL, $url);
         curl_setopt($this->_curl, CURLOPT_HEADER, 0);
-        curl_setopt($this->_curl, CURLOPT_RETURNTRANSFER,1);
-        curl_setopt($this->_curl, CURLOPT_CONNECTTIMEOUT,5);
+        curl_setopt($this->_curl, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($this->_curl, CURLOPT_CONNECTTIMEOUT, $this->timeout);
         curl_setopt($this->_curl, CURLOPT_CUSTOMREQUEST, $method);
         curl_setopt($this->_curl, CURLOPT_FOLLOWLOCATION, 1);
         curl_setopt($this->_curl, CURLOPT_SSL_VERIFYPEER, 0);
         curl_setopt($this->_curl, CURLINFO_HEADER_OUT, 1);
         curl_setopt($this->_curl, CURLOPT_TIMEOUT, $this->timeout);
+        curl_setopt($this->_curl, CURLOPT_INFILESIZE, -1);
+        curl_setopt($this->_curl, CURLOPT_POSTFIELDS, NULL);
 
         // cookies
         if (array_key_exists('cookies', $headers)) {
@@ -163,13 +234,14 @@ class webservice extends base {
 
             if ($useIniFilePost) {
 
+                                // length
+                $len = strlen($params);
+
+
                 // write our params to tmp
                 $fp = fopen('php://temp/maxmemory:256000', 'w');
                 fwrite($fp, $params);
                 fseek($fp, 0);
-
-                // length
-                $len = strlen($params);
 
                 // put it
                 curl_setopt($this->_curl, CURLOPT_BINARYTRANSFER, true);
@@ -179,10 +251,12 @@ class webservice extends base {
 
             }
             else {
-
                 // post
-    	        curl_setopt($this->_curl, CURLOPT_POSTFIELDS, http_build_query($params));
+    	        curl_setopt($this->_curl, CURLOPT_POSTFIELDS, (is_array($params) ? http_build_query($params) : (string)$params));
                 curl_setopt($this->_curl, CURLOPT_POST, TRUE);
+
+                // var_dump($params); die;
+
             }
 
         }
@@ -230,7 +304,7 @@ class webservice extends base {
         $result = curl_exec($this->_curl);
 
         // return our re
-        $r = $this->_last = new webserviceResponse(
+        $r = $this->_last = new curlResponse(
             $this,
             $result,
             curl_getinfo($this->getCurl(),CURLINFO_HTTP_CODE),
@@ -245,50 +319,9 @@ class webservice extends base {
 
     }
 
-    // oauth
-    protected function oauthRequest($url, $params=array(), $method="GET", $headers=array()) {
-
-        // if oauth isn't here
-        if (!class_exists('OAuth')) { return false; }
-
-        // if we don't have oauth
-        if (!$this->_oauth) {
-            $this->_oauth = new \OAuth($this->auth['key'], $this->auth['secret'], OAUTH_SIG_METHOD_HMACSHA1, OAUTH_AUTH_TYPE_URI);
-            $this->_oauth->enableDebug();
-        }
-
-        // token
-        $this->_oauth->setToken($this->auth['token'], $this->auth['token_secret']);
-
-        // fetch it
-        try {
-            $this->_oauth->fetch($url, $params, $method, $headers);
-        }
-        catch(OAuthException $e) {
-            return new webserviceResponse(
-                $this,
-                "",
-                $e->getCode(),
-                array()
-            );
-        }
-
-        // info
-        $info = $this->_oauth->getLastResponseInfo();
-
-        // return
-        return new webserviceResponse(
-            $this,
-            $this->_oauth->getLastResponse(),
-            $info['http_code'],
-            $info
-        );
-
-    }
-
 }
 
-class webserviceResponse {
+class curlResponse {
 
     private $_code = false;
     private $_body = false;
@@ -365,6 +398,17 @@ class webserviceResponse {
             case 'request':
             case 'getRequest':
                 return $this->_req;
+
+            case 'data':
+                switch($this->_info['content_type']) {
+                    case 'application/json':
+                    case 'text/javascript':
+                        return $this->json();
+                    case 'application/xml':
+                    case 'text/xml':
+                        return $this->xml();
+                };
+                return $this->_body;
 
         };
 

@@ -117,8 +117,23 @@ class handlebars extends base {
                 }
 
                 var_dump($args); die;
-
-
+            },
+            'eq' => function ($template, $context, $args, $source) {
+                list($var, $value) = explode(' ', trim($args));
+                $tmp = $context->get($var);
+                $buffer = '';
+                if ($tmp == $value) {
+                    $template->setStopToken('else');
+                    $buffer = $template->render($context);
+                    $template->setStopToken(false);
+                    $template->discard($context);
+                } else {
+                    $template->setStopToken('else');
+                    $template->discard($context);
+                    $template->setStopToken(false);
+                    $buffer = $template->render($context);
+                }
+                return $buffer;
             }
         );
         foreach ($helpers as $name => $cb) {

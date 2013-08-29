@@ -178,7 +178,7 @@ class request extends \bolt\plugin\singleton {
      *
      * @return string
      */
-    public function getInput() {
+    public function getInput($format=false) {
         return $this->_input;
     }
 

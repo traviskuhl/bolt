@@ -42,10 +42,6 @@ class base extends \bolt\model\attr {
     final public function call($name, $args=array()) {
         if (in_array($name, array('get', 'set', 'normalize', 'validate'))) {
 
-            // see if the parent class wants to oporate
-            if (method_exists($this, "_$name")) {
-                $args[0] = call_user_func_array(array($this, "_{$name}"), $args);
-            }
 
             // check if there's a callback in config
             if (array_key_exists($name, $this->_cfg) AND is_callable($this->_cfg[$name])) {

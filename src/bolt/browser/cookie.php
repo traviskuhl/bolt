@@ -73,8 +73,8 @@ class oCookie {
 	public function __construct($parts=array()) {
 
 		// from config
-		$this->_domain = b::settings("project")->value("cookies.domain");
-		$this->_prefix = b::settings("project")->value("cookies.prefix");
+		$this->_domain = b::settings("project")->value("cookies.domain", false);
+		$this->_prefix = b::settings("project")->value("cookies.prefix", false);
 
 		// any parts
 		foreach ($parts as $k => $v) {

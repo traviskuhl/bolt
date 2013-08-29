@@ -86,7 +86,18 @@ class mongo extends base {
 
     }
 
+    public function model(/* $model, $type, ... */) {
+        $args = func_get_args();
+        $model = array_shift($args);
+        $type = array_shift($args);
 
+        // get our table
+        array_unshift($args, $model->table);
+
+        // call it
+        return call_user_func_array(array($this, $type), $args);
+
+    }
 
 
 	public function query($collection, $query, $args=array()) {
@@ -157,6 +168,19 @@ class mongo extends base {
 
 	}
 
+    public function row($collection, $field, $value, $args=array()) {
+
+        $resp = $this->query($collection, array($field => $value), $args);
+
+        if ($resp->count() > 0) {
+            return $resp->item('first');
+        }
+
+        return \bolt\bucket::a(array());
+
+    }
+
+
 	public function count($collection,$query=array(),$args=array()) {
 
 		// do it
@@ -177,7 +201,8 @@ class mongo extends base {
 	}
 
 
-	public function insert($collection, $data, $safe=false, $args=array()) {
+	public function insert($collection, $data, $args=array()) {
+
 
 		// try connecting
 		$this->_connect();
@@ -191,16 +216,13 @@ class mongo extends base {
 		// sth
 		$sth = $db->{$collection};
 
+        unset($data['id']);
 
-		if (isset($data['id']) AND $data['id']) {
-			$data['_id'] = $data['id'];
-		}
-
-		unset($data['id']);
+        $data['_id'] = new \MongoId();
 
 		// insert
 		try {
-			$resp = $sth->insert($data,$safe);
+			$resp = $sth->insert($data, $args);
 		}
 		catch(\MongoCursorException $e) {
 			throw $e; return;
@@ -209,7 +231,7 @@ class mongo extends base {
 		$data['id'] = (string)$data['_id'];
 		unset($data['_id']);
 
-		return array($resp, $data);
+		return \bolt\bucket::a($data);
 
 	}
 
@@ -241,7 +263,7 @@ class mongo extends base {
 		$r = $sth->update(array('_id' => $id), array('$set' => $data), $opts);
 
 		// return
-		return array($r, $data);
+		return \bolt\bucket::a($data);
 
 	}
 

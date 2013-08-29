@@ -4,6 +4,23 @@
 namespace bolt\source;
 use \b;
 
+class pdo extends base {
+
+    const NAME = 'pdo';
+
+    public function query($model, $query, $args=array()) {}
+
+    public function row($model, $field, $value, $args=array()) {}
+
+    public function insert($model, $data, $args=array()) {}
+
+    public function update($model, $id, $data, $args=array()) {}
+
+    public function delete($model, $id, $args=array()) {}
+
+    public function count($model, $query, $args=array()) {}
+
+}
 
 // class pdo extends base {
 

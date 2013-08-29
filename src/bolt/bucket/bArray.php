@@ -326,6 +326,15 @@ class bArray implements \bolt\iBucket, \ArrayAccess, \Iterator, \Countable {
         return $this;
     }
 
+    public function pop() {
+        $var = array_pop($this->_data);
+        return \bolt\bucket::byType($var);
+    }
+
+    public function shift() {
+        $var = array_shift($this->_data);
+        return \bolt\bucket::byType($var);
+    }
 
     /**
      * @brief map values in an array
@@ -378,13 +387,22 @@ class bArray implements \bolt\iBucket, \ArrayAccess, \Iterator, \Countable {
 
     }
 
-    public function filter($cb) {
-        $s = b::bucket();
-        foreach ($this as $item) {
-            if ($cb($item) !== false) {
-                $s->push($item);
+    public function filter($by) {
+        $s = new bArray(array());
+        foreach ($this->normalize() as $key => $value) {
+            if (is_string($by) AND $key == $by) {
+                continue;
             }
+            else if (is_array($by) AND in_array($key, $by)) {
+                continue;
+            }
+            else if (is_callable($by) AND $by($value, $key) === false) {
+                continue;
+            }
+            $s->push($value, $key);
         }
+
+
         return $s;
     }
 
@@ -441,6 +459,11 @@ class bArray implements \bolt\iBucket, \ArrayAccess, \Iterator, \Countable {
 
     public function implode($str) {
         return implode($str, $this->asArray());
+    }
+
+    public function sort($func) {
+        usort($this->_data, $func);
+        return $this;
     }
 
     /**

@@ -3,16 +3,22 @@
 namespace bolt\source;
 use \b;
 
-abstract class base {
+interface bSource {
 
-    abstract public function query($table, $query, $args=array());
+}
 
-    abstract public function insert($table, $data, $args=array());
+abstract class base implements bSource {
 
-    abstract public function update($table, $id, $data, $args=array());
+    abstract public function query($model, $query, $args=array());
 
-    abstract public function delete($table, $id, $args=array());
+    abstract public function row($model, $field, $value, $args=array());
 
-    abstract public function count($table, $query, $args=array());
+    abstract public function insert($model, $data, $args=array());
+
+    abstract public function update($model, $id, $data, $args=array());
+
+    abstract public function delete($model, $id, $args=array());
+
+    abstract public function count($model, $query, $args=array());
 
 }

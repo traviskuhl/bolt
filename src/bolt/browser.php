@@ -11,7 +11,7 @@ class browser extends \bolt\plugin\singleton {
     public function error($message, $code=500) {
         $c = new \bolt\browser\controller\request();
         $c->setStatus($code);
-        $c->setContent('<!doctype html>
+        $c->setContent('html', '<!doctype html>
                 <html>
                     <body>
                         <h1>Error: '.$code.'</h1>

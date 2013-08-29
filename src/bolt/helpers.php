@@ -8,6 +8,34 @@ use \b;
 // helpers
 class helpers {
 
+    static function buildUrl($parts, $start=false) {
+        if (!is_array($parts)) {$parts = array(); }
+
+        $base = new \Net_URL2($start);
+
+        // parts
+        foreach ($parts as $k => $v) {
+            if ($k == 'user') {
+                $base->setUserinfo($v, $base->getPassword());
+            }
+            else if ($k == 'pass') {
+                $base->setUserinfo($base->getUser(), $v);
+            }
+            else if ($k == 'query') {
+                $base->setQueryVariables($v);
+            }
+            else {
+                $m = 'set'.ucfirst($k);
+                if (method_exists($base, $m)) {
+                    call_user_func(array($base, $m), $v);
+                }
+            }
+        }
+
+        return $base->getURL();
+
+    }
+
     public function path() {
         $path = array();
         foreach (func_get_args() as $part) {
@@ -36,6 +64,11 @@ class helpers {
         return (is_object($obj) AND ($implements = class_implements($obj)) !== false AND in_array(ltrim($interface,'\\'), $implements));
     }
 
+    public function tokenize($str, $tokens) {
+        $keys = array_map(function($val) { return '{'.$val.'}'; }, array_keys($tokens));
+        $values = array_values($tokens);
+        return str_replace($keys, $values, $str);
+    }
 
     ////////////////////////////////////////////////
     /// payload

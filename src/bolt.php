@@ -121,7 +121,7 @@ final class b {
 
         // source
         'bolt-core-source-mongo'      => "./bolt/source/mongo.php",
-        'bolt-core-source-webservice' => "./bolt/source/webservice.php",
+        'bolt-core-source-curl'       => "./bolt/source/curl.php",
         'bolt-core-source-pdo'        => "./bolt/source/pdo.php",
 
         // browser
@@ -471,6 +471,8 @@ final class b {
             self::$_loaded[] = realpath(bRoot."/{$class}.php");
             return include_once(bRoot."/{$class}.php");
         }
+
+        // var_dump($class);
 
         // if autoload
         if (is_array(self::$autoload)) {

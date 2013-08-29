@@ -9,33 +9,6 @@ b::bolt()->setFallbacks('\bolt\browser\helpers');
 // helpers
 class helpers {
 
-    static function buildUrl($parts, $start=false) {
-
-        $base = new \Net_URL2($start);
-
-        // parts
-        foreach ($parts as $k => $v) {
-            if ($k == 'user') {
-                $base->setUserinfo($v, $base->getPassword());
-            }
-            else if ($k == 'pass') {
-                $base->setUserinfo($base->getUser(), $v);
-            }
-            else if ($k == 'query') {
-                $base->setQueryVariables($v);
-            }
-            else {
-                $m = 'set'.ucfirst($k);
-                if (method_exists($base, $m)) {
-                    call_user_func(array($base, $m), $v);
-                }
-            }
-        }
-
-        return $base->getURL();
-
-    }
-
 
     ////////////////////////////////////////////////
     /// @brief add url params to a url

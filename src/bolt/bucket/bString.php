@@ -170,6 +170,14 @@ class bString implements \bolt\iBucket {
     public function explode($sep) {
         return new \bolt\bucket\bArray($this->_value ? explode($sep, $this->_value) : array());
     }
+    public function split($sep) {
+        return $this->explode($sep);
+    }
+
+    public function money_format($format='$%n') {
+        $this->_value = money_format($format, (float)$this->_value);
+        return $this;
+    }
 
     public function jsonDecode($type='bArray') {
         switch($type) {
@@ -189,6 +197,15 @@ class bString implements \bolt\iBucket {
 
     public function exists() {
         return true;
+    }
+
+    public function md5() {
+        $this->_value = md5($this->_value);
+        return $this;
+    }
+    public function bmd5() {
+        $this->_value = b::md5($this->_value);
+        return $this;
     }
 
 }

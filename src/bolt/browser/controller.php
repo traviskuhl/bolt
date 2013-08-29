@@ -305,16 +305,12 @@ class controller extends \bolt\event implements iController {
      * @param $content view content
      * @return self
      */
-    public function setContent($type, $content=false) {
+    public function setContent($type, $content) {
         if (is_array($type)) {
             foreach ($type as $t => $c) {
                 $this->setContent($t, $c);
             }
             return $this;
-        }
-        if ($type AND !$content) {
-            $content = $type;
-            $type = 'html';
         }
         $this->_content[$type] = $content;
         return $this;
@@ -454,14 +450,15 @@ class controller extends \bolt\event implements iController {
             }
 
             // return run
-            $this->setContent($last);
+            $this->setContent($this->getResponseType(), $last);
 
         }
         else if (b::isInterfaceOf($resp, '\bolt\browser\iView') || is_array($resp) || is_string($resp)) {
-            $this->setContent($resp);
+            $this->setContent($this->getResponseType(), $resp);
         }
         else if ($this->getContent() AND $this->_layout) {
             $this->setContent(
+                $this->getResponseType(),
                 b::render(array(
                     'file' => $this->_layout,
                     'self' => $this->_parent,
@@ -497,6 +494,7 @@ class controller extends \bolt\event implements iController {
 
         // file exists
         $file = $this->_getFilePath($file);
+        $layout = $this->_getFilePath($layout);
 
         // get our final list of params
         $params = $this->_compileFinalParams($vars);
@@ -516,6 +514,10 @@ class controller extends \bolt\event implements iController {
             if ($layout) {$file->setLayoutFile($layout); }
             return $file->render();
         }
+
+        // file exists
+        $file = $this->_getFilePath($file);
+        $layout = $this->_getFilePath($layout);
 
         // the view
         return $this->view($file, $vars, $layout)->render();
@@ -539,10 +541,10 @@ class controller extends \bolt\event implements iController {
     }
 
     private function _getFilePath($file) {
-        $root = b::config('global')->value("views");
+        $views = b::config('project')->value("views", false);
 
         // check
-        $check = array_merge(array($file, "$root/$file", "$root/"), array_map(function($val) use ($root, $file){ return b::path($root,$val,$file); }, $this->viewFolders));
+        $check = array_merge(array($file, "$views/$file", "$views/"), array_map(function($val) use ($views, $file){ return b::path($views,$val,$file); }, $this->viewFolders));
 
         while (($file = array_shift($check)) !== null) {
             if (is_file($file)) {

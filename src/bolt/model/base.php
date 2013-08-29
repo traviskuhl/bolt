@@ -88,7 +88,7 @@ abstract class base implements iModelBase {
     public function find($query, $args=array()) {
 
         // send to source
-        $resp = $this->_source->query($this->table, $query, $args);
+        $resp = $this->_source->model($this, 'query', $query, $args);
         $items = array();
 
         // what am i
@@ -104,12 +104,12 @@ abstract class base implements iModelBase {
     }
 
 
-    public function findOne($field, $value, $args=array()) {
-        $resp = $this->_source->query($this->table, array($field => $value), $args);
+    public function findOne($query, $args=array()) {
+        $resp = $this->_source->model($this, 'query', $query, $args);
 
         // return
         if ($resp->count() > 0) {
-            $this->set($resp->item('first')->asArray());
+            $this->set($resp->item(0)->asArray());
             $this->_loaded = true;
         }
 
@@ -118,16 +118,27 @@ abstract class base implements iModelBase {
 
     }
 
-    public function findBy() {
-        return call_user_func_array(array($this, 'findOne'), func_get_args());
+    public function findOneBy($field, $value, $args=array()) {
+        $resp = $this->_source->model($this, 'row', $field, $value, $args);
+
+        // return
+        if ($resp->count() > 0) {
+            $this->set($resp->asArray());
+            $this->_loaded = true;
+        }
+
+        // me
+        return $this;
+
     }
 
+
     public function findById($value, $args=array()) {
-        return $this->findBy('id', $value, $args);
+        return $this->findOneBy('id', $value, $args);
     }
 
     public function count($query, $args=array()) {
-        return $this->_source->count($query, $args);
+        return $this->_source->model($this, 'count', $query, $args);
     }
 
     public function save($data=array(), $args=array()) {
@@ -142,15 +153,17 @@ abstract class base implements iModelBase {
         // insert or update
         $key = $this->value($this->getPrimaryKey());
 
+
         if ($key === false) {
-            $resp = $this->_source->insert($this->table, $data, $args);
+            unset($data[$this->getPrimaryKey()]);
+            $resp = $this->_source->model($this, 'insert', $data, $args);
         }
         else {
-            $resp = $this->_source->update($this->table, $key, $data, $args);
+            $resp = $this->_source->model($this, 'update', $key, $data, $args);
         }
 
         // set data
-        $this->set($resp[1]);
+        $this->set($resp->asArray());
         $this->_loaded = true;
 
         //
@@ -203,7 +216,7 @@ abstract class base implements iModelBase {
     }
 
     public function __isset($name) {
-        return $this->get($name)->value;
+        return array_key_exists($name, $this->_struct);
     }
 
     ////////////////////////////////////////////////////////////////////
@@ -299,6 +312,8 @@ abstract class base implements iModelBase {
             return $this;
         }
 
+        if (!is_string($name)) {return $this;}
+
         // find it
         if (array_key_exists($name, $this->_struct)) {
             $this->_struct[$name]['_attr']->call('set', array($value));
@@ -375,61 +390,10 @@ abstract class base implements iModelBase {
         return \bolt\bucket::byType($resp);
     }
 
+    public function filter($by) {
+        $b = \bolt\bucket::byType($this->asArray());
+        return $b->filter($by);
+    }
 
 }
 
-
-// class children extends result {
-//     private $_first = true;
-
-//     public function setup($struct) {
-//         $this
-//             ->setClass('\bolt\model\child')
-//             ->setStruct($struct);
-//     }
-//     public function _get($data) {
-//         if ($this->_first) {
-//             $this->setItems($data);
-//             $this->_first = false;
-//         }
-//         return $this;
-//     }
-//     public function _normalize($data) {
-//         if ($this->_first) {
-//             $this->setItems($data);
-//             $this->_first = false;
-//         }
-//         $items = array();
-//         foreach ($this as $key => $item) {
-//             $items[$key] = $item->normalize();
-//         }
-//         return $items;
-//     }
-
-// }
-
-// class child extends base {
-//     private $first = true;
-//     private $results = false;
-//     public function getStruct() { return array(); }
-
-//     private function setup($struct) {
-//         $this->setStruct($struct);
-//     }
-
-//     public function _get($data) {
-//         if ($this->first) {
-//             $this->set($data);
-//             $this->first = false;
-//         }
-//         return $this;
-//     }
-//     public function _normalize() {
-//         if ($this->first) {
-//             $this->set($data);
-//             $this->first = false;
-//         }
-//         return $this->normalize();
-//     }
-
-// }

@@ -10,30 +10,37 @@ use \DatePeriod;
 class attr_datetime extends \bolt\model\attr\base {
     private $_dt = false;
     private $_format = false;
+    private $_default = false;
 
     const NAME = 'datetime';
 
     public function init() {
-        $this->_dt = new DateTime();
         $this->_format = $this->cfg('format', DateTime::ISO8601);
+        $this->_default = $this->cfg('default', false);
+        $this->_dt = new \bolt\bucket\bDateTime(false);
     }
 
     public function get() {
-        return $this->_dt;
+        return ($this->_value ? $this->_dt : false);
     }
 
     public function set($value) {
-        if (is_numeric($value)) {
+        $this->_value = $value;
+        $this->_dt->set($value);
+        if ($value AND is_numeric($value)) {
             $this->_dt->setTimestamp($value);
         }
-        else {
+        else if ($value) {
             $this->_dt->modify($value);
         }
         return $this;
     }
 
     public function normalize() {
-        return $this->_dt->format($this->_format);
+        if (!$this->_value AND $this->_default) {
+            $this->set($this->_default);
+        }
+        return ($this->_value ? $this->_dt->format($this->_format) : false);
     }
 
     public function value() {
