@@ -450,7 +450,7 @@ class bArray implements \bolt\iBucket, \ArrayAccess, \Iterator, \Countable {
      */
     public function in($needle) {
         foreach ($this->_data as $value) {
-            if ($value === $needle) {
+            if ($value->value === $needle) {
                 return true;
             }
         }

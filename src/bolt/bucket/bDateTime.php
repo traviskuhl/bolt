@@ -18,11 +18,13 @@ class bDateTime implements \bolt\iBucket {
     private $_root;
     private $_parent;
     private $_dt;
+    private $_format;
 
     public function __construct($data, $root=false, $parent=false) {
         $this->_value = $data;
         $this->_dt = new DateTime();
         $this->set($data);
+        $this->_format = DateTime::ISO8601;
     }
 
 

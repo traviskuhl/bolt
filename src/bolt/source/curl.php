@@ -56,6 +56,8 @@ class curl extends base {
                 case 'query':
                 case 'insert':
                     return $map['uri'];
+                case 'update':
+                    return b::tokenize($map['item'], array("key" => $data));
                 default:
                     return b::tokenize($map['item'], array("key" => $data[$model->getPrimaryKey()]));
             };
@@ -103,6 +105,12 @@ class curl extends base {
         // get our table
         array_unshift($args, $path);
 
+        // json encode query
+        if ($type == 'query' AND isset($map['jsonEncodeQuery']) AND $map['jsonEncodeQuery'] == true) {
+            $args[1] = json_encode($args[1]);
+        }
+
+
         // call it
         $resp = $this->_getResponse($model, call_user_func_array(array($this, $type), $args));
 
@@ -129,7 +137,7 @@ class curl extends base {
     }
 
     public function update($path, $id, $data, $args=array()) {
-        return $this->request($path, $args, 'PUT');
+        return $this->request($path, $data, 'PUT');
     }
 
     public function count($ep, $query, $args=array()) {
@@ -283,9 +291,10 @@ class curl extends base {
 
         }
 
+
         // auth
-        if ( isset($this->auth['username']) ) {
-        	curl_setopt($this->_curl, CURLOPT_USERPWD, "{$this->auth['username']}:{$this->auth['password']}");
+        if ( $this->_config['user'] AND $this->_config['pass'] ) {
+        	curl_setopt($this->_curl, CURLOPT_USERPWD, "{$this->_config['user']}:{$this->_config['pass']}");
         }
 
         // add headers

@@ -118,9 +118,16 @@ class handlebars extends base {
 
                 var_dump($args); die;
             },
+            'set' => function ($template, $context, $args, $source) {
+                list($var, $value) = explode(' ', trim($args));
+                $context->push(array($var => $context->get($value)));
+            },
             'eq' => function ($template, $context, $args, $source) {
                 list($var, $value) = explode(' ', trim($args));
+                $value = ($context->get($value) ?: trim($value,"'"));
+
                 $tmp = $context->get($var);
+
                 $buffer = '';
                 if ($tmp == $value) {
                     $template->setStopToken('else');

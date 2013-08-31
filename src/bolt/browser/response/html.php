@@ -23,7 +23,7 @@ class html extends handler {
 
         $html = $this->getContent();
 
-        if (function_exists('tidy_parse_string') AND b::env() != 'dev') {
+        if (function_exists('tidy_parse_string')) {
 
             $tidy = tidy_parse_string($html, array(
                     'clean' => true,

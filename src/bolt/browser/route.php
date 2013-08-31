@@ -199,6 +199,7 @@ class route extends \bolt\plugin\singleton {
 
         $route = false;
 
+
         // routes
         foreach ($this->_routes as $item) {
 
@@ -213,7 +214,6 @@ class route extends \bolt\plugin\singleton {
             }
 
         }
-
 
         if (!$route) {
             return false;
@@ -363,14 +363,15 @@ class route extends \bolt\plugin\singleton {
                 $resp = rtrim($class->hasProperty('routeResponse') ? $class->getProperty('routeResponse')->getValue() : false, '/');
 
                 if (is_string($route)) {
-                    $this->register($base.$route, $class->getName());
+                    $this->register(b::path($base, $route), $class->getName());
                 }
                 else if (is_array($route)) {
                     if (isset($route['route']) ) {
                         $route = array($route);
                     }
                     foreach ($route as $item) {
-                        $r = $this->register($base.$item['route'], $class->getName());
+                        $r = $this->register(b::path($base, $item['route']), $class->getName());
+
                         if (!array_key_exists('response', $item)) {
                             $item['response'] = $resp;
                         }

@@ -25,13 +25,13 @@ class render extends plugin\singleton {
 
         // ready
         b::on('ready', function(){
+
             if (b::config()->exists('project.partials')) {
                 $dir = b::config()->value('project.partials');
                 if (file_exists($dir)) {
                     foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($dir)) as $item) {
                         if ($item->isFile()) {
-                            $name = trim(str_replace(array($dir, '.template', '.'.$item->getExtension()), '', $item->getPathname()), '/');
-                            b::render()->partial($name, $item->getPathname());
+                            b::render()->partial($item->getFilename(), $item->getPathname());
                         }
                     }
                 }

@@ -87,6 +87,7 @@ abstract class base implements iModelBase {
     // find
     public function find($query, $args=array()) {
 
+
         // send to source
         $resp = $this->_source->model($this, 'query', $query, $args);
         $items = array();
@@ -179,12 +180,14 @@ abstract class base implements iModelBase {
         }
     }
 
+
     ////////////////////////////////////////////////////////////////////
     /// @brief has this item been loaded
     ///
     /// @return bool if item is loaded
     ////////////////////////////////////////////////////////////////////
-    public function loaded() {
+    public function loaded($set=null) {
+        if ($set !== null) {$this->_loaded = $set;}
         return $this->_loaded;
     }
 
