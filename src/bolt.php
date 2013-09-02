@@ -208,8 +208,8 @@ final class b {
     /**
      * get/set env setting
      *
-     * $env env setting
-     * @return bolt instance
+     * $env string env setting
+     * @return bolt env
      */
     public static function env($env=false) {
         if ($env) {

@@ -117,7 +117,8 @@ class cli extends plugin {
 
                 // holders
                 $name = ($result->command->command_name ? $result->command->command_name : "execute");
-                $cmd = ($result->command->command_name ? $result->command : $result);
+                $cmd = $result->command;
+
 
                 // opts
                 $class->setOptions(array_merge($result->options, $result->command->options));
@@ -130,7 +131,8 @@ class cli extends plugin {
 
                 if ($method->getNumberOfParameters() > 0) {
                     foreach ($method->getParameters() as $param) {
-                        $args[] = (isset($cmd->args[$param->name]) ? $cmd->args[$param->name] : $param->getDefaultValue());
+                        $default = ($param->isOptional() ? $param->getDefaultValue() : null);
+                        $args[] = (isset($cmd->args[$param->name]) ? $cmd->args[$param->name] : $default);
                     }
                 }
 

@@ -111,7 +111,6 @@ class run extends \bolt\cli\command {
         // make our stub
         return '<?php
 
-
             // require
             require "'.__DIR__.'/../../bolt.php";
 
