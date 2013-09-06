@@ -237,8 +237,14 @@ class bArray implements \bolt\iBucket, \ArrayAccess, \Iterator, \Countable {
      */
     public function asArray() {
         $native = array();
+
         foreach ($this->_data as $key => $obj) {
-            $native[$key] = $obj->normalize();
+            if (!b::isInterfaceOf($obj, '\bolt\iBucket')) {
+                $native[$key] = \bolt\bucket::byType($obj)->normalize();
+            }
+            else {
+                $native[$key] = $obj->normalize();
+            }
         }
         return $native;
     }
@@ -308,6 +314,15 @@ class bArray implements \bolt\iBucket, \ArrayAccess, \Iterator, \Countable {
         return $content;
     }
 
+    public function merge() {
+        foreach (func_get_args() as $array) {
+            foreach ($array as $k => $v) {
+                $array[$k] = \bolt\bucket::byType($v, $k, $this);
+            }
+            $this->_data = array_merge($array,$this->_data);
+        }
+        return $this;
+    }
 
     /**
      * @brief push a value onto an array

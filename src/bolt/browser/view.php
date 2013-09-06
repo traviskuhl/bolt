@@ -30,8 +30,9 @@ class view implements iView {
 
     public function render() {
 
+
         $html = b::render(array(
-            'file' => $this->_file,
+            'file' => $this->_getFilePath($this->_file),
             'self' => $this->_parent,
             'vars' => $this->_vars
         ));
@@ -39,7 +40,7 @@ class view implements iView {
         if ($this->_layout) {
             $this->_vars->set('yield', $html);
             $html = b::render(array(
-                'file' => $this->_layout,
+                'file' => $this->_getFilePath($this->_layout),
                 'self' => $this->_parent,
                 'vars' => $this->_vars
             ));
@@ -67,6 +68,38 @@ class view implements iView {
     public function setVars($vars) {
         $this->_vars = $vars;
         return $this;
+    }
+
+    private function _getFilePath($file) {
+
+        $views = b::settings()->value("project.views", false);
+        $root = b::config()->value("root", __DIR__);
+
+        // check
+        $check = array($file, b::path($root, $file));
+
+        if (is_array($views)) {
+            foreach ($views as $folder) {
+                $check[] = b::path($root, $folder, $file);
+            }
+        }
+        if (is_string($views)) {
+            $check[] = b::path($root, $views, $file);
+        }
+
+        while (($file = array_shift($check)) !== null) {
+            if (is_file($file)) {
+                return $file;
+            }
+        }
+
+        // bad!
+        return $file;
+
+    }
+
+    public function __invoke() {
+        return $this->render();
     }
 
 }

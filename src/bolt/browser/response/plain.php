@@ -3,13 +3,10 @@
 namespace bolt\browser\response;
 use \b as b;
 
-
-b::depend("bolt-browser-response")
-    ->response
-    ->plug('plain', '\bolt\browser\response\plain');
-
 // json
-class plain extends handler {
+class plain extends base {
+
+    const TYPE = 'plain';
 
     // accept or header
     public static $contentType = array(
@@ -17,7 +14,7 @@ class plain extends handler {
     );
 
     //
-    public function handle() {
+    public function getContent() {
 
         // html
         return $this->getContent();

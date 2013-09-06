@@ -5,138 +5,23 @@ use \b;
 
 class request extends \bolt\browser\controller {
 
-    // render
-    private $_data = array();
-    private $_properties = array();
-    private $_hasRendered = false;
-    private $_route = false;
-    private $_method = "GET";
 
     public function location() {
         return call_user_func_array(array(b::bolt(),'location'), func_get_args());
     }
 
-    /**
-     * set the route
-     *
-     * @param $route
-     * @return self
-     */
-    public function setRoute($route) {
-        $this->_route = $route;
-        return $this;
-    }
-
-    /**
-     * get the route for controller
-     *
-     * @return route
-     */
-    public function getRoute() {
-        return $this->_route;
-    }
-
-    public function setMethod($method) {
-        $this->_method = $method;
-        return $this;
-    }
-
-    public function getMethod() {
-        return $this->_method;
-    }
-
-    /**
-     * get the accept header from b::request
-     * @see \bolt\browser\request::getAccept
-     *
-     * @return accept header value
-     */
-    public function getAccept() {
-        return b::request()->getAccept();
-    }
-
-    /**
-     * set the accept header from b::request
-     * @see \bolt\browser\request::getAccept
-     *
-     * @param $header
-     * @return self
-     */
-    public function setAccept($header) {
-        b::response()->setAccept($header);
-        return $this;
-    }
-
-    /**
-     * set response content type
-     * @see \bolt\browser\response::setContentType
-     *
-     * @param $type
-     * @return self
-     */
-    public function setContentType($type) {
-        b::response()->setContentType($type);
-        return $this;
-    }
-
-    /**
-     * get response content type
-     * @see \bolt\browser\response::setContentType
-     *
-     * @return content type
-     */
-    public function getContentType() {
-        return b::response()->getContentType();
-    }
-
-    /**
-     * get the response status in b::response
-     * @see \bolt\browser\response::getStatus
-     *
-     * @return status
-     */
-    public function getStatus() {
-        return b::response()->getStatus();
-    }
-
-    /**
-     * set the response status in b::response
-     * @see \bolt\browser\response::setStatus
-     *
-     * @param $status (int) http status
-     * @return \bolt\bucket params
-     */
-    public function setStatus($status) {
-        b::response()->setStatus($status);
-        return $this;
-    }
-
-    public function setHeader($name, $value) {
-        b::response()->setHeader($name, $value);
-        return $this;
-    }
 
     /**
      * execute the controller
      *
      * @return mixed response
      */
-    public function render($args=array()) {
-        $method = $this->_method;
-        $route = $this->_route;
+    public function invoke($action='build', $params=array()) {
+        $route = $this->_request->getRoute();
+        $method = strtolower($this->_request->getMethod());
 
-        // defaults
-        $params = array();
-        $action = false;
-
-        // not all request controllers
-        // will have a route. they really should
-        // but dirrect forward won't
+        // route
         if ($route) {
-
-            // get some stuff from the route
-            $params = $route->getParams();
-            $action = $route->getAction();
 
             // are there models that need to be setup
             if ($route->getModel() AND property_exists($this, 'models')) {
@@ -158,11 +43,12 @@ class request extends \bolt\browser\controller {
                             $info['args'][$i] = (array_key_exists($_, $params) ? $params[$_] : false);
                         }
                     }
+
                     $params[$name] = call_user_func_array(array($model, $info['method']), $info['args']);
 
                     // unless model is optional
                     if ($method !== 'post' AND b::param('optional', false, $info) === false AND $params[$name]->loaded() === false) {
-                        return b::browser()->error("Unable to load model '$name' ({$info['model']})", 404);
+                        return b::browser()->error(404, "Unable to load model '$name' ({$info['model']})");
                     }
 
                 }
@@ -170,10 +56,6 @@ class request extends \bolt\browser\controller {
 
         }
 
-        // check
-        if ($this->_fromInit AND b::isInterfaceOf($this->_fromInit, '\bolt\browser\iController')) {
-            return $this->_fromInit;
-        }
 
         // figure out how we handle this request
         // order goes
@@ -208,15 +90,10 @@ class request extends \bolt\browser\controller {
             $act = 'build';
         }
 
-        // set our action
-        $this->setAction($act);
-
         // execute render
-        return parent::render($params);
+        return parent::invoke($act, $params);
 
     }
-
-    protected function build() {}
 
     protected function noRouteActionError() {
         $method = $this->_method;

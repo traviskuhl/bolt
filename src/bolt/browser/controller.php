@@ -10,7 +10,7 @@ use \b;
  * @interface
  */
 interface iController {
-    function render($args=array());
+
 }
 
 // depend on bolt browser
@@ -52,22 +52,17 @@ class controller extends \bolt\event implements iController {
 
     // some things we're going to need
     private $_bguid = false;
-    private $_content = array('plain'=>"");
     private $_properties = array();
-    private $_parent = false;
     private $_params;
-    private $_data;
-    private $_action = 'build';
-    private $_responseType = 'html';
-    private $_layout = null;
-    private $_view = null;
-
-
-    // stuff the will be set
-    protected $viewFolders = array();
-
-    // static
+    private $_parent;
     protected $_fromInit = false;
+    private $_responses = array();
+    protected $_request = false;
+    protected $_route = false;
+
+    protected $defaultResponseType = false;
+    protected $responseType = false;
+
 
     /**
      * contruct a new view
@@ -76,10 +71,11 @@ class controller extends \bolt\event implements iController {
      * @param $parent parent view
      * @return void
      */
-    final public function __construct($params=array(), \bolt\browser\view $parent=null) {
+    final public function __construct($request=false, $route=false, $params=array()) {
         $this->_bguid = uniqid('b');
         $this->_params = b::bucket($params);
-        $this->_parent = $parent;
+        $this->_request = ($request ?: b::browser()->getRequest());
+        $this->_route = $route;
 
         // any properties
         $ref = new \ReflectionClass($this);
@@ -94,11 +90,41 @@ class controller extends \bolt\event implements iController {
         // init
         $this->_fromInit = $this->init();
 
-        // globals
-        self::$globals['request'] = b::request();
-        self::$globals['response'] = b::response();
-        self::$globals['settings'] = b::settings();
+    }
 
+
+    public function setParent($parent) {
+        $this->_parent = $parent;
+        return $this;
+    }
+
+    public function getRequest() {
+        return $this->_request;
+    }
+
+    public function getRoute() {
+        return $this->_route;
+    }
+
+
+    public function getDefaultResponseType() {
+        if ($this->defaultResponseType) {
+            return $this->defaultResponseType;
+        }
+        else if ($this->_route) {
+            return $this->_route->getResponseType();
+        }
+        return 'plain';
+    }
+
+    public function getResponseType() {
+        if ($this->responseType) {
+            return $this->responseType;
+        }
+        else if ($this->_route) {
+            return $this->_route->getResponseType();
+        }
+        return 'plain';
     }
 
     /**
@@ -132,46 +158,7 @@ class controller extends \bolt\event implements iController {
      */
     protected function after() {}
 
-    /**
-     * set the action
-     *
-     * @param $action name of action
-     * @return self
-     */
-    public function setAction($action) {
-        $this->_action = $action;
-        return $this;
-    }
-
-    /**
-     * get the action
-     *
-     * @return action string
-     */
-    public function getAction() {
-        return $this->_action;
-    }
-
-    /**
-     * set the parent view
-     *
-     * @param \bolt\browser\view $parent
-     * @return self
-     */
-    public function setParent(\bolt\browser\view $parent) {
-        $this->_parent = $parent;
-        return $this;
-    }
-
-    /**
-     * get the parent view
-     *
-     * @return parent view
-     */
-    public function getParent() {
-        return $this->_parent;
-    }
-
+    protected function build() {}
 
     /**
      * MAGIC get a param from params bucket
@@ -198,6 +185,9 @@ class controller extends \bolt\event implements iController {
         }
         else if (array_key_exists($name, $this->_properties)) {
             return $this->{$name};
+        }
+        else if ($this->_parent AND property_exists($this->_parent, $name)) {
+            return $this->_parent->{$name};
         }
         else if (array_key_exists($name, self::$globals)) {
             return self::$globals[$name];
@@ -285,93 +275,12 @@ class controller extends \bolt\event implements iController {
     }
 
     /**
-     * get view content
-     *
-     * @return view content
-     */
-    public function getContent($type=false, $render=false) {
-        $type = $type ?: $this->_responseType;
-        if ($type AND !array_key_exists($type, $this->_content)) {return false; }
-        $resp = ($type ? $this->_content[$type] : $this->_content);
-        if ($render AND is_object($resp) AND method_exists($resp, 'render')) {
-            return $resp->render();
-        }
-        return $resp;
-    }
-
-    /**
-     * set the view content
-     *
-     * @param $content view content
-     * @return self
-     */
-    public function setContent($type, $content) {
-        if (is_array($type)) {
-            foreach ($type as $t => $c) {
-                $this->setContent($t, $c);
-            }
-            return $this;
-        }
-        $this->_content[$type] = $content;
-        return $this;
-    }
-
-    public function setResponseType($type) {
-        $this->_responseType = $type;
-        return $this;
-    }
-
-    public function getResponseType() {
-        return $this->_responseType;
-    }
-
-
-    /**
-     * set the layout view
-     *
-     * @param $layout (string|\bolt\browser\view) path to template or view object
-     * @return self
-     */
-    public function setLayout($layout) {
-        $this->_layout = $this->_getFilePath($layout);
-        return $this;
-    }
-
-    /**
-     * return layout view
-     *
-     * @return \bolt\browser\view
-     */
-    public function getLayout() {
-        return $this->_layout;
-    }
-
-    /**
-     * check if the controller has a layout view
-     *
-     * @return bool
-     */
-    public function hasLayout() {
-        return $this->_layout;
-    }
-
-
-    public function setData($data) {
-        $this->_data = $data;
-        return $this;
-    }
-
-    public function getData() {
-        return $this->_data;
-    }
-
-    /**
      * render the given view
      *
      * @param $args array of argumnets
      * @return content of view
      */
-    public function render($args=array()) {
+    public function invoke($action='build', $args=array()) {
 
         // globalize any args
         foreach ($args as $name => $value) {
@@ -383,7 +292,6 @@ class controller extends \bolt\event implements iController {
             $this->_params->set($name, $this->{$name});
         }
 
-
         // before
         $this->fire('before');
 
@@ -393,12 +301,8 @@ class controller extends \bolt\event implements iController {
         // build args
         $_args = array();
 
-        // if action is a function
-        // just call that
-        $action = (is_string($this->getAction()) ? array($this, $this->getAction()) : $this->getAction());
-
         // reflect on build to see what to run
-        $ref = (is_array($action) ? new \ReflectionMethod($action[0], $action[1]) : new \ReflectionFunction($action));
+        $ref = new \ReflectionMethod($this, $action);
 
         // ref
         if ($ref->getNumberOfParameters() > 0) {
@@ -428,54 +332,70 @@ class controller extends \bolt\event implements iController {
         }
 
         // call build
-        $resp = call_user_func_array($action, $_args);
+        $resp = call_user_func_array(array($this, $action), $_args);
 
-        // is it a controller
-        if (b::isInterfaceOf($resp, '\bolt\browser\iController')) {
-            $i = 0; $run = $resp;
-            while ($i++ <= 10) {
-
-                // resp
-                $last = $run->render($args);
-
-                // not a controller we can stop
-                if (!b::isInterfaceOf($resp, '\bolt\browser\iController') OR $last->bGuid() === $run->bGuid()) { break; }
-
-                $run = $last;
-
-            }
-
-            if (b::isInterfaceOf($last, '\bolt\browser\iController')) {
-                $last = $last->getContent();
-            }
-
-            // return run
-            $this->setContent($this->getResponseType(), $last);
-
-        }
-        else if (b::isInterfaceOf($resp, '\bolt\browser\iView') || is_array($resp) || is_string($resp)) {
-            $this->setContent($this->getResponseType(), $resp);
-        }
-        else if ($this->getContent() AND $this->_layout) {
-            $this->setContent(
-                $this->getResponseType(),
-                b::render(array(
-                    'file' => $this->_layout,
-                    'self' => $this->_parent,
-                    'vars' => array('yield' => $this->getContent())
-                ))
-            );
+        // if
+        if (is_string($resp)) {
+            $this->response($resp);
         }
 
-        // after render
-        call_user_func(array($this,'after'));
+        // response is a view
+        if (b::isInterfaceOf($resp, '\bolt\browser\iView')) {
+            $this->response($resp);
+        }
 
-        // after
-        $this->fire('after');
+        call_user_func(array($this, 'after'));
 
-        $this->_hasRendered = true;
-
+        // done
         return $this;
+
+    }
+
+    public function getResponseByType($type) {
+        return (array_key_exists($type, $this->_responses) ? $this->_responses[$type] : false);
+    }
+
+    public function responses($types) {
+        foreach ($types as $t => $c) {
+            $this->response($t, $c);
+        }
+        return $this;
+    }
+
+    public function response($type, $content=false) {
+        $resp = false;
+
+        // is it already a repsonse
+        if (b::isInterfaceOf($type, '\bolt\browser\iResponse')) {
+            $resp = $type;
+        }
+
+        // we have a type, no content and type isn't a response
+        else if ($type AND $content === false) {
+            $resp = \bolt\browser\response::initByType($this->getDefaultResponseType());
+            $content = $type;
+        }
+
+        // use type
+        else {
+            $resp = \bolt\browser\response::initByType($type);
+        }
+
+        // set our content
+        $resp->setContent($content);
+
+        // set the response
+        $this->_responses[$resp::TYPE] = $resp;
+
+        // return our response
+        return $resp;
+
+    }
+
+    public function module($class) {
+        $mod = new $class;
+        $mod->setParent($this);
+        return $mod;
     }
 
 
@@ -492,12 +412,9 @@ class controller extends \bolt\event implements iController {
             $layout = $this->_layout;
         }
 
-        // file exists
-        $file = $this->_getFilePath($file);
-        $layout = $this->_getFilePath($layout);
-
         // get our final list of params
         $params = $this->_compileFinalParams($vars);
+
 
         // return a template object
         // to delay render until we need it
@@ -515,10 +432,6 @@ class controller extends \bolt\event implements iController {
             return $file->render();
         }
 
-        // file exists
-        $file = $this->_getFilePath($file);
-        $layout = $this->_getFilePath($layout);
-
         // the view
         return $this->view($file, $vars, $layout)->render();
     }
@@ -531,31 +444,16 @@ class controller extends \bolt\event implements iController {
      * @param $vars array of variable
      * @return self
      */
-    public function renderString($str, $vars=array()) {
+    public function renderString($str, $vars=array(), $renderer=false) {
         $params = $this->_compileFinalParams($vars);
         return b::render(array(
             'string' => $str,
             'vars' => $params,
-            'self' => $this
+            'self' => $this,
+            'renderer' => $renderer
         ));
     }
 
-    private function _getFilePath($file) {
-        $views = b::config('project')->value("views", false);
-
-        // check
-        $check = array_merge(array($file, "$views/$file", "$views/"), array_map(function($val) use ($views, $file){ return b::path($views,$val,$file); }, $this->viewFolders));
-
-        while (($file = array_shift($check)) !== null) {
-            if (is_file($file)) {
-                return $file;
-            }
-        }
-
-        // bad!
-        return $file;
-
-    }
 
     private function _compileFinalParams($vars) {
         $params = $this->_params;

@@ -46,11 +46,19 @@ class settings extends plugin\singleton {
          return call_user_func_array(array($this->_bucket, $name), $args);
      }
 
+     public function __isset($name) {
+        return $this->_bucket->exists($name);
+     }
+
      public function asArray() {
          return $this->_bucket->asArray();
      }
 
      public function set($name, $value) {
+        if (is_string($value) AND substr($value,0,7) == 'file://') {
+            $value = new settings\json(substr($value,7));
+        }
+
         if (b::isInterfaceOf($value, '\bolt\iSettings')) {
             $value = $value->get();
         }

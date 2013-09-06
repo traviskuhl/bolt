@@ -3,23 +3,15 @@
 namespace bolt\browser\response;
 use \b as b;
 
-b::depend("bolt-browser-response")
-    ->response
-    ->plug('html', '\bolt\browser\response\html');
-
 // json
-class html extends handler {
+class html extends base {
 
-    // accept or header
-    public static $contentType = array(
-        100 => 'text/html'
-    );
+    const TYPE = 'html';
+
+    public $contentType = 'text/html';
 
     //
-    public function handle() {
-
-        // set some content type
-        $this->setContentType('text/html');
+    public function render() {
 
         $html = $this->getContent();
 
@@ -28,7 +20,7 @@ class html extends handler {
             $tidy = tidy_parse_string($html, array(
                     'clean' => true,
                     'hide-comments' => true,
-                    'indent' => false,
+                    'indent' => true,
                     'wrap' => 0
                 ));
 

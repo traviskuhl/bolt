@@ -66,7 +66,7 @@ class token extends parser {
         }
 
         $regex = '/'.trim($regex, '/');
-        $this->_compiled = '#^'.$regex.'/?$#';
+        $this->_compiled = '#^'.$regex.($resp ? '$' : '/?$').'#';
 
     }
 

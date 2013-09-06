@@ -4,46 +4,42 @@ namespace bolt\browser;
 use \b;
 
 // plug into b::request();
-b::depend('bolt-browser-*')->plug('request', '\bolt\browser\request');
+b::depend('bolt-browser-*');
 
 /**
  * browser request class
  * @extends \bolt\plugin\singleton
  *
  */
-class request extends \bolt\plugin\singleton {
+class request {
 
 	private $_accept = "text/html";
-	private $_method = false;
-    private $_action = false;
+	private $_method = "GET";
 	private $_get;       // $_GET
 	private $_post;      // $_POST
 	private $_request;   // $_REQUEST
 	private $_headers;
 	private $_input = "";
     private $_params = false; // route params
-    private $_route = false;
-    private $_content = false;
-    private $_data = array();
     private $_parsedInput = false;
+    private $_route = false;
+
 
     /**
-     * construct a new instance
-     *
-     * @return self
+     * response object
      */
-	public function __construct() {
+    public function __construct() {
 
-		// get from env
-		$this->_method = b::param("REQUEST_METHOD", "GET", $_SERVER);
+        // get from env
+        $this->_method = b::param("REQUEST_METHOD", "GET", $_SERVER);
         $a = explode(',', b::param('HTTP_ACCEPT', false, $_SERVER));
-		$this->_accept = array_shift($a);
+        $this->_accept = array_shift($a);
 
-		// create a bucket of our params
-		$this->_get = b::bucket($_GET);
-		$this->_post = b::bucket($_POST);
-		$this->_request = b::bucket($_REQUEST);
-		$this->_input = file_get_contents("php://input");
+        // create a bucket of our params
+        $this->_get = b::bucket($_GET);
+        $this->_post = b::bucket($_POST);
+        $this->_request = b::bucket($_REQUEST);
+        $this->_input = file_get_contents("php://input");
         $this->_params = b::bucket();
         $this->_server = b::bucket(array_change_key_case($_SERVER));
 
@@ -61,315 +57,21 @@ class request extends \bolt\plugin\singleton {
            $this->_headers = b::bucket($headers, false);
         }
 
-        // when we run
-        b::on('run', function(){
 
-            // register settings
-            // register a global rendering value
-            b::render()
-                ->variable('settings', array('project' => b::getSettings('project')))
-                ->variable('config', array('project' => b::config()->project, 'global' => b::config()->global))
-                ->variable('env', b::env());
-
-        });
-
-	}
-
-
-    /**
-     * MAGIC get variable. where $name is:
-     *     get -> $_GET bucket
-     *     post -> $_POST bucket
-     *     request -> $_REQUEST bucket
-     *     input -> $_input contensts
-     *     server -> $_SERVER bucket
-     *     params -> request params
-     *     headers -> headers bucket
-     *     default -> route params
-     *
-     * @param $name name of variable
-     * @return mixed
-     */
-    public function __get($name) {
-        switch($name) {
-            case 'qs':
-            case 'query':
-            case 'get':
-                return $this->_get;
-            case 'post':
-                return $this->_post;
-            case 'patch':
-            case 'put':
-                return $this->getParsedInput();
-            case 'request':
-                return $this->_request;
-            case 'server':
-                return $this->_server;
-            case 'params':
-                return $this->getParams();
-            case 'headers':
-                return $this->getHeaders();
-            case 'input':
-                return $this->getInput();
-            case 'parsedInput':
-                return $this->getParsedInput();
-            default:
-                return $this->_params->get($name);
-        };
     }
 
-    /**
-     * set a route apram
-     *
-     * @param $name
-     * @param $value
-     * @return void
-     */
-    public function __set($name, $value) {
-        $this->_params->set($name, $value);
-        return $this;
+    public function getMethod() {
+        return $this->_method;
     }
 
     public function getRoute() {
         return $this->_route;
     }
 
-    /**
-     * get request params
-     *
-     * @param $type of params. where:
-     *       get -> $_GET bucket
-     *       post -> $_POST bucket
-     *       request -> $_REQUEST bucket
-     *       default -> route params bucket
-     * @return object controller
-     */
-    public function getParams($type=false) {
-        switch($type) {
-            case 'get': return $this->_get;
-            case 'post': return $this->_post;
-            case 'request': return $this->_request;
-            default: return $this->_params;
-        };
-    }
-
-    /**
-     * set route params
-     *
-     * @param route params
-     * @return self
-     */
-    public function setParams($params) {
-        $this->_params = $params;
+    public function setRoute($route) {
+        $this->_route = $route;
         return $this;
     }
-
-    /**
-     * get all headers
-     *
-     * @return \bolt\bucket headers
-     */
-    public function getHeaders() {
-        return $this->_headers;
-    }
-
-    /**
-     * get input contents (php://input)
-     *
-     * @return string
-     */
-    public function getInput($format=false) {
-        return $this->_input;
-    }
-
-    public function getParsedInput() {
-        if (!$this->_parsedInput) {
-            $params = [];
-            if (($this->_input{0} == '{' OR $this->_input{0} == '[') AND ($json = json_decode($this->_input, true)) != false) {
-                $params = $json;
-            }
-            else {
-                parse_str($this->_input, $params);
-            }
-            $this->_parsedInput = b::bucket($params);
-        }
-        return $this->_parsedInput;
-    }
-
-    /**
-     * get the route action
-     *
-     * @return string route action
-     */
-    public function getAction() {
-        return $this->_action;
-    }
-
-    /**
-     * set the route action
-     *
-     * @param $action string of route action
-     * @return self
-     */
-    public function setAction($action){
-        $this->_action = $action;
-        return $this;
-    }
-
-    /**
-     * get HTTP Method
-     *
-     * @return string of method
-     */
-    public function getMethod() {
-        return $this->_method;
-    }
-
-    /**
-     * set the HTTP method
-     *
-     * @param $method set the http method
-     * @return self
-     */
-    public function setMethod($method){
-        $this->_method = $method;
-        return $this;
-    }
-
-    /**
-     * get the accept headers
-     *
-     * @return accept header string
-     */
-    public function getAccept() {
-        return $this->_accept;
-    }
-
-    /**
-     * set the HTTP accept header
-     *
-     * @param $accept header
-     * @return self
-     */
-    public function setAccept($accept) {
-        $this->_accept = $accept;
-        return $this;
-    }
-
-    public function getContent() {
-        return $this->_content;
-    }
-
-    public function setData($data) {
-        $this->_data = $data;
-        return $this;
-    }
-
-    public function getData() {
-        return $this->_data;
-    }
-
-    public function getResponseType() {
-        return b::response()->getResponseType();
-    }
-
-    public function setResponseType($type) {
-        b::response()->setResponseType($type);
-        return $this;
-    }
-
-    /**
-     * execute the request
-     *
-     * @param $path request path
-     * @return executed response
-     */
-	public function run($path=false, $method=false) {
-
-        // ask the router to look for classes
-        b::route()->loadClassRoutes();
-
-        // pathInfo
-        $pathInfo = trim(ltrim(($path ?: bPathInfo),'/'));
-        $method = strtolower($method ?: $this->getMethod());
-
-        // run start
-        $this->fire("run", array('pathInfo' => $pathInfo));
-
-		// fire lets run our router to figure out what
-		// route we need to take
-		$route = b::route()->match($pathInfo, $method);
-
-		// no route just die right now
-		if (!$route) {
-			$controller = b::browser()->error('404', "No route for path '".strtoupper($method)." {$pathInfo}'");
-		}
-        else  {
-
-            // route matc
-            $_route = $this->fire("routeMatch", array(
-                    'route' => $route
-                ));
-
-                // route is false we assume bad callback and stop
-                if ($_route !== false AND $_route !== null) {
-                    $route = $_route;
-                }
-
-            // globalize route
-            $this->_route = $route;
-
-            // call before
-            $route->fire("before", array(
-                'route' => $route
-            ));
-
-            // our aciton
-            $this->_action = $route->getAction();
-
-            // class
-            $class = $route->getController();
-
-            // rew controller
-            $controller = (is_string($class) ? new $class() : $class);
-
-            $controller->setRoute($route);
-
-            // route
-            $this->setResponseType($route->getResponseType());
-
-        }
-
-        // request before
-        $this->fire("before", array(
-            'route' => $route,
-            'controller' => $controller
-        ));
-
-        // run our controller
-        $controller = $controller
-                        ->setMethod($method)
-                        ->render();
-
-        // set the controller
-        $this->_content = $controller->getContent($this->getResponseType(), true);
-        $this->_data = $controller->getData();
-
-        $_args = array(
-            'controller' => $controller,
-            'request' => $this
-        );
-
-        // after request is finished
-        $this->fire("after", $_args);
-
-        // call before
-        if ($route) { $route->fire("after", $_args); }
-
-		// set our response and run
-		return $this;
-
-	}
 
     public static function initGlobals() {
         if (defined('bServerInit') AND bServerInit === true) {return;}

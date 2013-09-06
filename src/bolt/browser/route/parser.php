@@ -155,7 +155,7 @@ abstract class parser extends \bolt\event {
      * @return self
      */
     public function method($method) {
-        $this->_method = (is_array($method) ? $method : explode(',', $method));
+        $this->_method = array_map(function($v){ return strtoupper($v); }, (is_array($method) ? $method : explode(',', $method)));
         return $this;
     }
 

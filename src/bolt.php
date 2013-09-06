@@ -143,7 +143,6 @@ final class b {
 
         // response
         'bolt-browser-response' => "./bolt/browser/response.php",
-        'bolt-browser-response-plain' => "./bolt/browser/response/plain.php",
         'bolt-browser-response-json' => "./bolt/browser/response/json.php",
         'bolt-browser-response-xhr' => "./bolt/browser/response/xhr.php",
         'bolt-browser-response-ajax' => "./bolt/browser/response/ajax.php",
@@ -275,7 +274,7 @@ final class b {
 
         // config
         if (defined('bConfig') AND bConfig !== false AND file_exists(bConfig."/config.ini")) {
-          b::config()->import(bConfig."/config.ini", array('key' => 'global'));
+          b::config()->import(bConfig."/config.ini");
         }
 
         // autoload
@@ -286,16 +285,25 @@ final class b {
         }
 
         // include
-        if (b::config()->exists("global.autoload")) {
-            foreach (b::config()->get("global.autoload") as $dir) {
+        if (b::config()->exists("autoload")) {
+            foreach (b::config()->get("autoload") as $dir) {
                 self::$autoload[] = $dir;
             }
         }
 
         // global load
-        if (b::config()->exists('global.load')) {
-            b::load(b::config()->get('global.load')->asArray());
+        if (b::config()->exists('load')) {
+            b::load(b::config()->get('load')->asArray());
         }
+
+        // settings
+        if (b::config()->exists('settings')) {
+            foreach ( b::config()->value('settings') as $key => $value ) {
+                b::settings()->set($key, $value);
+            }
+        }
+
+        /// things from args
 
         // config
         if (isset($args['config'])) {
@@ -349,16 +357,8 @@ final class b {
             // clie
             b::depend('bolt-browser-*');
 
-            // browser request
-            b::request()->run();
-
-            // response
-            $resp = b::response()
-                        ->setContent(b::request()->getContent())
-                        ->setData(b::request()->getData());
-
-            // browser response
-            exit($resp->run());
+            // run
+            return b::browser()->run();
 
         }
 

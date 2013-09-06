@@ -3,22 +3,15 @@
 namespace bolt\browser\response;
 use \b as b;
 
-b::depend("bolt-browser-response")
-    ->response
-    ->plug('xhr', '\bolt\browser\response\xhr');
-
 // json
-class xhr extends handler {
+class xhr extends base {
+
+    const TYPE = 'xhr';
 
     // accept or header
-    public static $contentType = array(
-        100 => 'text/javascript;text/xhr',
-        101 => 'text/javascript;text/xhr;secure',
-    );
+    public $contentType = 'application/json';
 
-
-    //
-    public function handle() {
+    public function render() {
 
         // body
         $body = $this->getContent();
@@ -52,9 +45,7 @@ class xhr extends handler {
             'javascript' => $js,
         ));
 
-        $this->setContentType('application/json');
-
-        return $j->handle();
+        return $j->render();
 
     }
 

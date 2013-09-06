@@ -110,11 +110,13 @@ class curl extends base {
             $args[1] = json_encode($args[1]);
         }
 
-
         // call it
         $resp = $this->_getResponse($model, call_user_func_array(array($this, $type), $args));
 
-        if ($mapRow) {
+        if (method_exists($model, 'endpointResponseMap')) {
+            $resp = $model->endpointResponseMap($resp, $type);
+        }
+        else if ($mapRow) {
             $resp = $resp->item(0);
         }
 
@@ -409,15 +411,16 @@ class curlResponse {
                 return $this->_req;
 
             case 'data':
-                switch($this->_info['content_type']) {
-                    case 'application/json':
-                    case 'text/javascript':
-                        return $this->json();
-                    case 'application/xml':
-                    case 'text/xml':
-                        return $this->xml();
-                };
-                return $this->_body;
+                $t = $this->_info['content_type'];
+                if (stripos($t, 'application/json') !== false OR stripos($t, 'text/javascript') !== false)  {
+                    return $this->json();
+                }
+                else if (stripos($t, 'application/xml') !== false OR stripos($t, 'text/xml') !== false) {
+                    return $this->xml();
+                }
+                else {
+                    return $this->_body;
+                }
 
         };
 

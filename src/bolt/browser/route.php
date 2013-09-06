@@ -199,7 +199,6 @@ class route extends \bolt\plugin\singleton {
 
         $route = false;
 
-
         // routes
         foreach ($this->_routes as $item) {
 

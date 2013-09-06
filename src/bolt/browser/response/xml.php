@@ -6,25 +6,19 @@ use \DOMAttr;
 use \DOMDocument;
 use \DOMCDATASection;
 
-b::depend("bolt-browser-response")
-    ->response
-    ->plug('xml', '\bolt\browser\response\xml');
-
 // json
-class xml extends handler {
+class xml extends base {
+
+    const TYPE = 'xml';
 
     // accept or header
-    public static $contentType = array(
-        100 => 'application/xml'
-    );
+    public $contentType = 'application/xml';
 
     //
-    public function handle() {
+    public function render() {
 
 		// print
 		$g = new xmlGenerator($this->getContent());
-
-        $this->setContentType('application/xml');
 
         // set it
         return $g->render();

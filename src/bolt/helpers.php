@@ -36,6 +36,7 @@ class helpers {
 
     }
 
+
     public function path() {
         $path = array();
         foreach (func_get_args() as $part) {

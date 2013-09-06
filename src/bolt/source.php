@@ -11,7 +11,7 @@ class source extends \bolt\plugin\singleton {
 
     // events
     public static $pluginEvents = array(
-        'ready' => array('func' => 'onReady')
+        'run' => array('func' => 'onReady')
     );
 
 
@@ -37,7 +37,7 @@ class source extends \bolt\plugin\singleton {
         }
 
         // see if there's a any source config
-        $source = b::settings("project")->value('source');
+        $source = b::settings()->value('project.source');
 
         // nothing means stpo
         if (!$source OR !isset($source['adapter'])) {

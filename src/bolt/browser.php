@@ -8,10 +8,105 @@ b::depend('bolt-core-*')->plug('browser', '\bolt\browser');
 
 class browser extends \bolt\plugin\singleton {
 
-    public function error($message, $code=500) {
-        $c = new \bolt\browser\controller\request();
-        $c->setStatus($code);
-        $c->setContent('html', '<!doctype html>
+
+    private $_route = false;
+    private $_request = false;
+
+    public function run() {
+
+        // start our request
+        $this->_request = new browser\request();
+
+        // ask the router to look for classes
+        b::route()->loadClassRoutes();
+
+        // pathInfo
+        $pathInfo = trim(ltrim(bPathInfo,'/'));
+        $method = $this->_request->getMethod();
+
+        // fire lets run our router to figure out what
+        // route we need to take
+        $this->_route = b::route()->match($pathInfo, $method);
+
+        // things we'll use
+        $action = 'build';
+        $params = array();
+
+        // no route just die right now
+        if (!$this->_route) {
+            $controller = b::browser()->error('404', "No route for path '".strtoupper($method)." {$pathInfo}'");
+            return $this->render($controller->getResponseByType('html'));
+        }
+        else  {
+
+            // set our route in the request
+            $this->_request->setRoute($this->_route);
+
+            // get the controller from the route
+            $class = $this->_route->getController();
+            $action = $this->_route->getAction();
+            $params = $this->_route->getParams();
+
+            // create a new controller obj
+            $controller = new $class($this->_request, $this->_route);
+
+        }
+
+        // run start
+        $this->fire("before", array('controller' => $controller));
+
+        // invoke the controller
+        $controller->invoke($action, $params);
+
+        $type = $controller->getResponseType();
+
+        // ask the controller for it
+        $resp = $controller->getResponseByType($type);
+
+        // no response
+        if (!$resp) {
+            return b::browser()->fail('404', "No response for path '".strtoupper($method)." {$pathInfo}' of type '{$type}'");
+        }
+
+        // is the response a controller?
+        if (b::isInterfaceOf($resp, '\bolt\browser\iController')) {
+            $resp = $resp->invoke($action, $params);
+        }
+
+        return $this->render($resp);
+
+    }
+
+    public function render($resp) {
+
+        // print a content type
+        if (!headers_sent()) {
+
+            header("Content-Type: {$resp->getContentType()}", true, (int)$resp->getStatus());
+
+            // print all headers
+            $resp->getHeaders()->map(function($name, $value){
+                header("$name: $value");
+            });
+
+        }
+
+        // respond
+        exit($resp->getResponse());
+
+    }
+
+    public function getRoute() {
+        return $this->_route;
+    }
+
+    public function getRequest() {
+        return $this->_request;
+    }
+
+    public function fail($message, $code) {
+        header('Content-Type:text/html', true, (int)$code);
+        exit('<!doctype html>
                 <html>
                     <body>
                         <h1>Error: '.$code.'</h1>
@@ -19,6 +114,19 @@ class browser extends \bolt\plugin\singleton {
                     </body>
                 </html>
             ');
+    }
+
+    public function error($message, $code=500) {
+        $c = new \bolt\browser\controller();
+        $c->response('html', '<!doctype html>
+                <html>
+                    <body>
+                        <h1>Error: '.$code.'</h1>
+                        <p>'.$message.'</p>
+                    </body>
+                </html>
+            ')->setStatus($code);
+
         return $c;
     }
 
