@@ -73,7 +73,7 @@ class module extends \bolt\browser\controller {
     }
 
     public function __invoke($act='build', $args=array()) {
-        $this->invoke($act, $args);
+        parent::invoke($act, $args);
         return $this->getContent();
     }
 

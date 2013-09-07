@@ -158,7 +158,6 @@ class controller extends \bolt\event implements iController {
      */
     protected function after() {}
 
-    protected function build() {}
 
     /**
      * MAGIC get a param from params bucket
