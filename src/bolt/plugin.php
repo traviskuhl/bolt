@@ -222,6 +222,7 @@ abstract class plugin extends event {
 
             }
             else {
+
                 // wait fore ready
                 b::on('ready', function() use ($class, $name){
                     if (class_exists($class)) {

@@ -319,7 +319,7 @@ class bArray implements \bolt\iBucket, \ArrayAccess, \Iterator, \Countable {
             foreach ($array as $k => $v) {
                 $array[$k] = \bolt\bucket::byType($v, $k, $this);
             }
-            $this->_data = array_merge($array,$this->_data);
+            $this->_data = array_merge($array, $this->_data);
         }
         return $this;
     }
