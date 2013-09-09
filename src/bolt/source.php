@@ -11,7 +11,8 @@ class source extends \bolt\plugin\singleton {
 
     // events
     public static $pluginEvents = array(
-        'run' => array('func' => 'onReady')
+        'ready' => array('func' => 'onReady'),
+        'run' => array('func' => 'onRun')
     );
 
 
@@ -35,6 +36,10 @@ class source extends \bolt\plugin\singleton {
         foreach ($classes as $adapter)  {
             $this->_adapters[$adapter->getConstant('NAME')] = $adapter->name;
         }
+
+    }
+
+    public function onRun() {
 
         // see if there's a any source config
         $source = b::settings()->value('project.source');

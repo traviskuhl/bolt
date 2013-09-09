@@ -307,7 +307,7 @@ final class b {
 
         // config
         if (isset($args['config'])) {
-            b::config()->set('project',$args['config']);
+            b::config()->merge($args['config']);
         }
 
         // settings or default project

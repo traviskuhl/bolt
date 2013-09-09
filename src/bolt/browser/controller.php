@@ -174,7 +174,7 @@ class controller extends \bolt\event implements iController {
             return b::cookie();
         }
         else if ($name == 'request') {
-            return b::request();
+            return $this->_request;
         }
         else if ($name == 'response') {
             return b::response();
@@ -395,6 +395,12 @@ class controller extends \bolt\event implements iController {
         $mod = new $class;
         $mod->setParent($this);
         return $mod;
+    }
+
+    public function controller($class) {
+        $c = new $class();
+        $c->setParent($this);
+        return $c;
     }
 
 

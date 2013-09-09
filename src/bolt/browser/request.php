@@ -60,6 +60,95 @@ class request {
 
     }
 
+
+    /**
+     * MAGIC get variable. where $name is:
+     *     get -> $_GET bucket
+     *     post -> $_POST bucket
+     *     request -> $_REQUEST bucket
+     *     input -> $_input contensts
+     *     server -> $_SERVER bucket
+     *     params -> request params
+     *     headers -> headers bucket
+     *     default -> route params
+     *
+     * @param $name name of variable
+     * @return mixed
+     */
+    public function __get($name) {
+        switch($name) {
+            case 'qs':
+            case 'query':
+            case 'get':
+                return $this->_get;
+            case 'post':
+                return $this->_post;
+            case 'patch':
+            case 'put':
+                return $this->getParsedInput();
+            case 'request':
+                return $this->_request;
+            case 'server':
+                return $this->_server;
+            case 'params':
+                return $this->getParams();
+            case 'headers':
+                return $this->getHeaders();
+            case 'input':
+                return $this->getInput();
+            case 'parsedInput':
+                return $this->getParsedInput();
+            default:
+                return $this->_params->get($name);
+        };
+    }
+
+    /**
+     * set a route apram
+     *
+     * @param $name
+     * @param $value
+     * @return void
+     */
+    public function __set($name, $value) {
+        $this->_params->set($name, $value);
+        return $this;
+    }
+
+
+    /**
+     * get all headers
+     *
+     * @return \bolt\bucket headers
+     */
+    public function getHeaders() {
+        return $this->_headers;
+    }
+
+    /**
+     * get input contents (php://input)
+     *
+     * @return string
+     */
+    public function getInput($format=false) {
+        return $this->_input;
+    }
+
+    public function getParsedInput() {
+        if (!$this->_parsedInput) {
+            $params = [];
+            if (($this->_input{0} == '{' OR $this->_input{0} == '[') AND ($json = json_decode($this->_input, true)) != false) {
+                $params = $json;
+            }
+            else {
+                parse_str($this->_input, $params);
+            }
+            $this->_parsedInput = b::bucket($params);
+        }
+        return $this->_parsedInput;
+    }
+
+
     public function getMethod() {
         return $this->_method;
     }
