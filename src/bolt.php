@@ -32,7 +32,7 @@ $bGlobals = array(
     'bEnv' => 'dev',
     'bTimeZone' => 'UTC',
     'bLogLevel' => 0,
-    'bConfig' => "/etc/bolt/"
+    'bConfig' => false
 );
 
 // check env for some bolt variables

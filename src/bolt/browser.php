@@ -11,6 +11,7 @@ class browser extends \bolt\plugin\singleton {
 
     private $_route = false;
     private $_request = false;
+    private $_response = false;
 
     public function run() {
 
@@ -39,6 +40,9 @@ class browser extends \bolt\plugin\singleton {
         }
         else  {
 
+            // start our base response
+            $this->_response = browser\response::initByType($this->_route->getResponseType());
+
             // set our route in the request
             $this->_request->setRoute($this->_route);
 
@@ -48,7 +52,12 @@ class browser extends \bolt\plugin\singleton {
             $params = $this->_route->getParams();
 
             // create a new controller obj
-            $controller = new $class($this->_request, $this->_route);
+            $controller = new $class(array(
+                'request' => $this->_request,
+                'response' => $this->_response,
+                'route' => $this->_route,
+                'params' => $params
+            ));
 
         }
 
@@ -102,6 +111,10 @@ class browser extends \bolt\plugin\singleton {
 
     public function getRequest() {
         return $this->_request;
+    }
+
+    public function getResponse() {
+        return $this->_response;
     }
 
     public function fail($message, $code) {

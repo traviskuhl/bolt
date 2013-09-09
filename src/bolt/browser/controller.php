@@ -67,14 +67,20 @@ class controller extends \bolt\event implements iController {
     /**
      * contruct a new view
      *
-     * @param $params array of view params
-     * @param $parent parent view
+     * @param $config array configuration options
+     *      request => request object
+     *      response => response object
+     *      route => base route
+     *      params => start params
      * @return void
      */
-    final public function __construct($request=false, $route=false, $params=array()) {
+    final public function __construct($config) {
         $this->_bguid = uniqid('b');
         $this->_params = b::bucket($params);
-        $this->_request = ($request ?: b::browser()->getRequest());
+
+        // request and response
+        $this->_response = (array_key_exists('response', $config) ? $config['response'] : b::browser()->getResponse() );
+        $this->_request = (array_key_exists('request', $config) ? $config['request'] : b::browser()->getResponse() );
         $this->_route = $route;
 
         // any properties
