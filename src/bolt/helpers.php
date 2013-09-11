@@ -8,6 +8,16 @@ use \b;
 // helpers
 class helpers {
 
+    static function parseStringArguments($str) {
+        $args = array();
+        if (preg_match_all('#([^\=]+)\=\"([^\"]+)\"\s?#', $str, $matches, PREG_SET_ORDER)) {
+            foreach ($matches as $match) {
+                $args[$match[1]] = trim($match[2]);
+            }
+        }
+        return $args;
+    }
+
     static function buildUrl($parts, $start=false) {
         if (!is_array($parts)) {$parts = array(); }
 
@@ -51,7 +61,7 @@ class helpers {
     public function getDefinedSubClasses($parent) {
         $classes = array();
         foreach (get_declared_classes() as $class) {
-            if (!is_string($class)) {return;}
+            if (!is_string($class) OR !preg_match_all('#[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*#i', $class)) {return;}
             $c = new \ReflectionClass($class);
             if ($c->isSubclassOf($parent)) {
                 $classes[] = $c;

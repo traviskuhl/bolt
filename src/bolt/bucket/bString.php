@@ -3,7 +3,7 @@
 namespace bolt\bucket;
 use \b;
 
-class bString implements \bolt\iBucket {
+class bString implements \bolt\iBucket, \JsonSerializable {
 
     private $_bguid = false;
     private $_original = null;
@@ -20,11 +20,10 @@ class bString implements \bolt\iBucket {
     /// @param $parent bucket pointer
     /// @return void
     ////////////////////////////////////////////////////////////////////
-    public function __construct($value, $key, $parent) {
+    public function __construct($value, $key) {
         $this->_bguid = uniqid('b');
         $this->_value = $this->_original = $value;
         $this->_key = $key;
-        $this->_parent = $parent;
     }
 
     public function bGuid() {
@@ -59,6 +58,14 @@ class bString implements \bolt\iBucket {
     }
 
     public function __toString() {
+        return (string)$this->_value;
+    }
+
+    public function __sleep() {
+        return (string)$this->_value;
+    }
+
+    public function jsonSerialize() {
         return (string)$this->_value;
     }
 

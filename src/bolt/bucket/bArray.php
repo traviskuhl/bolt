@@ -6,7 +6,7 @@ use \b;
 /**
  * bucket array wrapper
  */
-class bArray implements \bolt\iBucket, \ArrayAccess, \Iterator, \Countable {
+class bArray implements \bolt\iBucket, \ArrayAccess, \Iterator, \Countable, \JsonSerializable {
 
     private $_bguid = false;
     private $_root = false;
@@ -22,10 +22,9 @@ class bArray implements \bolt\iBucket, \ArrayAccess, \Iterator, \Countable {
      *
      * @return \bolt\bucket\bArray new instances
      */
-    public function __construct($data, $root=false, $parent=false) {
+    public function __construct($data, $root=false) {
         $this->_bguid = uniqid('b');
         $this->_root = $root;
-        $this->_parent = $parent;
 
         // set our data
         $this->set(is_array($data) ? $data : array());
@@ -100,6 +99,10 @@ class bArray implements \bolt\iBucket, \ArrayAccess, \Iterator, \Countable {
         return ($this->_data ? $this->asJson() : "");
     }
 
+    public function jsonSerialize() {
+        return $this->asArray();
+    }
+
     /**
      * return native array value
      *
@@ -130,6 +133,10 @@ class bArray implements \bolt\iBucket, \ArrayAccess, \Iterator, \Countable {
 
     public function export() {
         return var_export($this->normalize(), true);
+    }
+
+    public function cast() {
+        return $this;
     }
 
     /**
@@ -322,6 +329,14 @@ class bArray implements \bolt\iBucket, \ArrayAccess, \Iterator, \Countable {
             $this->_data = array_merge($array, $this->_data);
         }
         return $this;
+    }
+
+    public function decode() {
+        return false;
+    }
+
+    public function encode() {
+        return false;
     }
 
     /**

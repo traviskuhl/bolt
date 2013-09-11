@@ -18,7 +18,7 @@ abstract class parser extends \bolt\event {
     private $_method = false;
     private $_action = false;
     private $_name = false;
-    private $_weight = false;
+    private $_weight = 0;
     private $_validators = array();
     private $_params = array();
     private $_optional = array();
@@ -26,6 +26,8 @@ abstract class parser extends \bolt\event {
     private $_model = array();
     private $_response = false;
     private $_responsetype = 'html';
+    private $_before = false;
+    private $_after = false;
 
     // compiled
     protected $_compiled = false;
@@ -84,6 +86,11 @@ abstract class parser extends \bolt\event {
         if (property_exists($this, "_$name")) {
             $this->{"_$name"} = $value;
         }
+        return $this;
+    }
+
+    public function weight($weight) {
+        $this->_weight = (int)$weight;
         return $this;
     }
 
@@ -189,8 +196,18 @@ abstract class parser extends \bolt\event {
      * @return self
      */
     public function before($cb, $params=array()) {
-        $this->on("before", $cb, $params);
+        $this->_before = $cb;
         return $this;
+    }
+
+    public function fireBefore() {
+        if (is_callable($this->getBefore())) {
+            return call_user_func($this->getBefore(),
+                $this->_params,
+                $this
+            );
+        }
+        return false;
     }
 
     /**

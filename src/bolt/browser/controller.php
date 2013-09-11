@@ -55,10 +55,11 @@ class controller extends \bolt\event implements iController {
     private $_properties = array();
     private $_params;
     private $_parent;
-    protected $_fromInit = false;
     private $_responses = array();
-    protected $_request = false;
-    protected $_route = false;
+    private $_request;
+    private $_response;
+    private $_fromInit = false;
+
 
     protected $defaultResponseType = false;
     protected $responseType = false;
@@ -74,14 +75,14 @@ class controller extends \bolt\event implements iController {
      *      params => start params
      * @return void
      */
-    final public function __construct($config) {
+    final public function __construct($config=array()) {
         $this->_bguid = uniqid('b');
-        $this->_params = b::bucket($params);
+        $this->_params = b::bucket(array_key_exists('params', $config) ? $config['params'] : array());
 
         // request and response
         $this->_response = (array_key_exists('response', $config) ? $config['response'] : b::browser()->getResponse() );
-        $this->_request = (array_key_exists('request', $config) ? $config['request'] : b::browser()->getResponse() );
-        $this->_route = $route;
+        $this->_request = (array_key_exists('request', $config) ? $config['request'] : b::browser()->getRequest() );
+        $this->_route = (array_key_exists('route', $config) ? $config['route'] : false );
 
         // any properties
         $ref = new \ReflectionClass($this);
@@ -106,6 +107,10 @@ class controller extends \bolt\event implements iController {
 
     public function getRequest() {
         return $this->_request;
+    }
+
+    public function getResponse() {
+        return $this->_response;
     }
 
     public function getRoute() {
@@ -183,7 +188,7 @@ class controller extends \bolt\event implements iController {
             return $this->_request;
         }
         else if ($name == 'response') {
-            return b::response();
+            return $this->_response;
         }
         else if ($name == 'settings') {
             return b::settings();
@@ -287,6 +292,11 @@ class controller extends \bolt\event implements iController {
      */
     public function invoke($action='build', $args=array()) {
 
+        // if this action doesn't exist as a method we stop
+        if (!method_exists($this, $action)) {
+            return $this;
+        }
+
         // globalize any args
         foreach ($args as $name => $value) {
             $this->{$name} = $value;
@@ -316,10 +326,10 @@ class controller extends \bolt\event implements iController {
 
                 // is it a req/resp class
                 if ($param->getClass() AND $param->getClass()->name == 'bolt\browser\request') {
-                    $_args[] = b::request();
+                    $_args[] = $this->_request;
                 }
                 else if ($param->getClass() AND $param->getClass()->name == 'bolt\browser\response') {
-                    $_args[] = b::response();
+                    $_args[] = $this->_response;
                 }
                 else if (array_key_exists($name, $args)) {
                     $_args[] = $args[$name];
@@ -357,7 +367,11 @@ class controller extends \bolt\event implements iController {
     }
 
     public function getResponseByType($type) {
-        return (array_key_exists($type, $this->_responses) ? $this->_responses[$type] : false);
+        $resp = (array_key_exists($type, $this->_responses) ? $this->_responses[$type] : false);
+        if (is_object($resp)) {
+            $resp->setStatus( $this->_response->getStatus() );
+        }
+        return $resp;
     }
 
     public function responses($types) {

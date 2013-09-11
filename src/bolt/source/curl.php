@@ -69,6 +69,11 @@ class curl extends base {
     private function _getResponse($model, $resp) {
         $data = $resp->data();
         $name = get_class($model);
+
+
+
+
+
         $map = (array_key_exists($name, $this->_config['models']) ? $this->_config['models'][$name] : array());
 
         // model has endpoints
@@ -86,51 +91,41 @@ class curl extends base {
         $args = func_get_args();
         $model = array_shift($args);
         $type = array_shift($args);
-        $mapRow = false;
 
-        if ($type == 'row' AND $args[0] !== $model->getPrimaryKey()) {
+        // url
+        $source = $model->source()['curl'];
+
+        // uri
+        $uri = $source['uri'][$type];
+
+        if ($type == 'findById') {
+            $uri = b::tokenize($uri, array("key" => $args[0]));
+            $args[0] = array();
+        }
+
+        if ($type == 'find' OR $type == 'findById') {
             $type = 'query';
-            $args[0] = array($args[0] => $args[1]);
-            $args[1] = array();
-            $mapRow = true;
+            $args[0] = array('query' => $args[0]);
         }
 
-        if ($type == 'row') {
-            $path = $this->_mapModelEp($type, $model, array($args[0] => $args[1]));
-        }
-        else {
-            $path = $this->_mapModelEp($type, $model, $args[0]);
-        }
-
-        // get our table
-        array_unshift($args, $path);
-
-        // json encode query
-        if ($type == 'query' AND isset($map['jsonEncodeQuery']) AND $map['jsonEncodeQuery'] == true) {
-            $args[1] = json_encode($args[1]);
-        }
+        // add back our path
+        array_unshift($args, $uri);
 
         // call it
-        $resp = $this->_getResponse($model, call_user_func_array(array($this, $type), $args));
+        $resp = call_user_func_array(array($this, $type), $args);
 
-        if (method_exists($model, 'endpointResponseMap')) {
-            $resp = $model->endpointResponseMap($resp, $type);
-        }
-        else if ($mapRow) {
-            $resp = $resp->item(0);
+
+        if (array_key_exists('response', $source)) {
+            $resp = $source['response']($resp, $model);
         }
 
         // return a result
-        return  $resp;
+        return $resp;
 
     }
 
     public function query($path, $query, $args=array()) {
-        return $this->request($path, array_merge(array('query' => $query), $args), 'GET');
-    }
-
-    public function row($path, $field, $value, $args=array()) {
-        return $this->request($path, $args, 'GET');
+        return $this->request($path, array_merge($query, $args), 'GET');
     }
 
     public function insert($path, $data, $args=array()) {

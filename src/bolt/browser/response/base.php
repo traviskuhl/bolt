@@ -92,7 +92,7 @@ class base implements \bolt\browser\iResponse {
         }
 
         public function setStatus($status) {
-            $this->_status = $status;
+            $this->status = $status;
             return $this;
         }
 

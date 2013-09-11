@@ -50,6 +50,7 @@ class browser extends \bolt\plugin\singleton {
             $class = $this->_route->getController();
             $action = $this->_route->getAction();
             $params = $this->_route->getParams();
+            $type = $this->_route->getResponseType();
 
             // create a new controller obj
             $controller = new $class(array(
@@ -59,7 +60,19 @@ class browser extends \bolt\plugin\singleton {
                 'params' => $params
             ));
 
+            // route before
+            $resp = $this->_route->fireBefore();
+
+            if (b::isInterfaceOf($resp, '\bolt\browser\iController')) {
+                return $this->render($resp->invoke()->getResponseByType($type));
+            }
+            if (b::isInterfaceOf($resp, '\bolt\browser\iResponse')) {
+                return $this->render($resp->getResponseByType($type));
+            }
+
         }
+
+
 
         // run start
         $this->fire("before", array('controller' => $controller));
@@ -131,15 +144,20 @@ class browser extends \bolt\plugin\singleton {
 
     public function error($message, $code=500) {
         $c = new \bolt\browser\controller();
-        $c->response('html', '<!doctype html>
+        $c->getResponse()->setStatus($code);
+        $c->responses(array(
+            'html' => '<!doctype html>
                 <html>
                     <body>
                         <h1>Error: '.$code.'</h1>
                         <p>'.$message.'</p>
                     </body>
                 </html>
-            ')->setStatus($code);
-
+            ',
+            'json' => array(
+                'error' => $message
+            )
+        ));
         return $c;
     }
 

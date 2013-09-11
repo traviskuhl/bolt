@@ -21,9 +21,10 @@ class model extends \bolt\model\attr\base {
                     $args[$i] = $this->parent->value(substr($arg,1), false, false);
                 }
             }
-
-
             $this->_instance = b::model($model);
+            if ($method == 'set') {
+                $args = $this->parent->asArray();
+            }
             call_user_func_array(array($this->_instance, $method), $args);
             $this->_loaded = true;
         }
@@ -35,7 +36,12 @@ class model extends \bolt\model\attr\base {
     }
 
     public function set($value) {
-        $this->_key = (string)$value;
+        if (is_array($value)) {
+            $this->_inst()->set($value);
+        }
+        else {
+            $this->_key = (string)$value;
+        }
     }
 
     public function normalize() {

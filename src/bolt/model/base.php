@@ -87,10 +87,14 @@ abstract class base implements iModelBase {
     // find
     public function find($query, $args=array()) {
 
-
         // send to source
-        $resp = $this->_source->model($this, 'query', $query, $args);
+        $resp = $this->_source->model($this, 'find', $query, $args);
         $items = array();
+
+        // already a response
+        if (is_a($resp, 'bolt\model\result')) {
+            return $resp;
+        }
 
         // what am i
         $class = get_called_class();
@@ -106,7 +110,7 @@ abstract class base implements iModelBase {
 
 
     public function findOne($query, $args=array()) {
-        $resp = $this->_source->model($this, 'query', $query, $args);
+        $resp = $this->_source->model($this, 'find', $query, $args);
 
         // return
         if ($resp->count() > 0) {
@@ -120,7 +124,7 @@ abstract class base implements iModelBase {
     }
 
     public function findOneBy($field, $value, $args=array()) {
-        $resp = $this->_source->model($this, 'row', $field, $value, $args);
+        $resp = $this->_source->model($this, 'find', array($field => $value), $args);
 
         // return
         if ($resp->count() > 0) {
@@ -135,7 +139,18 @@ abstract class base implements iModelBase {
 
 
     public function findById($value, $args=array()) {
-        return $this->findOneBy('id', $value, $args);
+
+        $resp = $this->_source->model($this, 'findById', $value, $args);
+
+        // return
+        if ($resp->count() > 0) {
+            $this->set($resp->asArray());
+            $this->_loaded = true;
+        }
+
+        // me
+        return $this;
+
     }
 
     public function count($query, $args=array()) {

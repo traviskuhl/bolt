@@ -129,6 +129,22 @@ class result implements \bolt\iBucket, \ArrayAccess, \Iterator, \Countable {
         $this->_items[$id] = $item;
     }
 
+    public function map($cb, $useKeys=true) {
+        $b = array();
+        foreach ($this->_items as $id => $item) {
+            if (is_string($cb) AND method_exists($item, $cb)) {
+                $cb = array($item, $cb);
+            }
+            if (is_callable($cb)) {
+                $b[$id] = call_user_func($cb, $item);;
+            }
+            else {
+                $b[$id] = $item;
+            }
+        }
+        return b::a($useKeys===true ? $b : array_values($b));
+    }
+
     ////////////////////////////////////////////////////////////////////
     /// @brief set the items
     ///

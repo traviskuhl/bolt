@@ -277,6 +277,12 @@ final class b {
           b::config()->import(bConfig."/config.ini");
         }
 
+
+        // root
+        if (b::config()->exists('root')) {
+            self::$autoload[] = b::config()->value('root');
+        }
+
         // autoload
         if (isset($args['autoload'])) {
             foreach ($args['autoload'] as $dir) {
@@ -472,19 +478,24 @@ final class b {
             return include_once(bRoot."/{$class}.php");
         }
 
+        $isValidFileName = function($str) {
+            return !preg_match('#[^a-zA-Z0-9\.\/\-\_]#', $str);
+        };
+
         // var_dump($class);
+
 
         // if autoload
         if (is_array(self::$autoload)) {
             foreach (self::$autoload as $root) {
                 $root = rtrim($root, '/').'/';
-                if (file_exists($root.$class.".php")) {
+                if ($isValidFileName($root.$class.".php") AND file_exists($root.$class.".php")) {
                     self::$_loaded[] = realpath($root.$class.".php");
                     return include_once($root.$class.".php");
                 }
                 else if (strpos($class, '_') !== false) {
                     $cl = str_replace("_", "/", $class). ".php";
-                    if (file_exists($root.$cl)) {
+                    if ($isValidFileName($root.$cl) AND file_exists($root.$cl)) {
                         return include_once($root.$cl);
                     }
                 }
@@ -626,6 +637,13 @@ final class b {
      */
     public function param_raw($key,$default=false,$array=false) {
         return p($key,$default,$array,FILTER_UNSAFE_RAW);
+    }
+
+    public static function a($array) {
+        return new \bolt\bucket\bArray($array);
+    }
+    public static function s($str) {
+        return new \bolt\bucket\bString($str);
     }
 
 }

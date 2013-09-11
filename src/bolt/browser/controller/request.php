@@ -17,8 +17,8 @@ class request extends \bolt\browser\controller {
      * @return mixed response
      */
     public function invoke($action='build', $params=array()) {
-        $route = $this->_request->getRoute();
-        $method = strtolower($this->_request->getMethod());
+        $route = $this->_route;
+        $method = strtolower($this->getRequest()->getMethod());
 
         // route
         if ($route) {

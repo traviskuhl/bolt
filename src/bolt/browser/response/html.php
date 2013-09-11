@@ -18,10 +18,11 @@ class html extends base {
         if (function_exists('tidy_parse_string')) {
 
             $tidy = tidy_parse_string($html, array(
-                    'clean' => true,
+                    'clean' => false,
                     'hide-comments' => true,
                     'indent' => true,
-                    'wrap' => 0
+                    'wrap' => 0,
+                    'join-styles' => false
                 ));
 
             tidy_clean_repair($tidy);

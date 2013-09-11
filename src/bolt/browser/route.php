@@ -186,8 +186,8 @@ class route extends \bolt\plugin\singleton {
 
         // sort first by length
         usort($this->_routes, function($aa, $bb) {
-            $a = strlen($aa->getPath());
-            $b = strlen($bb->getPath());
+            $a = $aa->getWeight() * 2 + strlen($aa->getPath());
+            $b = $bb->getWeight() * 2 + strlen($bb->getPath());
             if ($a == $b) {
                 return 0;
             }
