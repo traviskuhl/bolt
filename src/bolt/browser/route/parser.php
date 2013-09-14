@@ -256,8 +256,9 @@ abstract class parser extends \bolt\event {
      */
     abstract public function match($path);
 
-    protected function compile() {
+    public function compile() {
 
     }
+
 
 }

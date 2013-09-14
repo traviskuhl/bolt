@@ -22,7 +22,11 @@ class html extends base {
                     'hide-comments' => true,
                     'indent' => true,
                     'wrap' => 0,
-                    'join-styles' => false
+                    'join-styles' => false,
+                    'markup' => true,
+                    'doctype' => '<!DOCTYPE HTML>',
+                    'new-blocklevel-tags'   => 'menu,mytag,article,header,footer,section,nav',
+                    'new-inline-tags'       => 'video,audio,canvas,ruby,rt,rp,time',
                 ));
 
             tidy_clean_repair($tidy);

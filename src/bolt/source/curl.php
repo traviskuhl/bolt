@@ -201,6 +201,8 @@ class curl extends base {
             $url = b::addUrlParams($url, $params);
         }
 
+        error_log("API: $url");
+
         // new curl request
         $this->_curl = curl_init();
 

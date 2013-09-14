@@ -5,7 +5,7 @@ use \b;
 
 
 // add our render helper on run
-b::render()->once('before', function() {
+b::on('run', function() {
 
     // find all named modules
     $modules = b::getDefinedSubClasses('\bolt\browser\controller\module');
@@ -15,37 +15,6 @@ b::render()->once('before', function() {
         $name = $module->getConstant('NAME');
         module::$_modules[$name] = $module->name;
     }
-
-    // render
-    b::render()->helper('module', function($template, $context, $args, $text) {
-        $args = explode(' ', trim($args));
-        $name = array_shift($args);
-        $class = false;
-        if (array_key_exists($name, module::$_modules)) {
-            $class = module::$_modules[$name];
-        }
-        else if (class_exists($name)) {
-            $class = $name;
-        }
-        else {
-            return '';
-        }
-        $params = b::bucket(array());
-        if ($context->get('self')) {
-            $params = $context->get('self')->getParams();
-        }
-        if (count($args)) {
-            $params->merge(b::parseStringArguments(implode(" ", $args)));
-        }
-
-        if (!empty($text) AND ($json = json_decode(trim($text), true)) !== null) {
-            foreach ($json as $k => $v) {
-                $params[$k] = $v;
-            }
-        }
-        $mod = new $class();
-        return $mod('build', $params);
-    });
 
 });
 

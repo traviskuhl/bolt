@@ -8,9 +8,10 @@ use \b;
 // helpers
 class helpers {
 
-    static function parseStringArguments($str) {
+    static function parseStringArguments($str, $type='double') {
         $args = array();
-        if (preg_match_all('#([^\=]+)\=\"([^\"]+)\"\s?#', $str, $matches, PREG_SET_ORDER)) {
+        $regex = ($type == 'single' ? '#([^\=]+)\=\\\'([^\\\']+)\\\'\s?#' : '#([^\=]+)\=\"([^\"]+)\"\s?#');
+        if (preg_match_all($regex, $str, $matches, PREG_SET_ORDER)) {
             foreach ($matches as $match) {
                 $args[$match[1]] = trim($match[2]);
             }
@@ -61,7 +62,7 @@ class helpers {
     public function getDefinedSubClasses($parent) {
         $classes = array();
         foreach (get_declared_classes() as $class) {
-            if (!is_string($class) OR !preg_match_all('#[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*#i', $class)) {return;}
+            if (empty($class) OR !is_string($class) OR !preg_match_all('#[a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*#i', $class)) {return;}
             $c = new \ReflectionClass($class);
             if ($c->isSubclassOf($parent)) {
                 $classes[] = $c;

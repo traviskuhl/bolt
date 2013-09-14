@@ -10,7 +10,7 @@ class token extends parser {
 
     const SEP = '/.*,;:-_~+=@|';
 
-    protected function compile() {
+    public function compile() {
 
         // loo through each of the paths
         $path = $this->getPath();
@@ -66,7 +66,7 @@ class token extends parser {
         }
 
         $regex = '/'.trim($regex, '/');
-        $this->_compiled = '#^'.$regex.($resp ? '$' : '/?$').'#';
+        return $this->_compiled = '#^'.$regex.($resp ? '$' : '/?$').'#';
 
     }
 

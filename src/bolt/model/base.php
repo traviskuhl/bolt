@@ -87,6 +87,7 @@ abstract class base implements iModelBase {
     // find
     public function find($query, $args=array()) {
 
+
         // send to source
         $resp = $this->_source->model($this, 'find', $query, $args);
         $items = array();
@@ -139,7 +140,6 @@ abstract class base implements iModelBase {
 
 
     public function findById($value, $args=array()) {
-
         $resp = $this->_source->model($this, 'findById', $value, $args);
 
         // return

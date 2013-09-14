@@ -54,12 +54,17 @@ class source extends \bolt\plugin\singleton {
     }
 
     public function setDefaultAdapter($adapter, $cfg=array()) {
-        if (b::isInterfaceOf($adapter, '\bolt\bSource')) {
+
+        if (b::isInterfaceOf($adapter, '\bolt\source\bSource')) {
             $this->_adapter = $adapter;
         }
         else {
             $this->_adapter = $this->factory($adapter, $cfg);
         }
+    }
+
+    public function addAdapter($class) {
+        $this->_adapters[$class::NAME] = $class;
     }
 
     public function adapter($name, $config=false) {

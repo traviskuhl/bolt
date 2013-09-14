@@ -111,13 +111,22 @@ class render extends plugin\singleton {
         // if we have a file, lets try to load it
         if ($file) {
 
-            // no file
-            if (!file_exists($file)) {
-                return '';
+            // is file precompiled
+            if (is_a($file, 'bolt\render\compiled')) {
+                $string = $file->getData();
+                $file  = $file->getFile();
             }
+            else {
 
-            // string
-            $string = file_get_contents($file);
+                // no file
+                if (!file_exists($file)) {
+                    return '';
+                }
+
+                // string
+                $string = file_get_contents($file);
+
+            }
 
             // get render extensions
             // and shift off the first

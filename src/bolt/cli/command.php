@@ -29,4 +29,30 @@ abstract class command  {
         }
     }
 
+
+    public function exec($cmd, $su = false) {
+
+        // tmp
+        $tmp = $this->tmp() . uniqid();
+
+        if ($su) {
+            $cmd = "sudo -u {$su} {$cmd}";
+        }
+
+        // run it
+        system("$cmd &>$tmp");
+
+        $lines = explode("\n", trim(file_get_contents($tmp)));
+
+        // no tmp
+        unlink($tmp);
+
+        // verbose
+        $this->verbose("exec: $cmd", $lines);
+
+        // give back
+        return $lines;
+
+    }
+
 }

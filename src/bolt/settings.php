@@ -14,6 +14,9 @@ interface iSettings {
 // our settings is singleton
 class settings extends plugin\singleton {
 
+    public static $prefetch = array();
+
+
      // data
      private $_bucket;
 
@@ -56,7 +59,11 @@ class settings extends plugin\singleton {
 
      public function set($name, $value) {
         if (is_string($value) AND substr($value,0,7) == 'file://') {
-            $value = new settings\json(substr($value,7));
+            $file = substr($value,7);
+            if (!file_exists($file)) {
+                $file = b::path( b::config()->value('root'), $file);
+            }
+            $value = new settings\json($file);
         }
 
         if (b::isInterfaceOf($value, '\bolt\iSettings')) {

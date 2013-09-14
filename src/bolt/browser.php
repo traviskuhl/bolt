@@ -95,6 +95,8 @@ class browser extends \bolt\plugin\singleton {
             $resp = $resp->invoke($action, $params);
         }
 
+        $this->fire('after');
+
         return $this->render($resp);
 
     }

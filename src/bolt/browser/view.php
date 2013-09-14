@@ -21,11 +21,25 @@ class view implements iView {
     private $_layout = false;
     private $_parent;
 
+    // compield
+    private static $_compiled = false;
+
     public function __construct($parent, $file, $layout, $vars) {
         $this->_parent = $parent;
         $this->_file = $file;
         $this->_layout = $layout;
         $this->_vars = $vars;
+
+        // no
+        if (self::$_compiled === false AND b::package()->getDirectories('compiled')) {
+            $c = b::package()->getDirectories('compiled');
+            if (array_key_exists('views', $c) AND file_exists($c['views'])) {
+                self::$_compiled = include($c['views']);
+            }
+            else {
+                self::$_compiled = array();
+            }
+        }
     }
 
     public function render() {
@@ -72,22 +86,38 @@ class view implements iView {
 
     private function _getFilePath($file) {
 
+        // settings?
         $views = b::settings()->value("project.views", false);
-        $root = b::config()->value("root", __DIR__);
+        $roots = b::package()->getDirectories('views');
 
         // check
-        $check = array($file, b::path($root, $file));
+        $checkWithRoot = array($file);
+        $check = array($file);
 
         if (is_array($views)) {
             foreach ($views as $folder) {
-                $check[] = b::path($root, $folder, $file);
+                foreach ($roots as $root) {
+                    $checkWithRoot[] = b::path($root, $folder, $file);
+                }
+                $check[] = b::path($folder, $file);
             }
         }
         if (is_string($views)) {
-            $check[] = b::path($root, $views, $file);
+            $check[] = b::path($views, $file);
+            $checkWithRoot[] = b::path($views, $file);
         }
 
-        while (($file = array_shift($check)) !== null) {
+        // check
+        if (self::$_compiled) {
+            foreach ($check as $name) {
+                $name = b::path($name);
+                if (array_key_exists($name, self::$_compiled)) {
+                    return self::$_compiled[$name];
+                }
+            }
+        }
+
+        while (($file = array_shift($checkWithRoot)) !== null) {
             if (is_file($file)) {
                 return $file;
             }

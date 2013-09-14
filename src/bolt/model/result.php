@@ -145,6 +145,14 @@ class result implements \bolt\iBucket, \ArrayAccess, \Iterator, \Countable {
         return b::a($useKeys===true ? $b : array_values($b));
     }
 
+    public function value() {
+        return $this;
+    }
+
+    public function normalize() {
+        return $this;
+    }
+
     ////////////////////////////////////////////////////////////////////
     /// @brief set the items
     ///

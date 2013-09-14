@@ -22,6 +22,19 @@ class handlebars extends base {
         $this->_addHelpers();
     }
 
+    public function compile($str) {
+
+        $tokens = $this->_eng->getTokenizer()->scan($str, '<% %>');
+        $tree = $this->_eng->getParser()->parse($tokens);
+
+        // get the tokenizer
+        return array(
+                $tree,
+                $str
+            );
+
+    }
+
     public function render($str, $vars=array()) {
 
         // load any unload partials
@@ -43,7 +56,13 @@ class handlebars extends base {
 
         // try to render the string
         try {
-            $str = $this->_eng->render($str, $vars);
+            if (is_array($str)) {
+                $t = new \Handlebars_Template($this->_eng, $str[0], $str[1]);
+                $str = $t->render($vars);
+            }
+            else {
+                $str = $this->_eng->render($str, $vars);
+            }
         }
         catch(LogicException $e) { return; }
 
@@ -141,7 +160,57 @@ class handlebars extends base {
                     $buffer = $template->render($context);
                 }
                 return $buffer;
+            },
+            'module' => function($template, $context, $args, $text) {
+                $args = explode(' ', trim($args));
+                $name = array_shift($args);
+                $class = false;
+
+
+
+                // no controller
+                if (!class_exists('bolt\browser\controller\module')) {return;}
+
+
+                if (array_key_exists($name, \bolt\browser\controller\module::$_modules)) {
+                    $class = \bolt\browser\controller\module::$_modules[$name];
+                }
+                else if (class_exists($name)) {
+                    $class = $name;
+                }
+                else {
+
+                    return '<!-- NO MODULE '.$name.' !-->';
+                }
+                $params = b::bucket(array());
+                if ($context->get('self')) {
+                    $params = $context->get('self')->getParams();
+                }
+
+                if (count($args)) {
+                    $str = implode(" ", $args);
+
+                    foreach (b::parseStringArguments($str, 'single') as $k => $v) {
+                        $params[$k] = $v;
+                    }
+
+                    // loop for double
+                    foreach (b::parseStringArguments($str) as $name => $value) {
+                        $params[$name] = $context->get($value);
+                    }
+
+                }
+
+                if (!empty($text) AND ($json = json_decode(trim($text), true)) !== null) {
+                    foreach ($json as $k => $v) {
+                        $params[$k] = $v;
+                    }
+                }
+
+                $mod = new $class();
+                return $mod('build', $params);
             }
+
         );
         foreach ($helpers as $name => $cb) {
             $this->_eng->addHelper($name, $cb);

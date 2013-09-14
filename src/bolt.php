@@ -32,7 +32,8 @@ $bGlobals = array(
     'bEnv' => 'dev',
     'bTimeZone' => 'UTC',
     'bLogLevel' => 0,
-    'bConfig' => false
+    'bConfig' => false,
+    'bPackage' => false
 );
 
 // check env for some bolt variables
@@ -90,6 +91,9 @@ final class b {
     private static $_instance = false;
     private static $_loaded = array();
 
+    // package
+    private static $_package = false;
+
     // what defined our core
     private static $_plugins = array(
 
@@ -98,6 +102,7 @@ final class b {
         'bolt-core-source'   => "./bolt/source.php",
         'bolt-core-cache'    => "./bolt/cache.php",
         'bolt-core-event'    => "./bolt/event.php",
+        'bolt-core-package'  => "./bolt/package.php",
 
         // bucket
         'bolt-core-bucket'          => "./bolt/bucket.php",
@@ -251,6 +256,11 @@ final class b {
 
     }
 
+    public static function package($pkg=false) {
+        if ($pkg) { self::$_package = $pkg; }
+        return self::$_package;
+    }
+
     /**
      * initalize the bolt framework
      *
@@ -277,10 +287,9 @@ final class b {
           b::config()->import(bConfig."/config.ini");
         }
 
-
-        // root
-        if (b::config()->exists('root')) {
-            self::$autoload[] = b::config()->value('root');
+        // pacakge?
+        if (defined("bPackage") AND bPackage !== false AND file_get_contents(bPackage)) {
+            self::$_package = new \bolt\package(bPackage);
         }
 
         // autoload
@@ -316,11 +325,6 @@ final class b {
             b::config()->merge($args['config']);
         }
 
-        // settings or default project
-        if (isset($args['settings'])) {
-            b::settings()->set('project', $args['settings']);
-        }
-
         // mode
         if (isset($args['mode'])) {
             b::load( self::$_modes[$args['mode']] );
@@ -345,8 +349,42 @@ final class b {
     public static function run($mode=false) {
         b::log("[b::run] %s", array($mode));
 
+        // package
+        $p = self::$_package;
+
+        if ($p) {
+
+            // set our root
+            b::config()->set('root', $p->getRoot());
+
+            // anything to load
+            if ($p->getDirectories('load')) {
+                b::load($p->getDirectories('load'));
+            }
+
+            // if we're in dev,
+            // we should include our pear directory
+            if (b::env() == 'dev' AND $p->getDirectories('pear')) {
+                b::load($p->getDirectories('pear'));
+            }
+
+            // autoload
+            if ($p->getDirectories('autoload')) {
+                foreach ($p->getDirectories('autoload') as $dir) {
+                    b::$autoload[] = $dir->value;
+                }
+            }
+
+            // settings
+            foreach ($p->getSettings() as $name => $value) {
+                b::settings()->set($name, $value);
+            }
+
+        }
+
         // ready
         b::fire('run');
+
 
         // figure out how to run
         if ($mode == 'cli' OR ($mode === false AND php_sapi_name() == 'cli')) {
@@ -469,21 +507,21 @@ final class b {
      */
     public static function autoloader($class) {
 
+        // valid
+        $isValidFileName = function($str) {
+            return !preg_match('#[^a-zA-Z0-9\.\/\-\_]#', $str);
+        };
+
     	// we only want the last part of the class
     	$class = str_replace('\\', "/", $class);
+
+        if (!$isValidFileName($class)) {return;}
 
         // see if the file exists in root
         if (file_exists(bRoot."/{$class}.php")) {
             self::$_loaded[] = realpath(bRoot."/{$class}.php");
             return include_once(bRoot."/{$class}.php");
         }
-
-        $isValidFileName = function($str) {
-            return !preg_match('#[^a-zA-Z0-9\.\/\-\_]#', $str);
-        };
-
-        // var_dump($class);
-
 
         // if autoload
         if (is_array(self::$autoload)) {

@@ -25,4 +25,8 @@ abstract class base implements iRender {
         return $this->_partials;
     }
 
+    public function compile($str) {
+        return false;
+    }
+
 }

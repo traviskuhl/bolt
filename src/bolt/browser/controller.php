@@ -324,6 +324,7 @@ class controller extends \bolt\event implements iController {
             foreach ($ref->getParameters() as $param) {
                 $name = $param->getName();
 
+
                 // is it a req/resp class
                 if ($param->getClass() AND $param->getClass()->name == 'bolt\browser\request') {
                     $_args[] = $this->_request;
