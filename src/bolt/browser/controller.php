@@ -413,9 +413,22 @@ class controller extends \bolt\event implements iController {
     }
 
     public function module($class) {
+        if (array_key_exists($class, \bolt\browser\controller\module::$_modules)) {
+            $class = \bolt\browser\controller\module::$_modules[$class];
+        }
         $mod = new $class;
         $mod->setParent($this);
         return $mod;
+    }
+
+    public function renderModule($class, $vars=array()) {
+        $m = $this->module($class);
+
+        // get our final list of params
+        $params = $this->_compileFinalParams($vars);
+
+        return $m('build', $params);
+
     }
 
     public function controller($class) {

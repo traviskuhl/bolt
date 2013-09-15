@@ -13,8 +13,8 @@ class package {
 
     public function __construct($file) {
         $this->_pkg = json_decode(file_get_contents($file), true);
-        $this->_file = $file;
-        $this->_root = dirname($file);
+        $this->_file = realpath($file);
+        $this->_root = dirname($this->_file);
     }
 
     public function getRoot() {
@@ -69,6 +69,8 @@ class package {
         else if (!$type AND array_key_exists('directories', $this->_pkg)) {
             $dirs = $this->_pkg['directories'];
         }
+
+
         return $dirs;
     }
 

@@ -6,13 +6,17 @@ use \b;
 b::plug('client', '\bolt\client');
 
 // when we run
-b::on("run", function(){
+b::on("ready", function(){
     b::client()->start();
 });
 
 class client extends \bolt\plugin\singleton {
 
     public function start() {
+
+        if (file_exists("package.json")) {
+            b::package(new \bolt\package(realpath("./package.json")));
+        }
 
         // get our settings
         $home = b::param('SUDO_HOME', b::param('HOME', false, $_SERVER), $_SERVER);

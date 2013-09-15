@@ -166,11 +166,8 @@ class handlebars extends base {
                 $name = array_shift($args);
                 $class = false;
 
-
-
                 // no controller
                 if (!class_exists('bolt\browser\controller\module')) {return;}
-
 
                 if (array_key_exists($name, \bolt\browser\controller\module::$_modules)) {
                     $class = \bolt\browser\controller\module::$_modules[$name];
@@ -179,7 +176,6 @@ class handlebars extends base {
                     $class = $name;
                 }
                 else {
-
                     return '<!-- NO MODULE '.$name.' !-->';
                 }
                 $params = b::bucket(array());
@@ -191,12 +187,12 @@ class handlebars extends base {
                     $str = implode(" ", $args);
 
                     foreach (b::parseStringArguments($str, 'single') as $k => $v) {
-                        $params[$k] = $v;
+                        $params->set($k, $v);
                     }
 
                     // loop for double
                     foreach (b::parseStringArguments($str) as $name => $value) {
-                        $params[$name] = $context->get($value);
+                        $params->set($name, $context->get($value));
                     }
 
                 }

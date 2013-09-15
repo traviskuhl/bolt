@@ -90,6 +90,7 @@ final class b {
     private static $_env = false;
     private static $_instance = false;
     private static $_loaded = array();
+    private static $_mode = false;
 
     // package
     private static $_package = false;
@@ -222,6 +223,13 @@ final class b {
         return (self::$_env ?: bEnv);
     }
 
+    public static function mode($mode=false) {
+        if ($mode) {
+            self::$_mode = $mode;
+        }
+        return self::$_mode;
+    }
+
     /**
      * depend on a plugin(s)
      *
@@ -275,8 +283,10 @@ final class b {
         // add our
         self::$autoload += explode(PATH_SEPARATOR, get_include_path());
 
-        // lig
-        b::log("[b::init] called");
+        // mode
+        if (isset($args['mode'])) {
+            b::mode($args['mode']);
+        }
 
         // we need to include all of our core
         // plugins
@@ -349,6 +359,9 @@ final class b {
     public static function run($mode=false) {
         b::log("[b::run] %s", array($mode));
 
+        // what mode
+        b::mode($mode);
+
         // package
         $p = self::$_package;
 
@@ -384,7 +397,6 @@ final class b {
 
         // ready
         b::fire('run');
-
 
         // figure out how to run
         if ($mode == 'cli' OR ($mode === false AND php_sapi_name() == 'cli')) {

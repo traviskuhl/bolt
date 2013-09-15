@@ -5,8 +5,25 @@ namespace bolt;
 use \b;
 
 
+use \RecursiveIteratorIterator;
+use \RecursiveDirectoryIterator;
+
+
 // helpers
 class helpers {
+
+    static function getRecursiveDirectory($dir, $filesOnly=false, $hidden=false) {
+        $items = array();
+
+        // add our files
+        foreach (new RecursiveIteratorIterator(new \RecursiveDirectoryIterator($dir)) as $item) {
+            if ($filesOnly AND !$item->isFile()) {continue;}
+            if ($hidden === false AND substr($item->getFilename(), 0, 1) == '.' ) {continue;}
+            $items[] = $item;
+        }
+        return $items;
+
+    }
 
     static function parseStringArguments($str, $type='double') {
         $args = array();
@@ -56,7 +73,7 @@ class helpers {
                 $path[] = $v;
             }
         }
-        return "/".implode($path, "/");
+        return "/".implode(str_replace('/./','/',$path), "/");
     }
 
     public function getDefinedSubClasses($parent) {

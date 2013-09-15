@@ -17,6 +17,7 @@ class browser extends \bolt\plugin\singleton {
 
         // start our request
         $this->_request = new browser\request();
+        $this->_response = browser\response::initByType('plain');
 
         // ask the router to look for classes
         b::route()->loadClassRoutes();
@@ -71,8 +72,6 @@ class browser extends \bolt\plugin\singleton {
             }
 
         }
-
-
 
         // run start
         $this->fire("before", array('controller' => $controller));

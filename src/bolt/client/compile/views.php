@@ -24,7 +24,6 @@ class views extends base {
         $render = b::render();
 
         foreach ($dirs as $dir) {
-            $dir = realpath(b::path(getcwd(), $dir));
 
             // add our files
             foreach (new RecursiveIteratorIterator(new \RecursiveDirectoryIterator($dir)) as $item) {
