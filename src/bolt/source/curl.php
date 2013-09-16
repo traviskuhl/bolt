@@ -38,54 +38,6 @@ class curl extends base {
         $this->_config = array_merge($this->_config, $cfg);
     }
 
-    private function _mapModelEp($type, $model, $data=array()) {
-        $name = get_class($model);
-        $map = (array_key_exists($name, $this->_config['models']) ? $this->_config['models'][$name] : array());
-
-        // model has endpoints
-        if (is_array($model->endpoints)) {
-            $map = $model->endpoints;
-        }
-
-        // this type has an endpoint
-        if (array_key_exists($name, $map) AND array_key_exists($type, $map[$name])) {
-            return b::tokenize($map[$name][$type], $data);
-        }
-        else if (array_key_exists('uri', $map)) {
-            switch($type) {
-                case 'query':
-                case 'insert':
-                    return $map['uri'];
-                case 'update':
-                    return b::tokenize($map['item'], array("key" => $data));
-                default:
-                    return b::tokenize($map['item'], array("key" => $data[$model->getPrimaryKey()]));
-            };
-        }
-
-        return false;
-    }
-
-    private function _getResponse($model, $resp) {
-        $data = $resp->data();
-        $name = get_class($model);
-
-
-
-
-
-        $map = (array_key_exists($name, $this->_config['models']) ? $this->_config['models'][$name] : array());
-
-        // model has endpoints
-        if (is_array($model->endpoints)) {
-            $map = $model->endpoints;
-        }
-
-        if (is_array($map) AND is_array($data) AND isset($map['root']) AND array_key_exists($map['root'], $data)) {
-            return \bolt\bucket::byType($data[$map['root']]);
-        }
-        return \bolt\bucket::byType(array());
-    }
 
     public function model(/* $model, $type, ... */) {
         $args = func_get_args();
@@ -98,14 +50,19 @@ class curl extends base {
         // uri
         $uri = $source['uri'][$type];
 
-        if ($type == 'findById') {
-            $uri = b::tokenize($uri, array("key" => $args[0]));
-            $args[0] = array();
-        }
 
-        if ($type == 'find' OR $type == 'findById') {
-            $type = 'query';
-            $args[0] = array('query' => $args[0]);
+        if (is_callable($uri)) {
+            list($type, $uri, $args) = $uri($args);
+        }
+        else {
+            if ($type == 'findById') {
+                $uri = b::tokenize($uri, array("key" => $args[0]));
+                $args[0] = array();
+            }
+            if ($type == 'find' OR $type == 'findById') {
+                $type = 'query';
+                $args[0] = array('query' => $args[0]);
+            }
         }
 
         // add back our path

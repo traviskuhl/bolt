@@ -25,10 +25,10 @@ class helpers {
 
     }
 
-    static function parseStringArguments($str, $type='double') {
+    static function parseStringArguments($str) {
         $args = array();
-        $regex = ($type == 'single' ? '#([^\=]+)\=\\\'([^\\\']+)\\\'\s?#' : '#([^\=]+)\=\"([^\"]+)\"\s?#');
-        if (preg_match_all($regex, $str, $matches, PREG_SET_ORDER)) {
+        $str = trim(str_replace("'", '"', $str)).' ';
+        if (preg_match_all('#([a-zA-Z0-9\_]+)\=\"([^\"]+)"\s+#', $str, $matches, PREG_SET_ORDER)) {
             foreach ($matches as $match) {
                 $args[$match[1]] = trim($match[2]);
             }

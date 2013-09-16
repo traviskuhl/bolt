@@ -40,7 +40,7 @@ class xhr extends base {
         $j->setStatus($this->getStatus());
         $j->setContentType($this->getContentType());
         $j->setContent(array(
-            'content' => $body,
+            'html' => $body,
             'data' => $this->getData(),
             'javascript' => $js,
         ));

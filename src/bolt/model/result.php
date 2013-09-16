@@ -15,6 +15,7 @@ class result implements \bolt\iBucket, \ArrayAccess, \Iterator, \Countable {
     private $_offset = 0;
     private $_items = array();
     private $_struct = false;
+    private $_query = array();
 
     public static function create($class, $items=array()) {
         return new result($class, $items, $key);
@@ -71,6 +72,9 @@ class result implements \bolt\iBucket, \ArrayAccess, \Iterator, \Countable {
         }
         else if ($this->_meta) {
             return call_user_func(array($this->_meta, '__get'), $name);
+        }
+        else if (array_key_exists($name, $this->_items)) {
+            return $this->_items[$name];
         }
     }
 
@@ -225,9 +229,30 @@ class result implements \bolt\iBucket, \ArrayAccess, \Iterator, \Countable {
     }
 
     public function getPages() {
-        return ($this->_limit ? ceil($this->_total / $this->_limit) : 0);
+        return ($this->_limit ? floor($this->_total / $this->_limit) : 0);
     }
 
+    public function getPagesRage() {
+        return range(0, $this->getPages());
+    }
+
+    public function getPage() {
+        return ($this->_offset == 0 ? 0 : floor($this->_offset / $this->_limit));
+    }
+
+    public function getNextPage() {
+        $n = $this->getPage();
+        return ($n > $this->getPages() ? false : $n+1 );
+    }
+
+    public function setQuery($query) {
+        $this->_query = $query;
+        return $this;
+    }
+
+    public function getQuery() {
+        return $this->_query;
+    }
 
     ////////////////////////////////////////////////////////////////////
     /// @brief set a value at index

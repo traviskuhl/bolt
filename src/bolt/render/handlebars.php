@@ -183,16 +183,24 @@ class handlebars extends base {
                     $params = $context->get('self')->getParams();
                 }
 
+                $action = 'build';
+
                 if (count($args)) {
                     $str = implode(" ", $args);
 
-                    foreach (b::parseStringArguments($str, 'single') as $k => $v) {
-                        $params->set($k, $v);
-                    }
 
-                    // loop for double
-                    foreach (b::parseStringArguments($str) as $name => $value) {
-                        $params->set($name, $context->get($value));
+                    foreach (b::parseStringArguments($str) as $k => $v) {
+
+                        if ($k === 'action') {
+                            $action = $v;
+                        }
+                        else if ($v{0} == '$') {
+                            $params->set($k, $context->get(substr($v,1)));
+                        }
+                        else {
+                            $params->set($k, $v);
+                        }
+
                     }
 
                 }
@@ -203,8 +211,9 @@ class handlebars extends base {
                     }
                 }
 
+
                 $mod = new $class();
-                return $mod('build', $params);
+                return $mod($action, $params);
             }
 
         );
