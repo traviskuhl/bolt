@@ -43,6 +43,12 @@ b::render()->once('before', function() {
     });
 });
 
+b::on("run", function(){
+    if (b::config()->exists('compiled')) {
+        b::route()->loadCompiled();
+    }
+});
+
 /**
  * browser route class
  * @extends \bolt\plugin\singleton
@@ -59,6 +65,7 @@ class route extends \bolt\plugin\singleton {
     private $_routes = array();
     private $_defaultParser = '\bolt\browser\route\token'; // default route parser
     private $_baseUri = false;
+    private $_compiled = array();
 
     public function __construct() {
         $this->_baseUri = new \Net_URL2((defined('bSelf') ? bSelf : ""));
@@ -85,6 +92,19 @@ class route extends \bolt\plugin\singleton {
     public function setBaseUri($baseUri) {
         $this->_baseUri = $baseUri;
         return $this;
+    }
+
+    public function loadCompiled() {
+        $file = b::path( b::config()->value("compiled"), "routes.inc");
+
+        // if we have the
+        if (file_exists($file)) {
+            $routes = require($file);
+            if (is_array($routes)) {
+                $this->_compiled = $routes;
+            }
+        }
+
     }
 
     /**
@@ -180,6 +200,22 @@ class route extends \bolt\plugin\singleton {
      */
     public function match($path, $method=false) {
 
+        // normalize the path
+        $path = $opath = "/".trim($path, '/ ');
+
+        if (count($this->_compiled) > 0) {
+            foreach ($this->_compiled as $regex => $route) {
+                if ($route['type']::isMatch($regex, $path)) {
+
+                    // cool, lets load the controller
+                    b::load($route['controller']);
+
+                    var_dump( new $route['controller'] ); die;
+
+                }
+            }
+        }
+
         // class
         $controller = false;
         $params = array();
@@ -194,8 +230,6 @@ class route extends \bolt\plugin\singleton {
             return ($a > $b) ? -1 : 1;
         });
 
-        // normalize the path
-        $path = $opath = "/".trim($path, '/ ');
 
         $route = false;
 

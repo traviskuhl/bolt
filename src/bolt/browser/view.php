@@ -44,7 +44,6 @@ class view implements iView {
 
     public function render() {
 
-
         $html = b::render(array(
             'file' => $this->_getFilePath($this->_file),
             'self' => $this->_parent,
@@ -117,11 +116,15 @@ class view implements iView {
             }
         }
 
+        // print_r($checkWithRoot);
+
         while (($file = array_shift($checkWithRoot)) !== null) {
             if (is_file($file)) {
                 return $file;
             }
         }
+
+
 
         // bad!
         return $file;

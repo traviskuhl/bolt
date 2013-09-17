@@ -70,6 +70,10 @@ class token extends parser {
 
     }
 
+    public static function isMatch($regex, $uri) {
+        return preg_match_all($regex, $uri);
+    }
+
     public function match($uri) {
 
         if (!$this->_compiled) {

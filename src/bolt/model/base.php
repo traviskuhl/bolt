@@ -278,6 +278,15 @@ abstract class base implements iModelBase {
     public function get($name, $default=false) {
         $value = $default;
 
+        if (stripos($name, '.')!== false) {
+            $parts = explode(".", $name);
+            $first = $this->get(array_shift($parts), false);
+            if (!$first->value) {
+                return  \bolt\bucket::byType($value, $name);
+            }
+            return $first->get(implode(".", $parts), $default);
+        }
+
         // always try the method first
         if (array_key_exists($name, $this->_struct)) {
             $value = $this->_struct[$name]['_attr']->call('get');
@@ -294,6 +303,10 @@ abstract class base implements iModelBase {
         return $value;
     }
 
+    public function exists($name) {
+        return ($this->get($name, '_b_default_value')->value != '_b_default_value');
+    }
+
     ////////////////////////////////////////////////////////////////////
     /// @brief get a string value
     ///
@@ -301,8 +314,17 @@ abstract class base implements iModelBase {
     /// @param $default default value is none is returned
     /// @return mixed value
     ////////////////////////////////////////////////////////////////////
-    public function value($name) {
-        $value = false;
+    public function value($name, $default=false) {
+        $value = $default;
+
+        if (stripos($name, '.')!== false) {
+            $parts = explode(".", $name);
+            $first = $this->get(array_shift($parts), false);
+            if (!$first->value) {
+                return $value;
+            }
+            return $first->value(implode(".", $parts), $default);
+        }
 
         // always try the method first
         if (array_key_exists($name, $this->_struct)) {

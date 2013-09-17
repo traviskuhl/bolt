@@ -17,6 +17,10 @@ class package {
         $this->_root = dirname($this->_file);
     }
 
+    public function getConfig() {
+        return (array_key_exists('config', $this->_pkg) ? $this->_pkg['config'] : array());
+    }
+
     public function getRoot() {
         return $this->_root;
     }
@@ -44,6 +48,7 @@ class package {
         $dirs = array();
         $base = ($useRoot === true ? b::param("root", "", $this->_pkg['directories']) : "");
 
+
         if ($type AND array_key_exists('directories', $this->_pkg) AND  array_key_exists($type, $this->_pkg['directories'])) {
             $item = $this->_pkg['directories'][$type];
             if (count($item) == 0) {return array();}
@@ -61,7 +66,7 @@ class package {
                     $dirs[$i] = $dir;
                 }
                 else {
-                    $dirs[$i] = b::path($this->_root, $base, $root, $dir);
+                    $dirs[$i] = b::path($base, $root, $dir);
                 }
             }
 

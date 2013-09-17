@@ -48,7 +48,7 @@ foreach($bGlobals as $name => $default) {
 
 // dev mode?
 if ( bEnv === 'dev' ) {
-    error_reporting(E_ALL^E_DEPRECATED);
+    error_reporting(E_ALL^E_DEPRECATED^E_STRICT);
     ini_set("display_errors",1);
 }
 
@@ -367,6 +367,11 @@ final class b {
 
         if ($p) {
 
+            // config
+            foreach($p->getConfig() as $key => $value ) {
+                b::config()->set($key, $value);
+            }
+
             // set our root
             b::config()->set('root', $p->getRoot());
 
@@ -375,23 +380,17 @@ final class b {
                 b::load($p->getDirectories('load'));
             }
 
-            // if we're in dev,
-            // we should include our pear directory
-            if (b::env() == 'dev' AND $p->getDirectories('pear')) {
-                b::load($p->getDirectories('pear'));
-            }
-
             // autoload
             if ($p->getDirectories('autoload')) {
                 foreach ($p->getDirectories('autoload') as $dir) {
-                    b::$autoload[] = $dir->value;
+                    self::$autoload[] = $dir;
                 }
             }
 
             // settings
-            foreach ($p->getSettings() as $name => $value) {
-                b::settings()->set($name, $value);
-            }
+            // foreach ($p->getSettings() as $name => $value) {
+            //     b::settings()->set($name, $value);
+            // }
 
         }
 

@@ -19,7 +19,10 @@ class routes extends base {
 
         // routes
         foreach ($router->getRoutes() as $route) {
-            $routes[$route->compile()] = $route;
+            $routes[$route->compile()] = array(
+                'type' => get_class($route),
+                'controller' => $route->getController()
+            );
         }
 
         return array(

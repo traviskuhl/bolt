@@ -12,6 +12,31 @@ b::on("ready", function(){
 
 class client extends \bolt\plugin\singleton {
 
+    const DIR_VAR = "/var/bolt/packages/";
+
+    protected $tmp = false;
+    protected $user = false;
+    protected $home = false;
+
+    public function __construct() {
+        $this->tmp = "/tmp/build"; //.uniqid("bolt-");
+        @mkdir($this->tmp);
+    }
+
+    public function __destruct() {
+        if (is_dir($this->tmp)) {
+            // $cmd = "sudo rm -r {$this->tmp}"; `$cmd`;
+        }
+    }
+
+    public function getTmp() {
+        return $this->tmp;
+    }
+
+    public function getVarDir() {
+        return self::DIR_VAR;
+    }
+
     public function start() {
 
         if (file_exists("package.json")) {
@@ -29,6 +54,9 @@ class client extends \bolt\plugin\singleton {
         if (!file_exists("{$home}/.bolt")) {
             mkdir("{$home}/.bolt/");
         }
+
+        $this->user = $user;
+        $this->home = $home;
 
     }
 

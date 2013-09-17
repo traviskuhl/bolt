@@ -37,9 +37,35 @@ class module extends \bolt\browser\controller {
         return $this;
     }
 
-    public function __invoke($act='build', $args=array()) {
+    public function __invoke($act='build', $args=array(), $responseType=false) {
         parent::invoke($act, $args);
-        return $this->getContent();
+
+        if ($responseType === false) {
+            $responseType = $this->getResponseType();
+        }
+
+        // get content
+        $content = $this->getContent();
+
+        if ($content === false) {
+
+            // get from response
+            $content = $this->getResponseByType($responseType);
+
+            // nope
+            if (!$content) {return;}
+
+            // get the response
+            $content = $content->getResponse();
+
+        }
+
+        // content is callabke
+        if (is_callable($content)) {
+            $content = $content();
+        }
+
+        return $content;
     }
 
 }

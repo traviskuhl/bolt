@@ -256,9 +256,18 @@ abstract class parser extends \bolt\event {
      */
     abstract public function match($path);
 
-    public function compile() {
 
+    public function setState($state) {
+        foreach ($state as $key => $value) {
+            $this->{$key} = $value;
+        }
     }
 
+    public function __set_state($state) {
+        $c = get_called_class();
+        $r = new $c();
+        $r->setState($state);
+        return $r;
+    }
 
 }

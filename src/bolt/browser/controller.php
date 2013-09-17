@@ -88,7 +88,7 @@ class controller extends \bolt\event implements iController {
         $ref = new \ReflectionClass($this);
 
         // globalize any properties already defined by this class
-        foreach ($ref->getProperties(\ReflectionProperty::IS_PUBLIC | \ReflectionProperty::IS_PROTECTED) as $prop) {
+        foreach ($ref->getProperties(\ReflectionProperty::IS_PUBLIC) as $prop) {
             if (!$prop->isStatic()) {
                 $this->_properties[] = $prop->getName();
             }

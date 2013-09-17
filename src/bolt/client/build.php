@@ -4,8 +4,10 @@ namespace bolt\client;
 use \b;
 
 // we need tar
-require "Archive/Tar.php";
+require_once "Archive/Tar.php";
+require_once "File/Find.php";
 
+use \File_Find;
 use \RecursiveIteratorIterator;
 use \RecursiveDirectoryIterator;
 use \RecursiveRegexIterator;
@@ -53,7 +55,12 @@ class build extends \bolt\cli\command {
             ), $this->_pkg);
 
         // build
-        $this->_build = $this->_pkg['build'];
+        $this->_build = b::param('build', false, $this->_pkg);
+
+        // no build
+        if ($this->_build === false) {
+            return $this->fail("No build information found in package");
+        }
 
         // do they want us to compile first?
         if (isset($this->_build['compile']) AND $this->_build['compile'] == true) {
@@ -64,30 +71,47 @@ class build extends \bolt\cli\command {
             // do it
             $c->execute(getcwd());
 
-            // add compiled folder to var
-            $this->_pkg['directories']['var'][] = 'compiled/';
-
-            // add to config
-            $config['directories']['compiled'] = b::path($this->_build['dest']['var'], $this->_name, 'compiled');
-
         }
 
-        // build pear folder
-        if (isset($this->_pkg['directories']['pear'])) {
-            $this->_buildPkgFolder('pear', '.+\.php', $this->_pkg['directories']['pear']);
-            $config['directories']['pear'] = b::path($this->_build['dest']['pear'], $this->_name);
+        // first create all of our directories
+        if (isset($this->_build['dir'])) {
+            foreach ($this->_build['dir'] as $dir) {
+                @mkdir(b::path($this->_tmp, $dir), 777, true);
+            }
         }
 
-        // build htdocs folder
-        if (isset($this->_pkg['directories']['htdocs'])) {
-            $this->_buildPkgFolder('htdocs', '[^\.].+', $this->_pkg['directories']['htdocs']);
-            $config['directories']['htdocs'] = b::path($this->_build['dest']['htdocs'], $this->_name);
+        // find
+        if (isset($this->_build['find'])) {
+            foreach ($this->_build['find'] as $find) {
+
+                // destinaton
+                $dest = b::path($this->_tmp, $find[0]);
+
+                // relative to
+                $rel = realpath($find[1]);
+
+                // find the files
+                $files = File_Find::search($find[2], $rel, 'shell', false);
+
+                // copy files into our tmp
+                foreach ($files as $src) {
+                    $file_dest = str_replace($rel, $dest, $src);
+                    $base = dirname($file_dest);
+
+                    if (!is_dir($base)) { @mkdir($base, 0777, true); }
+                    copy($src, $file_dest);
+                }
+            }
         }
 
-        // build variable folder
-        if (isset($this->_pkg['directories']['var'])) {
-            $this->_buildPkgFolder('var', '[^\.].+', $this->_pkg['directories']['var']);
-            $config['directories']['var'] = b::path($this->_build['dest']['var'], $this->_name);
+        // config should reset for build
+        if (isset($this->_build['config']) AND is_array($this->_build['config'])) {
+            $this->_pkg['config'] = array_merge($this->_build['config'], $this->_pkg['config']);
+        }
+
+        // directories are overritten
+        if (isset($this->_build['directories']) AND is_array($this->_build['directories'])) {
+            $this->_pkg['directories'] = $this->_build['config'];
         }
 
         // use git to get the version
@@ -98,15 +122,23 @@ class build extends \bolt\cli\command {
 
         $config['version'] = implode('-',array($this->_pkg['version'], $sha));
 
-        print_r($config); die;
+        // package
+        $outPackage = b::path($this->_tmp, b::client()->getVarDir(), $this->_pkg['name'], 'package.json'); mkdir(dirname($outPackage), 777, true);
 
-        // export our config
-        file_put_contents("{$this->_tmp}/config.json", json_encode($config));
+        // export our package
+        file_put_contents($outPackage, json_encode($this->_pkg));
 
+        // output our config
+        file_put_contents(b::path($this->_tmp, "build.json"), json_encode($config));
+
+        // name for package
         $name = str_replace("/", "-", $this->_name);
 
+        // tar name
+        $tarName = "{$pwd}/{$name}-{$config['version']}.tar.gz";
+
         // create our tar
-        $tar = new \Archive_Tar("{$pwd}/{$name}-{$config['version']}.tar.gz", 'gz');
+        $tar = new \Archive_Tar($tarName, 'gz');
 
         // move into tmp
         chdir($this->_tmp);
@@ -118,57 +150,14 @@ class build extends \bolt\cli\command {
         chdir($pwd);
 
         // remove temp
-        unlink($this->_tmp);
+        $cmd = "sudo rm -r {$this->_tmp}"; `$cmd`;
+
+        // give back to the user
+        chown($tarName, b::client()->getUser());
+        chgrp($tarName, b::client()->getUser());
 
         // done
         $this->done("Build Complete {$name}-{$config['version']}");
-
-    }
-
-    public function _buildPkgFolder($dest, $regex, $dirs) {
-        $root = "";
-        if (is_array($dirs[0]) AND key($dirs[0]) == 'root') {
-            $root = $dirs[0]['root'];
-            unset($dirs[0]);
-        }
-
-        // move
-        $copy = array();
-
-        foreach ($dirs as $item) {
-            list($full, $rel) = $this->_getFilePath(b::path($root,$item));
-
-            if (is_dir($full)) {
-                $copy = array_merge($copy, $this->_getFilesByRegex($full, $regex));
-            }
-            else if (is_file($full)) {
-                $copy[$full] = $rel;
-            }
-        }
-
-        // move into tmp
-        $this->_copyIntoTmp(b::path($dest, $this->_name), $copy, $root);
-
-    }
-
-
-
-
-    private function _copyIntoTmp($dir, $copy, $root="") {
-        $dir = b::path($this->_tmp, $dir);
-        if (!file_exists($dir)) {
-            mkdir($dir, 0644, true);
-        }
-
-        // move them
-        foreach ($copy as $src => $dest) {
-            $dest = b::path($dir, str_replace($root, "", $dest));
-            $base = dirname($dest);
-            if (!is_dir($base)) { @mkdir($base, 0644, true); }
-            copy($src, $dest);
-        }
-
-        return true;
 
     }
 
