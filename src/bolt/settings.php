@@ -16,6 +16,32 @@ class settings extends plugin\singleton {
 
     public static $prefetch = array();
 
+    public function load($path, $root) {
+        $settings = b::package()->getDirectories("settings");
+        if ($root) { $settings[] = $root;}
+        if (is_array($settings)) {
+            foreach ($settings as $dir) {
+                $file = b::path($dir, $path);
+                if (file_exists($file)) {
+                    return new settings\json($file);
+                }
+            }
+        }
+        return false;
+    }
+
+    public function importFile($file, $root) {
+        if (substr($file,0,7) == 'file://') {
+            $file = substr($file,7);
+        }
+
+        $f = $this->load($file, $root);
+
+        $this->_default($f->get());
+
+        return $this;
+
+    }
 
      // data
      private $_bucket;

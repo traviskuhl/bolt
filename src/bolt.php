@@ -388,9 +388,7 @@ final class b {
             }
 
             // settings
-            // foreach ($p->getSettings() as $name => $value) {
-            //     b::settings()->set($name, $value);
-            // }
+            b::settings()->set("project", $p->getSettings());
 
         }
 

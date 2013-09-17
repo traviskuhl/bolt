@@ -104,6 +104,11 @@ class build extends \bolt\cli\command {
             }
         }
 
+        // settings we can localize if they're not already
+        if (isset($this->_pkg['settings']) AND is_string($this->_pkg['settings'])) {
+            $this->_pkg['settings'] = b::settings()->importFile($this->_pkg['settings'], $this->_root)->asArray();
+        }
+
         // config should reset for build
         if (isset($this->_build['config']) AND is_array($this->_build['config'])) {
             $this->_pkg['config'] = array_merge($this->_build['config'], $this->_pkg['config']);
@@ -111,7 +116,7 @@ class build extends \bolt\cli\command {
 
         // directories are overritten
         if (isset($this->_build['directories']) AND is_array($this->_build['directories'])) {
-            $this->_pkg['directories'] = $this->_build['config'];
+            $this->_pkg['directories'] = $this->_build['directories'];
         }
 
         // use git to get the version
@@ -123,7 +128,7 @@ class build extends \bolt\cli\command {
         $config['version'] = implode('-',array($this->_pkg['version'], $sha));
 
         // package
-        $outPackage = b::path($this->_tmp, b::client()->getVarDir(), $this->_pkg['name'], 'package.json'); mkdir(dirname($outPackage), 777, true);
+        $outPackage = b::path($this->_tmp, b::client()->getVarDir(), $this->_pkg['name'], 'package.json'); @mkdir(dirname($outPackage), 777, true);
 
         // export our package
         file_put_contents($outPackage, json_encode($this->_pkg));

@@ -21,6 +21,11 @@ class package {
         return (array_key_exists('config', $this->_pkg) ? $this->_pkg['config'] : array());
     }
 
+    public function setRoot($root) {
+        $this->_root = $root;
+        return $this;
+    }
+
     public function getRoot() {
         return $this->_root;
     }
@@ -66,7 +71,7 @@ class package {
                     $dirs[$i] = $dir;
                 }
                 else {
-                    $dirs[$i] = b::path($base, $root, $dir);
+                    $dirs[$i] = b::path($this->_root, $base, $root, $dir);
                 }
             }
 
@@ -81,16 +86,7 @@ class package {
 
     // get settings
     public function getSettings() {
-        $settings = array();
-        if (array_key_exists("settings", $this->_pkg)) {
-            foreach ($this->_pkg['settings'] as $item) {
-                if (is_array($item)) {
-                    $settings = array_merge($settings, $item);
-                }
-            }
-
-        }
-        return $settings;
+        return (array_key_exists('settings', $this->_pkg) ? $this->_pkg['settings'] : array());
     }
 
 

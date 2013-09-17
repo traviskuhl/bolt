@@ -18,7 +18,7 @@
 /// Compiled: %CDATE%
 
 // include bolt
-require("bolt.php");
+require("bolt.phar");
 
 // if we're in cli, load it
 // otherwise we're just including the phar
@@ -32,7 +32,7 @@ b::init(array(
 ));
 
 // init request from environment
-b::request()->initFromEnvironment();
+\bolt\browser\request::initGlobals();
 
 // run in cli mode
 b::run('browser');
