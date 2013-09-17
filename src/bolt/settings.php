@@ -16,7 +16,7 @@ class settings extends plugin\singleton {
 
     public static $prefetch = array();
 
-    public function load($path, $root) {
+    public function load($path, $root=false) {
         $settings = b::package()->getDirectories("settings");
         if ($root) { $settings[] = $root;}
         if (is_array($settings)) {
