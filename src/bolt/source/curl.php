@@ -33,6 +33,10 @@ class curl extends base {
     private $_curl = false;
     private $_last = false;
 
+    protected $cache = array(
+        'ttl' => null
+    );
+
     // construct
     public function __construct($cfg=array()) {
         $this->_config = array_merge($this->_config, $cfg);
@@ -44,12 +48,17 @@ class curl extends base {
         $model = array_shift($args);
         $type = array_shift($args);
 
+
         // url
         $source = $model->source()['curl'];
 
+        // ttl
+        if (isset($source['ttl'])) {
+            $this->cache['ttl'] = $source['ttl'];
+        }
+
         // uri
         $uri = $source['uri'][$type];
-
 
         if (is_callable($uri)) {
             list($type, $uri, $args) = $uri($args);
@@ -134,8 +143,61 @@ class curl extends base {
         return $this->_curl;
     }
 
+    private function _getCacheKey($args) {
+        $prefix = b::settings()->value("project.source.cache.prefix");
+        return md5($prefix.get_called_class().serialize($args));
+    }
+
+    private function _cache($args, $store=false, $ttl = false) {
+
+        // if the settings say no
+        if (b::settings()->value('project.source.cache.active') !== true) {return false;}
+
+        // key
+        $key = $this->_getCacheKey($args);
+
+        // store
+        if ($store){
+
+            $_ttl = b::param('ttl', b::settings()->value('project.source.cache.ttl', 0), $this->cache);
+
+            return b::cache()->set($key, $store, ($ttl ?: $_ttl));
+
+        }
+        else {
+
+            // get
+            $resp = b::cache()->get($key);
+
+            // good
+            if ($resp) {
+                return $resp;
+            }
+
+            return false;
+
+        }
+
+    }
+
+
     // request
     public function request($path, $params=array(), $method="GET", $headers=array(), $useIniFilePost=false) {
+
+        // cid
+        $cid = $this->_getCacheKey(func_get_args());
+
+        // resp
+        if ( ($resp = $this->_cache($cid)) !== false) {
+            // return our re
+            return $this->_last = new curlResponse(
+                $this,
+                $resp[0],
+                $resp[1]['http_code'],
+                $resp[1]
+            );
+        }
+
 
         if (is_string($path)) {
             $path = array(
@@ -268,16 +330,24 @@ class curl extends base {
         // make the request
         $result = curl_exec($this->_curl);
 
+        $info = curl_getinfo($this->getCurl());
+
+        // close our curl
+        curl_close($this->_curl);
+
+        // resp
+        $this->_cache($cid, array(
+                $result,
+                $info
+            ), b::param('ttl', false, $params));
+
         // return our re
         $r = $this->_last = new curlResponse(
             $this,
             $result,
-            curl_getinfo($this->getCurl(),CURLINFO_HTTP_CODE),
-            curl_getinfo($this->getCurl())
+            $info['http_code'],
+            $info
         );
-
-        // close our curl
-        curl_close($this->_curl);
 
         // give it
         return $r;

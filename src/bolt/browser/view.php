@@ -31,10 +31,10 @@ class view implements iView {
         $this->_vars = $vars;
 
         // no
-        if (self::$_compiled === false AND b::package()->getDirectories('compiled')) {
-            $c = b::package()->getDirectories('compiled');
-            if (array_key_exists('views', $c) AND file_exists($c['views'])) {
-                self::$_compiled = include($c['views']);
+        if (self::$_compiled === false AND b::config()->exists('compiled')) {
+            $file = b::path(b::config()->value('compiled'), "views.inc");
+            if (file_exists($file)) {
+                self::$_compiled = require($file);
             }
             else {
                 self::$_compiled = array();
@@ -115,8 +115,6 @@ class view implements iView {
                 }
             }
         }
-
-        // print_r($checkWithRoot);
 
         while (($file = array_shift($checkWithRoot)) !== null) {
             if (is_file($file)) {

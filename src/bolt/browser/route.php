@@ -209,9 +209,6 @@ class route extends \bolt\plugin\singleton {
 
                     // cool, lets load the controller
                     b::load($route['controller']);
-
-                    var_dump( new $route['controller'] ); die;
-
                 }
             }
         }

@@ -105,6 +105,10 @@ final class b {
         'bolt-core-event'    => "./bolt/event.php",
         'bolt-core-package'  => "./bolt/package.php",
 
+        // cache
+        'bolt-core-cache'   => "./bolt/cache.php",
+        'bolt-core-cache-memcached' => "./bolt/cache/memcached.php",
+
         // bucket
         'bolt-core-bucket'          => "./bolt/bucket.php",
         'bolt-core-bycket-array'    => "./bolt/bucket/bArray.php",

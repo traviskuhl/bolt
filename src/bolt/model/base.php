@@ -13,9 +13,19 @@ abstract class base implements iModelBase {
     private $_struct = array(); /// item struct
     private $_source = false; // source holder
     private $_attr = array(); // attribute classes
+    private $_data = array();
+
 
     // traits
     protected $traits = array();
+
+    public function __sleep() {
+        return array('_data');
+    }
+
+    public function __wakeup() {
+        $this->set($this->_data);
+    }
 
     ////////////////////////////////////////////////////////////////////
     /// @brief constrcut a model item
@@ -87,25 +97,26 @@ abstract class base implements iModelBase {
     // find
     public function find($query, $args=array()) {
 
-
         // send to source
         $resp = $this->_source->model($this, 'find', $query, $args);
         $items = array();
 
         // already a response
-        if (is_a($resp, 'bolt\model\result')) {
-            return $resp;
-        }
+        if (!is_a($resp, 'bolt\model\result')) {
 
-        // what am i
-        $class = get_called_class();
+            // what am i
+            $class = get_called_class();
 
-        foreach ($resp as $item) {
-            $items[] = (new $class())->set($item->asArray());
+            foreach ($resp as $item) {
+                $items[] = (new $class())->set($item->asArray());
+            }
+
+            $resp = new result($class, $items);
+
         }
 
         // give bacl
-        return new result($class, $items);
+        return $resp;
 
     }
 
@@ -358,6 +369,9 @@ abstract class base implements iModelBase {
         if (array_key_exists($name, $this->_struct)) {
             $this->_struct[$name]['_attr']->call('set', array($value));
         }
+
+        // save raw data
+        $this->_data[$name] = $value;
 
         // me
         return $this;

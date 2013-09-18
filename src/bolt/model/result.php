@@ -21,6 +21,10 @@ class result implements \bolt\iBucket, \ArrayAccess, \Iterator, \Countable {
         return new result($class, $items, $key);
     }
 
+    public function __sleep() {
+        return array('_class', '_loaded', '_meta', '_total', '_limit', '_offset', '_items', '_query');
+    }
+
     ////////////////////////////////////////////////////////////////////
     /// @brief construct a result
     ///
