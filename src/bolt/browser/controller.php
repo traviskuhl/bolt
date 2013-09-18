@@ -332,9 +332,6 @@ class controller extends \bolt\event implements iController {
                 else if ($param->getClass() AND $param->getClass()->name == 'bolt\browser\response') {
                     $_args[] = $this->_response;
                 }
-                else if (array_key_exists($name, $args)) {
-                    $_args[] = $args[$name];
-                }
                 else if ($this->_params->exists($name)) {
                     $_args[] = $this->_params->value($name);
                 }

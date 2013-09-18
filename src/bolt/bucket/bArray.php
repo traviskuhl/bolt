@@ -12,6 +12,7 @@ class bArray implements \bolt\iBucket, \ArrayAccess, \Iterator, \Countable, \Jso
     private $_root = false;
     private $_parent = false;
     private $_data = array();
+    private $_pos = false;
 
     /**
      * construct a new bArray object
@@ -126,7 +127,7 @@ class bArray implements \bolt\iBucket, \ArrayAccess, \Iterator, \Countable, \Jso
     public function normalize() {
         $normal = array();
         foreach ($this->_data as $k => $v) {
-            $normal[$k] = $v->normalize();
+            $normal[$k] = (b::isInterfaceOf($v, '\bolt\iBucket') ? $v->normalize() : $v);
         }
         return $normal;
     }
@@ -167,22 +168,30 @@ class bArray implements \bolt\iBucket, \ArrayAccess, \Iterator, \Countable, \Jso
         }
         else if (stripos($name, '.') !== false AND $useDotNamespace === true) {
             $parts = explode('.', $name);
-            $name = array_pop($parts);
-            $var = $this;
-            foreach ($parts as $part) {
-                $var = $var->get($part);
-            }
-            if (b::isInterfaceOf($var, '\bolt\iBucket') ) {
-                return $var->get($name, $default);
+            $name = array_shift($parts);
+
+            if (array_key_exists($name, $this->_data)) {
+                return $this->get($name)->get(implode(".", $parts), $default);
             }
             else {
                 return $this->get($oName, $default, false);
             }
+
+            // $var = $this;
+            // foreach ($parts as $part) {
+            //     $var = $var->get($part);
+            // }
+            // if (b::isInterfaceOf($var, '\bolt\iBucket') ) {
+            //     return $var->get($name, $default);
+            // }
+            // else {
+            //     return $this->get($oName, $default, false);
+            // }
         }
 
         // is data set
         if (array_key_exists($name, $this->_data)) {
-            $default = $this->_data[$name];
+            $default = $this->_data[$name] = \bolt\bucket::byType($this->_data[$name], $name);
         }
 
         if ($default === null) {
@@ -210,7 +219,7 @@ class bArray implements \bolt\iBucket, \ArrayAccess, \Iterator, \Countable, \Jso
         }
 
         // set the data
-        $this->_data[$name] = \bolt\bucket::byType($value, $name);
+        $this->_data[$name] = $value; // \bolt\bucket::byType($value, $name);
 
         // give me back
         return $this;
@@ -577,6 +586,7 @@ class bArray implements \bolt\iBucket, \ArrayAccess, \Iterator, \Countable, \Jso
      */
     function rewind() {
         reset($this->_data);
+        $this->_pos = key($this->_data);
         return $this;
     }
 
@@ -587,7 +597,9 @@ class bArray implements \bolt\iBucket, \ArrayAccess, \Iterator, \Countable, \Jso
      */
     function current() {
         $var = current($this->_data);
-        return (is_array($var) ? b::bucket($var) : $var);
+        if ($var === false) {return false;}
+        $key = key($this->_data);
+        return (b::isInterfaceOf($var, '\bolt\iBucket') ? $var : $this->get(key($this->_data)));
     }
 
     /**
@@ -596,7 +608,7 @@ class bArray implements \bolt\iBucket, \ArrayAccess, \Iterator, \Countable, \Jso
      * @return key
      */
     function key() {
-          $var = key($this->_data);
+        $var = key($this->_data);
         return $var;
     }
 
@@ -606,8 +618,10 @@ class bArray implements \bolt\iBucket, \ArrayAccess, \Iterator, \Countable, \Jso
      * @return current value
      */
     function next() {
+        $this->_pos = key($this->_data);
         $var = next($this->_data);
-        return $var;
+        if ($var === false) {return false;}
+        return (b::isInterfaceOf($var, '\bolt\iBucket') ? $var : $this->get(key($this->_data)));
     }
 
     /**
@@ -616,8 +630,7 @@ class bArray implements \bolt\iBucket, \ArrayAccess, \Iterator, \Countable, \Jso
      * @return current value
      */
     function valid() {
-        $var = $this->current() !== false;
-        return $var;
+        return array_key_exists(key($this->_data), $this->_data);
     }
 
     /**

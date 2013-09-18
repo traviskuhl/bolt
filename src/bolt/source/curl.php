@@ -332,6 +332,12 @@ class curl extends base {
 
         $info = curl_getinfo($this->getCurl());
 
+        if (b::env() == 'dev') {
+            $msg = "[API] $url".($method=='GET'?"?".urldecode(http_build_query($params)):false)." - {$info['total_time']} / ns:{$info['namelookup_time']} / co:{$info['connect_time']}";
+            error_log($msg);
+        }
+
+
         // close our curl
         curl_close($this->_curl);
 
