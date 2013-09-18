@@ -22,6 +22,11 @@ b::on('run', function() {
 
 class module extends \bolt\browser\controller {
 
+    public static function defined($module) {
+        if (array_key_exists($module, self::$_modules)) {return true;}
+        return class_exists($module);
+    }
+
     static $_modules = array();
 
     protected $_action = 'build';
