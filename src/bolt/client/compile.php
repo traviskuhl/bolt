@@ -92,6 +92,7 @@ class compile extends \bolt\cli\command {
 
     private function _writeFile($name, $data) {
         $file = b::path($this->_out, $name);
+     //   if (file_exists($file)) {return;}
         if (!is_dir(dirname($file))) {
             mkdir(dirname($file), 0777, true);
         }

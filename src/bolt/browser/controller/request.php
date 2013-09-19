@@ -37,13 +37,19 @@ class request extends \bolt\browser\controller {
                     if (!isset($info['args'])) {
                         $info['args'] = array('$'.$model->getPrimaryKey());
                     }
-                    foreach ($info['args'] as $i => $arg) {
-                        if ($arg{0} == '$') {
-                            $_ = substr($arg,1);
-                            $info['args'][$i] = (array_key_exists($_, $params) ? $params[$_] : false);
-                        }
+                    if (isset($info['args'])) {
+                        array_walk_recursive($info['args'], function(&$item, $key) use ($params){
+                            if (is_string($item) AND $item{0} == '$') {
+                                if (substr($item,0,9) == '$request.') {
+                                    $item = $this->get(substr($item,9));
+                                }
+                                else {
+                                    $_ = substr($item,1);
+                                    $item = (array_key_exists($_, $params) ? $params[$_] : false);
+                                }
+                            }
+                        });
                     }
-
                     $params[$name] = call_user_func_array(array($model, $info['method']), $info['args']);
 
                     // unless model is optional
