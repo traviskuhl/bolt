@@ -398,6 +398,8 @@ class controller extends \bolt\event implements iController {
             $resp = \bolt\browser\response::initByType($type);
         }
 
+        $resp->setParent($this->_response);
+
         // set our content
         $resp->setContent($content);
 

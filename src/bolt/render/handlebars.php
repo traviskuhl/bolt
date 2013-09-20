@@ -180,7 +180,7 @@ class handlebars extends base {
                 }
                 $params = b::bucket(array());
                 if ($context->get('self')) {
-                    $params = $context->get('self')->getParams();
+                    $params = clone $context->get('self')->getParams();
                 }
 
                 $action = 'build';

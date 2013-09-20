@@ -246,7 +246,8 @@ class result implements \bolt\iBucket, \ArrayAccess, \Iterator, \Countable {
 
     public function getNextPage() {
         $n = $this->getPage();
-        return ($n > $this->getPages() ? false : $n+1 );
+
+        return ($n >= $this->getPages() ? false : $n+1 );
     }
 
     public function setQuery($query) {

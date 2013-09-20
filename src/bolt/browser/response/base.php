@@ -16,6 +16,8 @@ class base implements \bolt\browser\iResponse {
         protected $contentType = 'text/plain';
         protected $charset = false;
 
+        private $_parent = false;
+
         /**
          * construct a response
          *
@@ -27,6 +29,11 @@ class base implements \bolt\browser\iResponse {
 
         public function __invoke() {
             return $this->getResponse();
+        }
+
+        public function setParent($parent) {
+            $this->_parent = $parent;
+            return $this;
         }
 
         public function getResponse() {
@@ -63,6 +70,19 @@ class base implements \bolt\browser\iResponse {
             return false;
         }
 
+        public function addHeader($name, $value) {
+            $this->_headers->set($name, $value);
+            if ($this->_parent) {
+                $this->_parent->addHeader($name, $value);
+            }
+        }
+
+        public function addHeaders($headers) {
+            foreach ($headers as $name => $value) {
+                $this->addHeader($name, $value);
+            }
+            return $this;
+        }
 
         public function setContent($content) {
             $this->_content = $content;
@@ -75,6 +95,9 @@ class base implements \bolt\browser\iResponse {
 
         public function setContentType($type) {
             $this->contentType = $type;
+            if ($this->_parent) {
+                $this->_parent->setContentType($type);
+            }
             return $this;
         }
 
@@ -93,6 +116,9 @@ class base implements \bolt\browser\iResponse {
 
         public function setStatus($status) {
             $this->status = $status;
+            if ($this->_parent) {
+                $this->_parent->setStatus($status);
+            }
             return $this;
         }
 
