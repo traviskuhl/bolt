@@ -161,6 +161,19 @@ class result implements \bolt\iBucket, \ArrayAccess, \Iterator, \Countable {
         return $this;
     }
 
+    public function splice($offset, $length=false) {
+        if (!$length) {$length = count($this->_items); }
+
+        $r = clone $this;
+        $r->clear()->setItems(array_splice($this->_items, $offset, $length));
+        return $r;
+    }
+
+    public function clear() {
+        $this->_items = array();
+        return $this;
+    }
+
     ////////////////////////////////////////////////////////////////////
     /// @brief set the items
     ///
