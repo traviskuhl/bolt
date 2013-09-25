@@ -117,6 +117,11 @@ class controller extends \bolt\event implements iController {
         return $this->_route;
     }
 
+    public function setResponseType($type) {
+        $this->responseType = $type;
+        return $this;
+    }
+
 
     public function getDefaultResponseType() {
         if ($this->defaultResponseType) {

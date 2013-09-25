@@ -54,7 +54,7 @@ class request extends \bolt\browser\controller {
 
                     // unless model is optional
                     if ($method !== 'post' AND b::param('optional', false, $info) === false AND $params[$name]->loaded() === false) {
-                        return b::browser()->error(404, "Unable to load model '$name' ({$info['model']})");
+                        return b::browser()->error("Unable to load model '$name' ({$info['model']})", 404);
                     }
 
                 }
@@ -115,7 +115,7 @@ class request extends \bolt\browser\controller {
 
         // no model exsti
         if (!property_exists($this, $name)) {
-            return b::browser()->error(500, 'unable to load model');
+            return b::browser()->error('unable to load model', 404);
         }
 
         // what's the model we need
@@ -142,7 +142,7 @@ class request extends \bolt\browser\controller {
 
         // no model exsti
         if (!property_exists($this, $name)) {
-            return b::browser()->error(500, 'unable to load model');
+            return b::browser()->error('unable to load model', 404);
         }
 
         // what's the model we need

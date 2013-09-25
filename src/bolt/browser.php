@@ -36,7 +36,7 @@ class browser extends \bolt\plugin\singleton {
 
         // no route just die right now
         if (!$this->_route) {
-            $controller = b::browser()->error('404', "No route for path '".strtoupper($method)." {$pathInfo}'");
+            $controller = b::browser()->error("No route for path '".strtoupper($method)." {$pathInfo}'", 404);
             return $this->render($controller->getResponseByType('html'));
         }
         else  {
@@ -77,16 +77,24 @@ class browser extends \bolt\plugin\singleton {
         $this->fire("before", array('controller' => $controller));
 
         // invoke the controller
-        $controller->invoke($action, $params);
+        $resp = $controller->invoke($action, $params);
+
+            // if resp is a controller
+            // set it
+            if (b::isInterfaceOf($resp, '\bolt\browser\iController')) {
+                $controller = $resp;
+            }
+
 
         $type = $controller->getResponseType();
 
         // ask the controller for it
         $resp = $controller->getResponseByType($type);
 
+
         // no response
         if (!$resp) {
-            return b::browser()->fail('404', "No response for path '".strtoupper($method)." {$pathInfo}' of type '{$type}'");
+            return b::browser()->fail("No response for path '".strtoupper($method)." {$pathInfo}' of type '{$type}'", 404);
         }
 
         // is the response a controller?
@@ -144,21 +152,30 @@ class browser extends \bolt\plugin\singleton {
     }
 
     public function error($message, $code=500) {
-        $c = new \bolt\browser\controller();
+        $errors = b::settings()->value('project.errors');
+        if (array_key_exists($code, $errors) OR array_key_exists('default', $errors) ) {
+            $m = (array_key_exists($code, $errors) ? $errors[$code] : $errors['default']);
+            $c = b::controller($m);
+            $c->setResponseType('html');
+            $c->invoke('get');
+        }
+        else {
+            $c = new \bolt\browser\controller();
+            $c->responses(array(
+                'html' => '<!doctype html>
+                    <html>
+                        <body>
+                            <h1>Error: '.$code.'</h1>
+                            <p>'.$message.'</p>
+                        </body>
+                    </html>
+                ',
+                'json' => array(
+                    'error' => $message
+                )
+            ));
+        }
         $c->getResponse()->setStatus($code);
-        $c->responses(array(
-            'html' => '<!doctype html>
-                <html>
-                    <body>
-                        <h1>Error: '.$code.'</h1>
-                        <p>'.$message.'</p>
-                    </body>
-                </html>
-            ',
-            'json' => array(
-                'error' => $message
-            )
-        ));
         return $c;
     }
 
