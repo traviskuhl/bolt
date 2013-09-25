@@ -94,6 +94,10 @@ abstract class base implements iModelBase {
         return $this;
     }
 
+    public function createAttribute($type, $key, $info) {
+        return new $this->_attr[$type]($key, $info, $this);
+    }
+
     // find
     public function find($query, $args=array()) {
 

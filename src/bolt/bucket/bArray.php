@@ -497,6 +497,7 @@ class bArray implements \bolt\iBucket, \ArrayAccess, \Iterator, \Countable, \Jso
     }
 
     public function implode($str) {
+        if (!is_string($str)){return;}
         return implode($str, $this->asArray());
     }
 

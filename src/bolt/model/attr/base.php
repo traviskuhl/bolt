@@ -39,6 +39,14 @@ class base extends \bolt\model\attr {
         return b::param($name, $default, $this->_cfg);
     }
 
+    public function getParent() {
+        return $this->_parent;
+    }
+
+    final public function getConfig() {
+        return $this->_cfg;
+    }
+
     final public function call($name, $args=array()) {
         if (in_array($name, array('get', 'set', 'normalize', 'validate'))) {
 
