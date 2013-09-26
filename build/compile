@@ -11,24 +11,11 @@ date_default_timezone_set("UTC");
 
 // tar
 require "Archive/Tar.php";
-require 'AWSSDKforPHP/aws.phar';
-
-use Aws\S3\S3Client;
-use Aws\Common\Enum\Region;
 
 $cwd = getcwd(); $cfg = array();
 
 // user
 $u = (isset($_SERVER['SUDO_HOME']) ? $_SERVER['SUDO_HOME'] : $_SERVER['HOME']);
-$cfgFile = "$u/.boltbuild";
-
-// if there's a config file
-if (file_exists($cfgFile)) {
-    $cfg = json_decode(file_get_contents($cfgFile), true);
-    if (!is_array($cfg)) {
-        exit("Unable to load cfg from {$cfgFile}\n");
-    }
-}
 
 $ver = get_version();
 
@@ -84,7 +71,7 @@ foreach (iterator_to_array($regex) as $file) {
 $vars = array('sha' => $sha, 'date' => $date, 'cdate' => date('r', $ts));
 
 // stub
-$phar->setStub(stub('stub/pear.inc', $vars));
+$phar->setStub(stub('stub/phar.inc', $vars));
 
 // DONE
 $phar->stopBuffering();
@@ -172,31 +159,28 @@ $tar->create(array("./bolt.phar"));
 $tar->addString("bin.inc", $bin);
 $tar->addString("share.inc", $share);
 
-// add depend json
-$tar->addString("depend.json", file_get_contents("depend.json"));
-
 // archive
-if (!isset($opts['nostore'])) {
+// if (!isset($opts['nostore'])) {
 
-    // Instantiate the S3 client with your AWS credentials and desired AWS region
-    $s3 = S3Client::factory(array(
-        'key'    => $cfg['s3']['key'],
-        'secret' => $cfg['s3']['secret'],
-    ));
+//     // Instantiate the S3 client with your AWS credentials and desired AWS region
+//     $s3 = S3Client::factory(array(
+//         'key'    => $cfg['s3']['key'],
+//         'secret' => $cfg['s3']['secret'],
+//     ));
 
-    $s3->putObject(array(
-            "Bucket" => $cfg['s3']['bucket'],
-            "Key" => $cfg['store']['phar']."/bolt-$version.phar",
-            "Body" => file_get_contents("bolt.phar")
-        ));
+//     $s3->putObject(array(
+//             "Bucket" => $cfg['s3']['bucket'],
+//             "Key" => $cfg['store']['phar']."/bolt-$version.phar",
+//             "Body" => file_get_contents("bolt.phar")
+//         ));
 
-    $s3->putObject(array(
-            "Bucket" => $cfg['s3']['bucket'],
-            "Key" => $cfg['store']['pkg']."/bolt-$version.tar.gz",
-            "Body" => file_get_contents("bolt-latest.tar.gz")
-        ));
+//     $s3->putObject(array(
+//             "Bucket" => $cfg['s3']['bucket'],
+//             "Key" => $cfg['store']['pkg']."/bolt-$version.tar.gz",
+//             "Body" => file_get_contents("bolt-latest.tar.gz")
+//         ));
 
-}
+// }
 
 // keep our phar
 rename("bolt.phar", "./latest/bolt.phar");

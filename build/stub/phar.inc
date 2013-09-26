@@ -19,7 +19,7 @@
 
 
 // map our the phar
-Phar::mapPhar('bolt.php');
+Phar::mapPhar('bolt.phar');
 
 define("bPear", __DIR__);
 
