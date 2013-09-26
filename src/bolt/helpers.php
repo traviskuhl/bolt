@@ -73,7 +73,9 @@ class helpers {
                 $path[] = $v;
             }
         }
-        return "/".implode(str_replace('/./','/',$path), "/");
+        $path = implode(str_replace('/./','/',$path), "/");
+
+        return (substr($path,0,7) == 'phar://' ? $path : "/{$path}");
     }
 
     public function getDefinedSubClasses($parent) {

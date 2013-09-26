@@ -117,8 +117,9 @@ final class b {
 
         // model
         'bolt-core-model'       => "./bolt/model.php",
+        'bolt-core-model-base'  => "./bolt/model/base.php",
         'bolt-core-model-attr'  => "./bolt/model/attr.php",
-        'bolt-core-model-attrs'  => "./bolt/model/attr/*.php",
+        'bolt-core-model-attrs'  => "./bolt/model/attr/",
 
         // settings
         'bolt-core-settings' => "./bolt/settings.php",
@@ -433,30 +434,35 @@ final class b {
             $files = array();
 
             // is it a file
-            if (is_dir($pattern)) {
-                self::_resursiveDirectorySerach($pattern, $files);
+            if (substr($pattern,0,2) == './') {
+                $pattern = b::path(bRoot, substr($pattern,2));
             }
-            else if (stripos($pattern, '.php') !== false AND stripos($pattern, '*') === false)  {
+
+            if (is_file($pattern)) {
                 $files = array($pattern);
             }
-            else {
-                if (substr($pattern,0,2) == './') {
-                    $pattern = bRoot."/".ltrim($pattern,'./');
-                }
+            else if (stripos($pattern, '*') !== false) {
                 $files = glob($pattern);
+            }
+            else {
+                self::_resursiveDirectorySerach($pattern, $files);
             }
 
             // loop through each file
             foreach ($files as $oFile) {
 
+                // tests
                 if (basename($oFile) == 'tests') {continue;}
 
                 // see if it's relative
                 if (substr($oFile,0,2) == './') {
                     $file = bRoot."/".ltrim($oFile,'./');
                 }
-                else {
+                else if (substr($oFile,0,7) !== 'phar://') {
                     $file = realpath($oFile);
+                }
+                else {
+                    $file = $oFile;
                 }
 
                 // already loaded
@@ -488,6 +494,7 @@ final class b {
         // nestedDirectory
         private static function _resursiveDirectorySerach($path, &$files) {
             $dirs = array();
+            if (!is_dir($path)) {return;}
 
             foreach (new DirectoryIterator($path) as $dir) {
                 if ($dir->isFile() AND $dir->getExtension() == 'php') {
