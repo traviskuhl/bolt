@@ -95,6 +95,14 @@ class settings extends plugin\singleton {
         if (b::isInterfaceOf($value, '\bolt\iSettings')) {
             $value = $value->get();
         }
+
+        $env = b::env();
+
+        if (isset($value["_{$env}"])) {
+            $value = b::mergeArray($value, $value["_{$env}"]);
+            unset($value["_{$env}"]);
+        }
+
         return call_user_func(array($this->_bucket, 'set'), $name, $value);
      }
 
