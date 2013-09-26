@@ -99,7 +99,6 @@ if (isset($opts['pear'])) {
             'time' => date("H:i:s"),
             'version' => $ver,
             'build' => $ver,
-            'depend' => file_get_contents("./depend.json"),
             'branch' => 'stable'
         );
 
