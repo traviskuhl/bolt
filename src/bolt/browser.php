@@ -152,6 +152,7 @@ class browser extends \bolt\plugin\singleton {
     }
 
     public function error($message, $code=500) {
+
         $errors = b::settings()->value('project.errors');
         if (array_key_exists($code, $errors) OR array_key_exists('default', $errors) ) {
             $m = (array_key_exists($code, $errors) ? $errors[$code] : $errors['default']);

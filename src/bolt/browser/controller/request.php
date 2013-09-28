@@ -20,6 +20,10 @@ class request extends \bolt\browser\controller {
         $route = $this->_route;
         $method = strtolower($this->getRequest()->getMethod());
 
+        if ($this->_fromInit AND b::isInterfaceOf($this->_fromInit, '\bolt\browser\iController')) {
+            return $this->_fromInit;
+        }
+
         // route
         if ($route) {
 

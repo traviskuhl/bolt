@@ -58,9 +58,8 @@ class controller extends \bolt\event implements iController {
     private $_responses = array();
     private $_request;
     private $_response;
-    private $_fromInit = false;
 
-
+    protected $_fromInit = false;
     protected $defaultResponseType = false;
     protected $responseType = false;
 
@@ -296,6 +295,11 @@ class controller extends \bolt\event implements iController {
      * @return content of view
      */
     public function invoke($action='build', $args=array()) {
+
+        // init has something for us
+        if ($this->_fromInit AND b::isInterfaceOf($this->_fromInit, '\bolt\browser\iController')) {
+            return $this->_fromInit;
+        }
 
         // if this action doesn't exist as a method we stop
         if (!method_exists($this, $action)) {
