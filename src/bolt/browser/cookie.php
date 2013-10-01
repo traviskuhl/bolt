@@ -153,7 +153,7 @@ class oCookie {
 	}
 
 	private function _crypt($value) {
-		$salt = b::settings('project')->value("salt");
+		$salt = b::settings()->value("project.salt", "");
 		$bf = new Crypt_Blowfish('cbc');
        	$bf->setKey($salt);
 		if (is_string($value) AND substr($value, 0, 2) == 'e:') {

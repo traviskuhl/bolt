@@ -93,6 +93,12 @@ class view implements iView {
         $checkWithRoot = array($file);
         $check = array($file);
 
+        if (is_array($roots)) {
+            foreach ($roots as $root) {
+                $checkWithRoot[] = b::path($root, $file);
+            }
+        }
+
         if (is_array($views)) {
             foreach ($views as $folder) {
                 foreach ($roots as $root) {

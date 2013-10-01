@@ -303,7 +303,10 @@ final class b {
         }
 
         // pacakge?
-        if (defined("bPackage") AND bPackage !== false AND file_get_contents(bPackage)) {
+        if (isset($args['package'])) {
+            self::$_package = new \bolt\package($args['package']);
+        }
+        else if (defined("bPackage") AND bPackage !== false AND file_get_contents(bPackage)) {
             self::$_package = new \bolt\package(bPackage);
         }
 
@@ -377,6 +380,9 @@ final class b {
                 b::config()->set($key, $value);
             }
 
+            // settings
+            b::settings()->set("project", $p->getSettings());
+
             // set our root
             b::config()->set('root', $p->getRoot());
 
@@ -392,8 +398,7 @@ final class b {
                 }
             }
 
-            // settings
-            b::settings()->set("project", $p->getSettings());
+
 
         }
 

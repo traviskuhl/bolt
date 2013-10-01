@@ -130,7 +130,7 @@ abstract class base implements iModelBase {
 
         // return
         if ($resp->count() > 0) {
-            $this->set($resp->item(0)->asArray());
+            $this->set($resp->item('first')->asArray());
             $this->_loaded = true;
         }
 
@@ -144,7 +144,7 @@ abstract class base implements iModelBase {
 
         // return
         if ($resp->count() > 0) {
-            $this->set($resp->asArray());
+            $this->set($resp->item('first')->asArray());
             $this->_loaded = true;
         }
 

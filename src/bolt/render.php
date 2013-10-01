@@ -26,9 +26,8 @@ class render extends plugin\singleton {
         // ready
         b::on('ready', function(){
 
-            if (b::config()->exists('project.partials')) {
-                $dir = b::config()->value('project.partials');
-                if (file_exists($dir)) {
+            if (b::package()->getDirectories('partials')) {
+                foreach (b::package()->getDirectories('partials') as $dir) {
                     foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($dir)) as $item) {
                         if ($item->isFile()) {
                             b::render()->partial($item->getFilename(), $item->getPathname());
