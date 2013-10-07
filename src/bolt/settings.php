@@ -18,9 +18,12 @@ class settings extends plugin\singleton {
 
     public function load($path, $root=false) {
         $settings = b::package()->getDirectories("settings");
-        if ($root) { $settings[] = $root;}
+        $settings[] = b::package()->getRoot();
+	if ($root) { $settings[] = $root;}
         if (is_array($settings)) {
-            foreach ($settings as $dir) {
+
+
+          foreach ($settings as $dir) {
                 $file = b::path($dir, $path);
                 if (file_exists($file)) {
                     return new settings\json($file);
@@ -86,10 +89,9 @@ class settings extends plugin\singleton {
      public function set($name, $value) {
         if (is_string($value) AND substr($value,0,7) == 'file://') {
             $file = substr($value,7);
-            if (!file_exists($file)) {
-                $file = b::path( b::config()->value('root'), $file);
-            }
-            $value = new settings\json($file);
+
+
+$value = $this->load($file);            
         }
 
         if (b::isInterfaceOf($value, '\bolt\iSettings')) {

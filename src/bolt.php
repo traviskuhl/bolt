@@ -373,6 +373,7 @@ final class b {
         // package
         $p = self::$_package;
 
+
         if ($p) {
 
             // config
@@ -385,6 +386,7 @@ final class b {
 
             // set our root
             b::config()->set('root', $p->getRoot());
+
 
             // anything to load
             if ($p->getDirectories('load')) {
