@@ -383,11 +383,13 @@ abstract class base implements iModelBase {
 
         // find it
         if (array_key_exists($name, $this->_struct)) {
-            $this->_struct[$name]['_attr']->call('set', array($value));
+            $this->_struct[$name]['_attr']->set($value);
         }
 
         // save raw data
         $this->_data[$name] = $value;
+
+
 
         // me
         return $this;
