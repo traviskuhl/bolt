@@ -19,7 +19,7 @@ class settings extends plugin\singleton {
     public function load($path, $root=false) {
         $settings = b::package()->getDirectories("settings");
         $settings[] = b::package()->getRoot();
-	if ($root) { $settings[] = $root;}
+        if ($root) { $settings[] = $root;}
         if (is_array($settings)) {
 
 
@@ -91,7 +91,8 @@ class settings extends plugin\singleton {
             $file = substr($value,7);
 
 
-$value = $this->load($file);            
+            $value = $this->load($file);
+
         }
 
         if (b::isInterfaceOf($value, '\bolt\iSettings')) {
@@ -100,7 +101,7 @@ $value = $this->load($file);
 
         $env = b::env();
 
-        if (isset($value["_{$env}"])) {
+        if (is_array($value) AND isset($value["_{$env}"])) {
             $value = b::mergeArray($value, $value["_{$env}"]);
             unset($value["_{$env}"]);
         }

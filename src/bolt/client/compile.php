@@ -47,6 +47,9 @@ class compile extends \bolt\cli\command {
             b::load($this->_pkg->getDirectories('load'));
         }
 
+        // refire run
+        b::fire('run');
+
         // get all compile classes
         $compilers = b::getDefinedSubClasses('\bolt\client\compile\base');
 

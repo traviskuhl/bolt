@@ -267,6 +267,10 @@ class curl extends base {
         curl_setopt($this->_curl, CURLOPT_INFILESIZE, -1);
         curl_setopt($this->_curl, CURLOPT_POSTFIELDS, NULL);
 
+        if (isset($this->_config['sendCookies']) AND $this->_config['sendCookies'] === true) {
+            $headers['cookies'] = $_COOKIE;
+        }
+
         // cookies
         if (array_key_exists('cookies', $headers)) {
 
