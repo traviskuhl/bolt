@@ -82,7 +82,10 @@ class route extends \bolt\plugin\singleton {
             return $this;
         }
         else {
-            return call_user_func_array(array($this, 'register'), func_get_args());
+            $args = func_get_args();
+            return $this->register($args[0], $args[1]);
+
+            return call_user_func_array(array($this, 'register'), array($args[0], $args[1]));
         }
     }
 
@@ -245,7 +248,6 @@ class route extends \bolt\plugin\singleton {
 
         }
 
-
         if (!$route) {
             return false;
         }
@@ -267,6 +269,7 @@ class route extends \bolt\plugin\singleton {
         }
 
         b::log('[b::route] found route %s', array($controller));
+
 
         // return what we foudn
         return ($this->_route = $route);
@@ -300,6 +303,10 @@ class route extends \bolt\plugin\singleton {
             // new base
             $base = clone $this->_baseUri;
 
+            if (!isset($args['scheme'])) {
+                $args['scheme'] = $base->getScheme();
+            }
+
             // reset query
             if (b::param('use-base-query', false, $args) === false) {
                 $base->query = false;
@@ -311,38 +318,41 @@ class route extends \bolt\plugin\singleton {
             }
 
             // no url
-            if (!$this->getRouteByName($name)) {
-                $base->path = $prefix . ltrim($name, '/');
-                return $base->getURL();
-            }
+            if ($this->getRouteByName($name)) {
 
-            // query
-            if (is_string($query)) {
-                $base->query = $query;
+                // query
+                if (is_string($query)) {
+                    $base->query = $query;
+                }
+                else {
+                    foreach ($query as $k => $v) {
+                        $base->setQueryVariable($k, $v);
+                    }
+                }
+
+
+                // get our url
+                $path = $this->getRouteByName($name)->getPath();
+
+                foreach ($data as $k => $v) {
+                    if (is_string($v)) {
+                        $path = str_replace('{'.$k.'}', $v, $path );
+                    }
+                }
+
+                // anything left over
+                $path = preg_replace("#\{[^\}]+\}/?#", "", $path);
+
+                // set it
+                $base->path = $prefix . trim($path, '/');
+
             }
             else {
-                foreach ($query as $k => $v) {
-                    $base->setQueryVariable($k, $v);
-                }
+                $base->path = $prefix . ltrim($name, '/');
             }
-
-
-            // get our url
-            $path = $this->getRouteByName($name)->getPath();
-
-            foreach ($data as $k => $v) {
-                if (is_string($v)) {
-                    $path = str_replace('{'.$k.'}', $v, $path );
-                }
-            }
-
-            // anything left over
-            $path = preg_replace("#\{[^\}]+\}/?#", "", $path);
-
-            // set it
-            $base->path = $prefix . trim($path, '/');
 
         }
+
 
         // parts
         foreach ($args as $k => $v) {
@@ -392,6 +402,7 @@ class route extends \bolt\plugin\singleton {
                 // base
                 $base = rtrim($class->hasProperty('routeBase') ? $class->getProperty('routeBase')->getValue() : false, '/')."/";
                 $resp = rtrim($class->hasProperty('routeResponse') ? $class->getProperty('routeResponse')->getValue() : false, '/');
+
 
                 if (is_string($route)) {
                     $this->register(b::path($base, $route), $class->getName());

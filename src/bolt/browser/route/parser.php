@@ -24,7 +24,7 @@ abstract class parser extends \bolt\event {
     private $_optional = array();
     private $_auth = array();
     private $_model = array();
-    private $_response = false;
+    private $_response = array();
     private $_responsetype = 'html';
     private $_before = false;
     private $_after = false;
@@ -53,6 +53,10 @@ abstract class parser extends \bolt\event {
 
     public function getOriginalPath() {
         return $this->_opath;
+    }
+
+    public function getResponse() {
+        return $this->_response;
     }
 
 
@@ -114,10 +118,13 @@ abstract class parser extends \bolt\event {
 
     public function getControllerInstance() {
         $class = $this->_controller;
+
         $c = new $class();
         $c->setRoute($this);
         return $c;
     }
+
+
 
     /**
      * get a validator for a given route param name
@@ -233,7 +240,8 @@ abstract class parser extends \bolt\event {
     }
 
     public function response($response) {
-        $this->_response = (is_array($response) ? $response : explode(",", $response));
+        $this->_response = array_filter((is_array($response) ? $response : explode(",", $response)), function($item) { return !(trim($item) === ''); });
+        if (count($this->_response) == 0) { $this->_response = array('html'); }
         return $this;
     }
 

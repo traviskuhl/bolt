@@ -31,6 +31,8 @@ class model extends \bolt\model\attr\base {
                 $args = $this->parent->asArray();
             }
             call_user_func_array(array($this->_instance, $method), $args);
+
+
             $this->_loaded = true;
         }
         return $this->_instance;

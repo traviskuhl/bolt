@@ -204,7 +204,7 @@ abstract class base implements iModelBase {
 
     public function getPrimaryKey() {
         foreach ($this->_struct as $name => $field) {
-            if (isset($field['primary']) AND $field['primary'] == 'true') {
+            if ((isset($field['type']) AND $field['type'] == 'primary') OR (isset($field['primary']) AND $field['primary'] == 'true')) {
                 return $name;
             }
         }

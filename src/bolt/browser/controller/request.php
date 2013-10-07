@@ -54,6 +54,7 @@ class request extends \bolt\browser\controller {
                             }
                         });
                     }
+
                     $params[$name] = call_user_func_array(array($model, $info['method']), $info['args']);
 
                     // unless model is optional
