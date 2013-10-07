@@ -128,6 +128,10 @@ abstract class base implements iModelBase {
     public function findOne($query, $args=array()) {
         $resp = $this->_source->model($this, 'find', $query, $args);
 
+        if (is_a($resp, 'bolt\model\result')) {
+            return $resp;
+        }
+
         // return
         if ($resp->count() > 0) {
             $this->set($resp->item(0)->asArray());
@@ -141,6 +145,10 @@ abstract class base implements iModelBase {
 
     public function findOneBy($field, $value, $args=array()) {
         $resp = $this->_source->model($this, 'find', array($field => $value), $args);
+
+        if (is_a($resp, 'bolt\model\result')) {
+            return $resp;
+        }
 
         // return
         if ($resp->count() > 0) {
@@ -156,6 +164,10 @@ abstract class base implements iModelBase {
 
     public function findById($value, $args=array()) {
         $resp = $this->_source->model($this, 'findById', $value, $args);
+
+        if (is_a($resp, 'bolt\model\result')) {
+            return $resp;
+        }
 
         // return
         if ($resp->count() > 0) {

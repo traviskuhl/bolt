@@ -98,7 +98,7 @@ class settings extends plugin\singleton {
 
         $env = b::env();
 
-        if (isset($value["_{$env}"])) {
+        if (is_array($value) AND isset($value["_{$env}"])) {
             $value = b::mergeArray($value, $value["_{$env}"]);
             unset($value["_{$env}"]);
         }

@@ -207,8 +207,8 @@ class result implements \bolt\iBucket, \ArrayAccess, \Iterator, \Countable {
     /// @param $meta meta item object
     /// @return self
     ////////////////////////////////////////////////////////////////////
-    public function setMeta(\bolt\dao\item $meta) {
-        $this->_meta = $meta;
+    public function setMeta($meta) {
+        $this->_meta = b::a($meta);
         return $this;
     }
 
