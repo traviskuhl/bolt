@@ -31,35 +31,20 @@ class run extends \bolt\cli\command {
             $this->error("Your version of PHP (%s) does not have a built in server.\nVisit bolthq.com for more information.", PHP_VERSION);
         }
 
-        // args
-        $args = array(
-            'config' => array(
-                'root' => realpath($src)
-            ),
-            'load' => array(
-                realpath($src)
-            )
-        );
-
         // where are we now
         $cwd = getcwd();
 
         // move into src
         chdir($src);
 
-        // check for some things
-        if (file_exists("settings.json")) {
-            $args['settings'] = new \bolt\settings\json(realpath("./settings.json"));
+        if (!file_exists("package.json")) {
+            $this->error("Unable to find package file");
         }
-        if (file_exists("config.ini")) {
-            $ini = parse_ini_file("config.ini");
-            if (isset($ini['load'])) {
-                $args['load'] = array_merge($args['load'], $ini['load']);
-            }
-            if (isset($ini['autoload'])) {
-                $args['autoload'] = $ini['autoload'];
-            }
-        }
+
+        // args
+        $args = array(
+            'package' => realpath("package.json"),
+        );
 
         // stub
         $stub = $this->_getRouterStub($args);

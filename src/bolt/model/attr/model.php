@@ -10,11 +10,16 @@ class model extends \bolt\model\attr\base {
 
     private function _inst() {
         if (!$this->_instance) {
+
             $method = $this->cfg('method', 'findById');
             $args = $this->cfg('args', array('$'.$this->name));
             $model = $this->cfg('model');
 
             if (!$model) {return;}
+
+            if (!$this->_key) {
+                return b::model($model);
+            }
 
             foreach ($args as $i => $arg) {
                 if ($arg{0} === '$') {
@@ -26,6 +31,8 @@ class model extends \bolt\model\attr\base {
                 $args = $this->parent->asArray();
             }
             call_user_func_array(array($this->_instance, $method), $args);
+
+
             $this->_loaded = true;
         }
         return $this->_instance;

@@ -21,7 +21,7 @@ class helpers {
     static function addUrlParams($url, $params=array()) {
 
         // no params
-        if(count($params)==0) {
+        if(count($params)==0 OR empty($url)) {
             return $url;
         }
 
@@ -38,6 +38,10 @@ class helpers {
                     }
                 }
             }
+        }
+
+        if (!isset($u['scheme'])) {
+            $u['scheme'] = 'http';
         }
 
         // reconstruct

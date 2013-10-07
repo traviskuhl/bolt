@@ -30,6 +30,7 @@ class browser extends \bolt\plugin\singleton {
         // route we need to take
         $this->_route = b::route()->match($pathInfo, $method);
 
+
         // things we'll use
         $action = 'build';
         $params = array();
@@ -53,13 +54,20 @@ class browser extends \bolt\plugin\singleton {
             $params = $this->_route->getParams();
             $type = $this->_route->getResponseType();
 
-            // create a new controller obj
-            $controller = new $class(array(
-                'request' => $this->_request,
-                'response' => $this->_response,
-                'route' => $this->_route,
-                'params' => $params
-            ));
+            if (is_a($class, 'bolt\browser\controller\closure')) {
+                $controller = $class;
+            }
+            else {
+
+                // create a new controller obj
+                $controller = new $class(array(
+                    'request' => $this->_request,
+                    'response' => $this->_response,
+                    'route' => $this->_route,
+                    'params' => $params
+                ));
+
+            }
 
             // route before
             $resp = $this->_route->fireBefore();
@@ -82,6 +90,7 @@ class browser extends \bolt\plugin\singleton {
             // if resp is a controller
             // set it
             if (b::isInterfaceOf($resp, '\bolt\browser\iController')) {
+                $resp->setResponseType($controller->getResponseType()); // match response type of original request
                 $controller = $resp;
             }
 
@@ -90,7 +99,6 @@ class browser extends \bolt\plugin\singleton {
 
         // ask the controller for it
         $resp = $controller->getResponseByType($type);
-
 
         // no response
         if (!$resp) {
@@ -137,6 +145,12 @@ class browser extends \bolt\plugin\singleton {
 
     public function getResponse() {
         return $this->_response;
+    }
+
+    public function redirect($url) {
+        $c =  new \bolt\browser\controller\redirect();
+        $c->setUrl($url);
+        return $c;
     }
 
     public function fail($message, $code) {

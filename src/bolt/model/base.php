@@ -134,7 +134,7 @@ abstract class base implements iModelBase {
 
         // return
         if ($resp->count() > 0) {
-            $this->set($resp->item(0)->asArray());
+            $this->set($resp->item('first')->asArray());
             $this->_loaded = true;
         }
 
@@ -152,7 +152,7 @@ abstract class base implements iModelBase {
 
         // return
         if ($resp->count() > 0) {
-            $this->set($resp->asArray());
+            $this->set($resp->item('first')->asArray());
             $this->_loaded = true;
         }
 
@@ -216,7 +216,7 @@ abstract class base implements iModelBase {
 
     public function getPrimaryKey() {
         foreach ($this->_struct as $name => $field) {
-            if (isset($field['primary']) AND $field['primary'] == 'true') {
+            if ((isset($field['type']) AND $field['type'] == 'primary') OR (isset($field['primary']) AND $field['primary'] == 'true')) {
                 return $name;
             }
         }

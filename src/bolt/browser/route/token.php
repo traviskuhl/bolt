@@ -16,10 +16,10 @@ class token extends parser {
         $path = $this->getPath();
         $resp = $this->getResponse();
 
+
         if ($resp) {
             $path .= '.{_b_response}';
             $this->validate('_b_response', implode('|', $resp));
-            $this->optional('_b_response');
         }
 
         // nothin to match
@@ -66,7 +66,9 @@ class token extends parser {
         }
 
         $regex = '/'.trim($regex, '/');
-        return $this->_compiled = '#^'.$regex.($resp ? '$' : '/?$').'#';
+        $this->_compiled = '#^'.$regex.($resp ? '$' : '/?$').'#';
+
+        return $this->_compiled;
 
     }
 
@@ -82,6 +84,40 @@ class token extends parser {
 
         $params = $this->_tokens;
 
+        // see if we can find something
+        if (preg_match_all($this->_compiled, $uri, $matches)) {
+
+            // match up our params
+            foreach ($matches as $name => $match) {
+                if ($name === '_b_response' AND !empty($match[0])) {
+                    $this->setResponseType($match[0]);
+                }
+                else if (array_key_exists($name, $params)) {
+                    $params[$name] = $match[0];
+                }
+            }
+
+            // set our params for later
+            $this->setParams($params);
+
+            // yes we found it
+            return true;
+
+        }
+
+        $hasExt = false;
+
+        // try
+        foreach ($this->getResponse() as $type) {
+            if (stripos($uri, ".{$type}") !== false) {
+                $hasExt = true;
+            }
+        }
+
+        if (!$hasExt AND $this->getResponse()) {
+            $ext = $this->getResponse()[0];
+            $uri .= ".{$ext}";
+        }
 
         // see if we can find something
         if (preg_match_all($this->_compiled, $uri, $matches)) {

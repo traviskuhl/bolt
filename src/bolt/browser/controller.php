@@ -62,6 +62,7 @@ class controller extends \bolt\event implements iController {
     protected $_fromInit = false;
     protected $defaultResponseType = false;
     protected $responseType = false;
+    protected $layout = false;
 
 
     /**
@@ -361,6 +362,11 @@ class controller extends \bolt\event implements iController {
             $this->response($resp);
         }
 
+        // controller we give right back
+        if (b::isInterfaceOf($resp, '\bolt\browser\iController')) {
+            return $resp;
+        }
+
         // response is a view
         if (b::isInterfaceOf($resp, '\bolt\browser\iView')) {
             $this->response($resp);
@@ -456,7 +462,7 @@ class controller extends \bolt\event implements iController {
      */
     public function view($file, $vars=array(), $layout=null) {
         if ($layout === null) {
-            $layout = $this->_layout;
+            $layout = $this->layout;
         }
 
         // get our final list of params

@@ -49,8 +49,31 @@ class curl extends base {
         $type = array_shift($args);
 
 
-        // url
-        $source = $model->source()['curl'];
+        $source = false;
+
+        if ($model->source() AND array_key_exists('curl', $model->source())) {
+            $source = $model->source()['curl'];
+        }
+        else {
+
+            // models
+            $models = b::settings()->value("project.source.models", array());
+
+            // class name
+            $name = get_class($model);
+
+            if (array_key_exists($name, $models) AND array_key_exists('curl', $models[$name])) {
+                $source = $models[$name]['curl'];
+            }
+
+        }
+
+        // no source
+        if (!$source) {
+            // FIX THIS SHIT ASS error
+            die("NO SOURCE NAME");
+        }
+
 
         // ttl
         if (isset($source['ttl'])) {
@@ -81,8 +104,14 @@ class curl extends base {
         $resp = call_user_func_array(array($this, $type), $args);
 
 
-        if (array_key_exists('response', $source)) {
-            $resp = $source['response']($resp, $model);
+        if (is_array($source) AND array_key_exists('response', $source)) {
+            if (is_callable($source['response'])) {
+                $resp = $source['response']($resp, $model);
+            }
+            else {
+                $body = $resp->data();
+                $resp = b::a($body[$source['response']]);
+            }
         }
 
         // return a result
@@ -144,7 +173,7 @@ class curl extends base {
     }
 
     private function _getCacheKey($args) {
-        $prefix = b::settings()->value("project.source.cache.prefix");
+        $prefix = b::settings()->value("project.source.cache.prefix", false);
         return md5($prefix.get_called_class().serialize($args));
     }
 

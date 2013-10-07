@@ -91,11 +91,62 @@ class mongo extends base {
         $model = array_shift($args);
         $type = array_shift($args);
 
+        $source = false;
+
+        if ($model->source() AND array_key_exists('mongo', $model->source())) {
+            $source = $model->source()['mongo'];
+        }
+        else {
+
+            // models
+            $models = b::settings()->value("project.source.models", array());
+
+            // class name
+            $name = get_class($model);
+
+            if (array_key_exists($name, $models) AND array_key_exists('mongo', $models[$name])) {
+                $source = $models[$name]['mongo'];
+            }
+
+        }
+
+        // no source
+        if (!$source) {
+            // FIX THIS SHIT ASS error
+            die("NO SOURCE NAME");
+        }
+
         // get our table
-        array_unshift($args, $model->table);
+        array_unshift($args, $source['table']);
+
+
+        switch($type) {
+            case 'find':
+                $method = 'query';
+                break;
+
+            case 'findById':
+                $method = 'row';
+                $args = array(
+                    $args[0],
+                    $model->getPrimaryKey(),
+                    $args[1],
+                    $args[2]
+                );
+                break;
+
+            case 'findOneBy':
+            case 'findOne':
+                $method = 'row';
+                break;
+
+            default:
+                $method = $type;
+
+        };
 
         // call it
-        return call_user_func_array(array($this, $type), $args);
+        return call_user_func_array(array($this, $method), $args);
 
     }
 

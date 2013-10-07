@@ -8,10 +8,11 @@ use \b;
  *
  * @extends \bolt\browser\controller\request
  */
-class closure extends request {
+class closure extends  \bolt\browser\controller {
 
     // closure
     private $_closure = false;
+
 
     /**
      * set the closure
@@ -19,7 +20,7 @@ class closure extends request {
      * @param Closure $closure closure function
      * @return self;
      */
-    public function setclosure($closure) {
+    public function setClosure($closure) {
         $this->_closure = $closure;
         return $this;
     }
@@ -29,19 +30,13 @@ class closure extends request {
      *
      * @return closure function
      */
-    public function getclosure() {
-        return $this->_closure();
+    public function getClosure() {
+        return $this->_closure;
     }
 
-    /**
-     * build the closure
-     *
-     * @return void
-     */
-    public function before() {
+    public function invoke() {
 
-        // set action
-        $this->setAction($this->_closure);
+        return call_user_func($this->getClosure());
 
     }
 

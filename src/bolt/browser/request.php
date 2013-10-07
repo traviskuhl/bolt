@@ -165,6 +165,7 @@ class request {
     public static function initGlobals() {
         if (defined('bServerInit') AND bServerInit === true) {return;}
 
+
         // always need from server
         $needed = array(
             'SERVER_PORT', 'HTTP_HOST', 'HTTP_PROTO', 'REMOTE_ADDR', 'QUERY_STRING', 'REQUEST_URI', 'SCRIPT_NAME', 'PATH_INFO'
