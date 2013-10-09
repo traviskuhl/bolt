@@ -174,6 +174,14 @@ class result implements \bolt\iBucket, \ArrayAccess, \Iterator, \Countable {
         return $this;
     }
 
+    public function shift() {
+        return array_shift($this->_items);
+    }
+
+    public function pop() {
+        return array_pop($this->_items);
+    }
+
     ////////////////////////////////////////////////////////////////////
     /// @brief set the items
     ///
@@ -192,7 +200,7 @@ class result implements \bolt\iBucket, \ArrayAccess, \Iterator, \Countable {
             }
             else {
                 if (!is_a($item, $this->_class)) {
-                    $item = b::model($this->_class)->setStruct($this->_struct)->set($item);
+                    $item = b::model($this->_class)->set($item);
                 }
                 $this->_items[(string)$item->value($key)] = $item;
             }
@@ -207,8 +215,8 @@ class result implements \bolt\iBucket, \ArrayAccess, \Iterator, \Countable {
     /// @param $meta meta item object
     /// @return self
     ////////////////////////////////////////////////////////////////////
-    public function setMeta(\bolt\dao\item $meta) {
-        $this->_meta = $meta;
+    public function setMeta($meta) {
+        $this->_meta = b::a($meta);
         return $this;
     }
 

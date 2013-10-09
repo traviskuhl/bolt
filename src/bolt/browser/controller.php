@@ -362,17 +362,17 @@ class controller extends \bolt\event implements iController {
             $this->response($resp);
         }
 
-        // controller we give right back
-        if (b::isInterfaceOf($resp, '\bolt\browser\iController')) {
-            return $resp;
-        }
-
         // response is a view
         if (b::isInterfaceOf($resp, '\bolt\browser\iView')) {
             $this->response($resp);
         }
 
         call_user_func(array($this, 'after'));
+
+        // controller we give right back
+        if (b::isInterfaceOf($resp, '\bolt\browser\iController') AND $resp->bGuid() != $this->_bguid) {
+            return $resp;
+        }
 
         // done
         return $this;

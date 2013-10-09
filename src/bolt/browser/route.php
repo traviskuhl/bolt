@@ -4,6 +4,8 @@
 namespace bolt\browser;
 use \b;
 
+use \Net_URL2;
+
 // plug route & url into b
 b::plug(array(
     'route' => '\bolt\browser\route',
@@ -68,7 +70,7 @@ class route extends \bolt\plugin\singleton {
     private $_compiled = array();
 
     public function __construct() {
-        $this->_baseUri = new \Net_URL2((defined('bSelf') ? bSelf : ""));
+        $this->_baseUri = new Net_URL2((defined('bSelf') ? bSelf : ""));
     }
 
     /**
@@ -290,18 +292,26 @@ class route extends \bolt\plugin\singleton {
 
         // if we already have url
         if (is_array($name)) {
-            $base = new \Net_URL2("");
+            $base = new Net_URL2("");
             $args = $name;
         }
         else if (substr($name, 0, 4) == 'http') {
-            $base = new \Net_URL2($name);
+            $base = new Net_URL2($name);
             $base->setQueryVariables($data);
             $args = $query;
         }
         else { // no url close the base and start
 
+            //base
+            if (!array_key_exists('base-uri', $args)) {
+                $args['base-uri'] = clone $this->_baseUri;
+            }
+            if (is_string($args['base-uri'])) {
+                $args['base-uri'] = new Net_URL2($args['base-uri']);
+            }
+
             // new base
-            $base = clone $this->_baseUri;
+            $base = $args['base-uri'];
 
             if (!isset($args['scheme'])) {
                 $args['scheme'] = $base->getScheme();
