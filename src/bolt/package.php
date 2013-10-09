@@ -84,6 +84,45 @@ class package {
         return $dirs;
     }
 
+    // getDirectories
+    public function getFiles($type=false, $useRoot=true) {
+        $dirs = array();
+        $base = ($useRoot === true ? b::param("root", "", b::param('files', false, $this->_pkg)) : "");
+
+
+        if ($type AND array_key_exists('files', $this->_pkg) AND  array_key_exists($type, $this->_pkg['files'])) {
+            $item = $this->_pkg['files'][$type];
+            if (count($item) == 0) {return array();}
+            $root = "";
+
+
+            // root
+            if (isset($items[0]) AND is_array($item[0]) AND key($item[0]) == 'root') {
+                $root = $item[0]['root'];
+                unset($item[0]);
+            }
+
+            foreach ($item as $i => $dir) {
+                if (is_file($dir)) {
+                    $dirs[$i] = $dir;
+                }
+                else if (is_file(b::path($this->_root, $base, $root, $dir))) {
+                    $dirs[$i] = b::path($this->_root, $base, $root, $dir);
+                }
+                else {
+                    $dirs[$i] = $dir;
+                }
+            }
+
+        }
+        else if (!$type AND array_key_exists('files', $this->_pkg)) {
+            $dirs = $this->_pkg['files'];
+        }
+
+
+        return $dirs;
+    }
+
     // get settings
     public function getSettings() {
         return (array_key_exists('settings', $this->_pkg) ? $this->_pkg['settings'] : array());

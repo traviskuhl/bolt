@@ -104,6 +104,7 @@ final class b {
         'bolt-core-cache'    => "./bolt/cache.php",
         'bolt-core-event'    => "./bolt/event.php",
         'bolt-core-package'  => "./bolt/package.php",
+        'bolt-core-stream'   => "./bolt/stream.php",
 
         // cache
         'bolt-core-cache'   => "./bolt/cache.php",
@@ -391,6 +392,11 @@ final class b {
                 b::load($p->getDirectories('load'));
             }
 
+            // anything to load
+            if ($p->getFiles('load')) {
+                b::load($p->getFiles('load'));
+            }
+
             // autoload
             if ($p->getDirectories('autoload')) {
                 foreach ($p->getDirectories('autoload') as $dir) {
@@ -435,6 +441,7 @@ final class b {
     public static function load($paths) {
         if (is_string($paths)) { $paths = array($paths); }
 
+
         foreach($paths as $pattern) {
             $files = array();
 
@@ -449,12 +456,21 @@ final class b {
             else if (stripos($pattern, '*') !== false) {
                 $files = glob($pattern);
             }
-            else {
+            else if (is_dir($pattern)) {
                 self::_resursiveDirectorySerach($pattern, $files);
+            }
+            else {
+                foreach (explode(PATH_SEPARATOR , get_include_path()) as $dir) {
+                    $file = b::path($dir, $pattern);
+                    if (file_exists($file)) {
+                        $files = array($file);
+                    }
+                }
             }
 
             // loop through each file
             foreach ($files as $oFile) {
+
 
                 // tests
                 if (basename($oFile) == 'tests') {continue;}
@@ -463,7 +479,7 @@ final class b {
                 if (substr($oFile,0,2) == './') {
                     $file = bRoot."/".ltrim($oFile,'./');
                 }
-                else if (substr($oFile,0,7) !== 'phar://') {
+                else if (realpath($oFile)) {
                     $file = realpath($oFile);
                 }
                 else {

@@ -76,7 +76,7 @@ class build extends \bolt\cli\command {
         // first create all of our directories
         if (isset($this->_build['dir'])) {
             foreach ($this->_build['dir'] as $dir) {
-                @mkdir(b::path($this->_tmp, $dir), 777, true);
+                @mkdir(b::path($this->_tmp, $dir), 1777, true);
             }
         }
 
@@ -98,7 +98,9 @@ class build extends \bolt\cli\command {
                     $file_dest = str_replace($rel, $dest, $src);
                     $base = dirname($file_dest);
 
-                    if (!is_dir($base)) { @mkdir($base, 0777, true); }
+
+
+                    if (!is_dir($base)) { @mkdir($base, 1777, true); }
                     copy($src, $file_dest);
                 }
             }

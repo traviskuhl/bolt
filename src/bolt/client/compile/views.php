@@ -36,7 +36,9 @@ class views extends base {
                 $rel = str_replace($dir, "", $item->getPathname());
 
                 // compiled
-                $data = $render->getRenderer($ext)->compile(file_get_contents($item->getPathname()));
+                if ($render->getRenderer($ext)) {
+                    $data = $render->getRenderer($ext)->compile(file_get_contents($item->getPathname()));
+                }
 
                 // get the file
                 if ($data) {
