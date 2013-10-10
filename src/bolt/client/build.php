@@ -99,8 +99,6 @@ class build extends \bolt\cli\command {
                     $file_dest = str_replace($rel, $dest, $src);
                     $base = dirname($file_dest);
 
-
-
                     if (!is_dir($base)) {
                         @mkdir($base, 0644, true);
                         @chmod($base, 0644);
@@ -113,6 +111,37 @@ class build extends \bolt\cli\command {
             }
         }
 
+        // find
+        if (isset($this->_build['file'])) {
+            foreach ($this->_build['file'] as $file) {
+                if (!isset($file[2])) {
+                    $this->_build['file'][2] = array('perm' => 1644);
+                    $file[2] = array(
+                        'perm' => 1644
+                    );
+                }
+
+
+                // destinaton
+                $dest = b::path($this->_tmp, $find[0]);
+
+                // relative to
+                $rel = realpath($find[1]);
+
+                $file_dest = str_replace($rel, $dest, $src);
+                $base = dirname($file_dest);
+
+                if (!is_dir($base)) {
+                    @mkdir($base, $file[2]['perm'], true);
+                    @chmod($base, $file[2]['perm']);
+                }
+
+                copy($src, $file_dest);
+                chmod($file_dest, $file[2]['perm']);
+
+            }
+        }
+
         // settings we can localize if they're not already
         if (isset($this->_pkg['settings']) AND is_string($this->_pkg['settings'])) {
             $this->_pkg['settings'] = b::settings()->importFile($this->_pkg['settings'], $this->_root)->asArray();
@@ -121,6 +150,11 @@ class build extends \bolt\cli\command {
         // config should reset for build
         if (isset($this->_build['config']) AND is_array($this->_build['config'])) {
             $this->_pkg['config'] = array_merge($this->_build['config'], $this->_pkg['config']);
+        }
+
+        // files are overritten
+        if (isset($this->_build['files']) AND is_array($this->_build['files'])) {
+            $this->_pkg['files'] = $this->_build['files'];
         }
 
         // directories are overritten

@@ -188,4 +188,9 @@ class cli extends plugin {
         exit(0);
     }
 
+    public function fail() {
+        call_user_func_array(array($this, 'line'), func_get_args());
+        exit(0);
+    }
+
 }
