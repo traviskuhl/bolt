@@ -43,7 +43,7 @@ class build extends \bolt\cli\command {
         $this->_pkg = json_decode(file_get_contents("package.json"),true);
 
         // create our temp directory
-        $this->_tmp = "/tmp/bolt-build-test"; @mkdir($this->_tmp);
+        $this->_tmp = "/tmp/bolt-build-test"; @mkdir($this->_tmp); chmod($this->_tmp, 0777);
 
         // name
         $this->_name = $this->_pkg['name'];
@@ -76,7 +76,8 @@ class build extends \bolt\cli\command {
         // first create all of our directories
         if (isset($this->_build['dir'])) {
             foreach ($this->_build['dir'] as $dir) {
-                @mkdir(b::path($this->_tmp, $dir), 1777, true);
+                @mkdir(b::path($this->_tmp, $dir), 0644, true);
+                @chmod(b::path($this->_tmp, $dir), 0644);
             }
         }
 
@@ -100,8 +101,14 @@ class build extends \bolt\cli\command {
 
 
 
-                    if (!is_dir($base)) { @mkdir($base, 1777, true); }
+                    if (!is_dir($base)) {
+                        @mkdir($base, 0644, true);
+                        @chmod($base, 0644);
+                    }
+
                     copy($src, $file_dest);
+                    chmod($file_dest, substr(sprintf('%o', fileperms($src)), -4));
+
                 }
             }
         }
@@ -160,8 +167,8 @@ class build extends \bolt\cli\command {
         $cmd = "sudo rm -r {$this->_tmp}"; `$cmd`;
 
         // give back to the user
-        chown($tarName, b::client()->getUser());
-        chgrp($tarName, b::client()->getUser());
+        @chown($tarName, b::client()->getUser());
+        @chgrp($tarName, b::client()->getUser());
 
         // done
         $this->done("Build Complete {$name}-{$config['version']}");

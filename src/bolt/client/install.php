@@ -70,7 +70,7 @@ class install extends \bolt\cli\command {
 
                 // make sure the dest dir exists
                 // and copy the src perms
-                if (!file_exists($base)) {mkdir($base, null, true); }
+                if (!file_exists($base)) {mkdir($base, 0644, true); }
 
                 // remove it if it exists
                 if (file_exists($dest)) { unlink($dest); }
