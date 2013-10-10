@@ -46,6 +46,9 @@ class compile extends \bolt\cli\command {
         if ($this->_pkg->getDirectories('load')) {
             b::load($this->_pkg->getDirectories('load'));
         }
+        if ($this->_pkg->getFiles('load')) {
+            b::load($this->_pkg->getFiles('load'));
+        }
 
         // refire run
         b::fire('run');
