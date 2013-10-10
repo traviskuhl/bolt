@@ -21,6 +21,9 @@ class view implements iView {
     private $_layout = false;
     private $_parent;
 
+    private $_before = array();
+    private $_after = array();
+
     // compield
     private static $_compiled = false;
 
@@ -44,6 +47,11 @@ class view implements iView {
 
     public function render() {
 
+        //before
+        foreach ($this->_before as $before) {
+            call_user_func($before[0], $this, $before[1]);
+        }
+
         $html = b::render(array(
             'file' => $this->_getFilePath($this->_file),
             'self' => $this->_parent,
@@ -59,8 +67,23 @@ class view implements iView {
             ));
         }
 
+        // after
+        foreach ($this->_after as $after) {
+            $html = call_user_func($after[0], $html, $this, $after[1]);
+        }
+
         return $html;
 
+    }
+
+    public function before() {
+        $this->_before[] = array($cb, $args);
+        return $this;
+    }
+
+    public function after($cb, $args=array()) {
+        $this->_after[] = array($cb, $args);
+        return $this;
     }
 
     public function setParent($parent) {
