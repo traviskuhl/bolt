@@ -57,7 +57,12 @@ class package {
             $item = $this->_pkg['directories'][$type];
 
             if (is_string($item)) {
-                return b::path($this->_root, $base, $item);
+                if (is_dir($item)) {
+                    return $item;
+                }
+                else {
+                    return b::path($this->_root, $base, $item);
+                }
             }
 
             if (count($item) == 0) {return array();}
