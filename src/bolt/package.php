@@ -53,9 +53,13 @@ class package {
         $dirs = array();
         $base = ($useRoot === true ? b::param("root", "", $this->_pkg['directories']) : "");
 
-
         if ($type AND array_key_exists('directories', $this->_pkg) AND  array_key_exists($type, $this->_pkg['directories'])) {
             $item = $this->_pkg['directories'][$type];
+
+            if (is_string($item)) {
+                return b::path($this->_root, $base, $item);
+            }
+
             if (count($item) == 0) {return array();}
             $root = "";
 
@@ -65,6 +69,7 @@ class package {
                 $root = $item[0]['root'];
                 unset($item[0]);
             }
+
 
             foreach ($item as $i => $dir) {
                 if (is_dir($dir)) {

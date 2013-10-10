@@ -48,8 +48,6 @@ class install extends \bolt\cli\command {
         // tmp
         $this->tmp = b::client()->getTmp();
 
-        $this->tmp = "/tmp/stage/".time(); mkdir($this->tmp);
-
         // copy our folder
         copy($file, "{$this->tmp}/package.tar.gz");
 
@@ -69,6 +67,7 @@ class install extends \bolt\cli\command {
 
         // shortcuts
         $dirs = $build['build']['dir'];
+        $files = $build['build']['file'];
 
         // loop through all directories in the build
         // manifest and make sure theyre roots are created
@@ -119,7 +118,7 @@ class install extends \bolt\cli\command {
                 chdir($base);
 
                 if (file_exists($root) AND !is_link($root)) {
-                    return $this->fail("Trying to symlink a hardlinked directory. use `--force` to remove old directory.");
+                    return $this->fail("Trying to symlink a hardlinked directory ($root => $src). use `--force` to remove old directory.");
                 }
                 else if (file_exists($root)) {
                     unlink($root);
@@ -146,10 +145,10 @@ class install extends \bolt\cli\command {
         // file[0] = dest
         // file[1] = src
         foreach ($files as $file) {
-            $src = b::path($rel, $file[1]);
-            $dest = $file[0];
+            $src = b::path($rel, $file[0], basename($file[1]));
+            $root = basename($src);
+            $dest = b::path($file[0], $root);
             $base = dirname($dest);
-            $root = basename($dest);
 
             if (!is_dir($base)) {
                 mkdir($base, $file[2]['perm'], true);
@@ -169,11 +168,13 @@ class install extends \bolt\cli\command {
                 chdir($base);
 
                 if (file_exists($root) AND !is_link($root)) {
-                    return $this->fail("Trying to symlink a hardlinked file. use `--force` to remove old file.");
+                    return $this->fail("Trying to symlink a hardlinked file ($root => $src). use `--force` to remove old file.");
                 }
                 else if (file_exists($root)) {
                     unlink($root);
                 }
+
+                echo "$root => $src\n";
 
                 // symlink back
                 $r = symlink($src, $root);
@@ -190,6 +191,17 @@ class install extends \bolt\cli\command {
             }
 
         }
+
+        // packageDir
+        $packageDir = b::path(b::client()->getVarDir(), $build['name']);
+
+        // make sure our var dir exists
+        if (!is_dir($packageDir)) {
+            mkdir($packageDir, 0755, true);
+        }
+
+        // place our package file
+        rename("$rel/package.json", "$packageDir/package.json");
 
 
         return $this->done("Install Complete");

@@ -121,14 +121,14 @@ class build extends \bolt\cli\command {
                     );
                 }
 
-
                 // destinaton
-                $dest = b::path($this->_tmp, $find[0]);
+                $dest = b::path($this->_tmp, $file[0]);
 
                 // relative to
-                $rel = realpath($find[1]);
+                $rel = realpath($file[1]);
 
-                $file_dest = str_replace($rel, $dest, $src);
+
+                $file_dest = str_replace(dirname($rel), $dest, $rel);
                 $base = dirname($file_dest);
 
                 if (!is_dir($base)) {
@@ -136,7 +136,7 @@ class build extends \bolt\cli\command {
                     @chmod($base, $file[2]['perm']);
                 }
 
-                copy($src, $file_dest);
+                copy($rel, $file_dest);
                 chmod($file_dest, $file[2]['perm']);
 
             }
@@ -171,7 +171,7 @@ class build extends \bolt\cli\command {
         $config['version'] = implode('-',array($this->_pkg['version'], $sha));
 
         // package
-        $outPackage = b::path($this->_tmp, b::client()->getVarDir(), $this->_pkg['name'], 'package.json'); @mkdir(dirname($outPackage), 777, true);
+        $outPackage = b::path($this->_tmp, 'package.json');
 
         // export our package
         file_put_contents($outPackage, json_encode($this->_pkg));
