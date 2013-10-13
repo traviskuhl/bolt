@@ -49,6 +49,10 @@ class compile extends \bolt\cli\command {
         if ($this->_pkg->getFiles('load')) {
             b::load($this->_pkg->getFiles('load'));
         }
+        if ($this->_pkg->getSettings()) {
+            b::settings()->set('project', $this->_pkg->getSettings());
+        }
+
 
         // refire run
         b::fire('run');
