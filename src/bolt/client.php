@@ -40,7 +40,7 @@ class client extends \bolt\plugin\singleton {
     public function start() {
 
         if (file_exists("package.json")) {
-//            b::package(new \bolt\package(realpath("./package.json")));
+            b::package(new \bolt\package(realpath("./package.json")));
         }
 
         // get our settings

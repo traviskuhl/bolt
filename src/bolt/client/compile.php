@@ -35,18 +35,6 @@ class compile extends \bolt\cli\command {
         // OUT
         $this->_out = realpath($out);
 
-        // we need bolt browser
-        // to compile our routes
-        b::depend("bolt-browser-*");
-
-        // load the root
-        if ($this->_pkg->getDirectories('pear')) {
-            b::load($this->_pkg->getDirectories('pear'));
-        }
-        if ($this->_pkg->getDirectories('load')) {
-            b::load($this->_pkg->getDirectories('load'));
-        }
-
         // refire run
         b::fire('run');
 
