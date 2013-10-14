@@ -43,7 +43,7 @@ class build extends \bolt\cli\command {
         $this->_pkg = json_decode(file_get_contents("package.json"),true);
 
         // create our temp directory
-        $this->_tmp = "/tmp/bolt-build-test"; @mkdir($this->_tmp);
+        $this->_tmp = "/tmp/bolt-build-test"; @mkdir($this->_tmp); chmod($this->_tmp, 0777);
 
         // name
         $this->_name = $this->_pkg['name'];
@@ -76,7 +76,8 @@ class build extends \bolt\cli\command {
         // first create all of our directories
         if (isset($this->_build['dir'])) {
             foreach ($this->_build['dir'] as $dir) {
-                @mkdir(b::path($this->_tmp, $dir), 777, true);
+                @mkdir(b::path($this->_tmp, $dir), 0644, true);
+                @chmod(b::path($this->_tmp, $dir), 0644);
             }
         }
 
@@ -98,9 +99,46 @@ class build extends \bolt\cli\command {
                     $file_dest = str_replace($rel, $dest, $src);
                     $base = dirname($file_dest);
 
-                    if (!is_dir($base)) { @mkdir($base, 0777, true); }
+                    if (!is_dir($base)) {
+                        @mkdir($base, 0644, true);
+                        @chmod($base, 0644);
+                    }
+
                     copy($src, $file_dest);
+                    chmod($file_dest, substr(sprintf('%o', fileperms($src)), -4));
+
                 }
+            }
+        }
+
+        // find
+        if (isset($this->_build['file'])) {
+            foreach ($this->_build['file'] as $file) {
+                if (!isset($file[2])) {
+                    $this->_build['file'][2] = array('perm' => 1644);
+                    $file[2] = array(
+                        'perm' => 1644
+                    );
+                }
+
+                // destinaton
+                $dest = b::path($this->_tmp, $file[0]);
+
+                // relative to
+                $rel = realpath($file[1]);
+
+
+                $file_dest = str_replace(dirname($rel), $dest, $rel);
+                $base = dirname($file_dest);
+
+                if (!is_dir($base)) {
+                    @mkdir($base, $file[2]['perm'], true);
+                    @chmod($base, $file[2]['perm']);
+                }
+
+                copy($rel, $file_dest);
+                chmod($file_dest, $file[2]['perm']);
+
             }
         }
 
@@ -112,6 +150,11 @@ class build extends \bolt\cli\command {
         // config should reset for build
         if (isset($this->_build['config']) AND is_array($this->_build['config'])) {
             $this->_pkg['config'] = array_merge($this->_build['config'], $this->_pkg['config']);
+        }
+
+        // files are overritten
+        if (isset($this->_build['files']) AND is_array($this->_build['files'])) {
+            $this->_pkg['files'] = $this->_build['files'];
         }
 
         // directories are overritten
@@ -128,7 +171,7 @@ class build extends \bolt\cli\command {
         $config['version'] = implode('-',array($this->_pkg['version'], $sha));
 
         // package
-        $outPackage = b::path($this->_tmp, b::client()->getVarDir(), $this->_pkg['name'], 'package.json'); @mkdir(dirname($outPackage), 777, true);
+        $outPackage = b::path($this->_tmp, 'package.json');
 
         // export our package
         file_put_contents($outPackage, json_encode($this->_pkg));
@@ -158,8 +201,8 @@ class build extends \bolt\cli\command {
         $cmd = "sudo rm -r {$this->_tmp}"; `$cmd`;
 
         // give back to the user
-        chown($tarName, b::client()->getUser());
-        chgrp($tarName, b::client()->getUser());
+        @chown($tarName, b::client()->getUser());
+        @chgrp($tarName, b::client()->getUser());
 
         // done
         $this->done("Build Complete {$name}-{$config['version']}");
