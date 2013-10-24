@@ -119,6 +119,9 @@ class result implements \bolt\iBucket, \ArrayAccess, \Iterator, \Countable {
             case 'first':
                 $keys = array_keys($this->_items);
                 $index = array_shift($keys); break;
+            case 'last':
+                $keys = array_keys($this->_items);
+                $index = array_pop($keys);break;
         };
 
         if (array_key_exists($index, $this->_items)) {

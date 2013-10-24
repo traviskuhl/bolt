@@ -20,7 +20,7 @@ class bString implements \bolt\iBucket, \JsonSerializable {
     /// @param $parent bucket pointer
     /// @return void
     ////////////////////////////////////////////////////////////////////
-    public function __construct($value, $key) {
+    public function __construct($value, $key=false) {
         $this->_bguid = uniqid('b');
         $this->_value = $this->_original = $value;
         $this->_key = $key;
