@@ -117,6 +117,7 @@ class bString implements \bolt\iBucket, \JsonSerializable {
     }
 
     public function strip_tags() {
+        $this->decode();
         $this->_value = strip_tags($this->_value);
         return $this;
     }

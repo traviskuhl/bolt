@@ -66,8 +66,8 @@ class install extends \bolt\cli\command {
         $rel = realpath(getcwd());
 
         // shortcuts
-        $dirs = $build['build']['dir'];
-        $files = $build['build']['file'];
+        $dirs = (isset($build['build']['dir']) ? $build['build']['dir'] : array());
+        $files = (isset($build['build']['file']) ? $build['build']['file'] : array());
 
         // loop through all directories in the build
         // manifest and make sure theyre roots are created
