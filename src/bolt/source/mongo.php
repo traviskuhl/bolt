@@ -121,8 +121,19 @@ class mongo extends base {
 
 
         switch($type) {
+            case 'findOne':
             case 'find':
                 $method = 'query';
+                if (isset($args[1])) {
+                    $s = $model->getStruct();
+
+                    foreach ($args[1] as $key => $value) {
+                        if (array_key_exists($key, $s) AND b::param('type', false, $s[$key]) == 'model' AND !empty($value)) {
+                            $args[1][$key] = new \MongoId($value);
+                        }
+                    }
+                }
+
                 break;
 
             case 'findById':
@@ -136,9 +147,35 @@ class mongo extends base {
                 break;
 
             case 'findOneBy':
-            case 'findOne':
                 $method = 'row';
                 break;
+
+            case 'insert':
+                $method = $type;
+
+                $s = $model->getStruct();
+
+                foreach ($args[1] as $key => $value) {
+                    if (array_key_exists($key, $s) AND b::param('type', false, $s[$key]) == 'model' AND !empty($value)) {
+                        $args[1][$key] = new \MongoId($value);
+                    }
+                }
+                break;
+
+            case 'update':
+                $method = $type;
+                $s = $model->getStruct();
+                 foreach ($args[2] as $key => $value) {
+                     if (array_key_exists($key, $s) AND b::param('type', false, $s[$key]) == 'model' AND !empty($value)) {
+                         $args[2][$key] = new \MongoId($value);
+                     }
+                 }
+                break;
+
+            case 'remove':
+                $method = 'delete';
+                break;
+
 
             default:
                 $method = $type;
@@ -331,6 +368,11 @@ class mongo extends base {
 
 		// sth
 		$sth = $db->{$collection};
+
+        if (isset($query['id'])) {
+            $query['_id'] = new \MongoId((string)$query['id']);
+            unset($query['id']);
+        }
 
 		// run it
 		return $sth->remove($query,$opts);

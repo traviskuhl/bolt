@@ -185,6 +185,13 @@ class result implements \bolt\iBucket, \ArrayAccess, \Iterator, \Countable {
         return array_pop($this->_items);
     }
 
+    public function remove($key) {
+        if (array_key_exists($key, $this->_items)) {
+            unset($this->_items[$key]);
+        }
+        return $this;
+    }
+
     ////////////////////////////////////////////////////////////////////
     /// @brief set the items
     ///

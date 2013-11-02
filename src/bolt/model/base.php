@@ -214,6 +214,15 @@ abstract class base implements iModelBase {
 
     }
 
+    public function remove($query=false, $args=array()) {
+        if (!$query) {
+            $id = $this->value($this->getPrimaryKey());
+            $query = ['id' => $id];
+        }
+        $resp = $this->_source->model($this, 'remove', $query, $args);
+        return b::a($resp);
+    }
+
     public function getPrimaryKey() {
         foreach ($this->_struct as $name => $field) {
             if ((isset($field['type']) AND $field['type'] == 'primary') OR (isset($field['primary']) AND $field['primary'] == 'true')) {
