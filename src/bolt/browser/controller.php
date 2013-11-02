@@ -439,7 +439,7 @@ class controller extends \bolt\event implements iController {
         $m = $this->module($class);
 
         // get our final list of params
-        $params = $this->_compileFinalParams($vars);
+        $params = $this->_compileFinalParams($vars, true);
 
         return $m('build', $params);
 
@@ -508,8 +508,8 @@ class controller extends \bolt\event implements iController {
     }
 
 
-    private function _compileFinalParams($vars) {
-        $params = $this->_params;
+    private function _compileFinalParams($vars, $newContext=false) {
+        $params = ($newContext === true ? clone $this->_params : $this->_params);
 
         // globals
         foreach (self::$globals as $name => $value) {

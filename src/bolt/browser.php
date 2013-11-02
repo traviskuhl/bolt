@@ -189,6 +189,9 @@ class browser extends \bolt\plugin\singleton {
                 ',
                 'json' => array(
                     'error' => $message
+                ),
+                'xml' => array(
+                    '*error' => $message
                 )
             ));
         }
