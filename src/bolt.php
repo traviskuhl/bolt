@@ -62,7 +62,7 @@ date_default_timezone_set(bTimeZone);
  */
 final class b {
 
-    const VERSION = "1.4.6";
+    const VERSION = "1.4.7";
     const BUILD = "";
     const BUILD_BRANCH = "";
 

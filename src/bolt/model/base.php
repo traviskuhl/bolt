@@ -128,10 +128,6 @@ abstract class base implements iModelBase {
     public function findOne($query, $args=array()) {
         $resp = $this->_source->model($this, 'find', $query, $args);
 
-        if (is_a($resp, 'bolt\model\result')) {
-            return $resp;
-        }
-
         // return
         if ($resp->count() > 0) {
             $this->set($resp->item('first')->asArray());
