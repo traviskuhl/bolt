@@ -28,6 +28,7 @@ class views extends base {
             // add our files
             foreach (new RecursiveIteratorIterator(new \RecursiveDirectoryIterator($dir)) as $item) {
                 if (!$item->isFile()) {continue;}
+                $data = false;
 
                 // ext
                 $ext = $item->getExtension();

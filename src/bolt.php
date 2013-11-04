@@ -62,7 +62,7 @@ date_default_timezone_set(bTimeZone);
  */
 final class b {
 
-    const VERSION = "1.4.5";
+    const VERSION = "1.4.6";
     const BUILD = "";
     const BUILD_BRANCH = "";
 
@@ -130,6 +130,7 @@ final class b {
         'bolt-core-render'          => "./bolt/render.php",
         'bolt-core-render-handlebars' => "./bolt/render/handlebars.php",
         'bolt-core-render-php' => "./bolt/render/php.php",
+        'bolt-core-render-file' => "./bolt/render/file.php",
 
         // source
         'bolt-core-source-mongo'      => "./bolt/source/mongo.php",

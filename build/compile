@@ -124,9 +124,9 @@ if (isset($opts['pear'])) {
     }
 
     // move tar to www
-    `mv $tar /var/www/bolt/pear`;
+    `mv $tar /var/www/html/bolt/pear`;
 
-    chdir("/var/www/bolt/pear");
+    chdir("/var/www/html/bolt/pear");
 
     // add to pirum
     echo `sudo pirum add . $tar`;
