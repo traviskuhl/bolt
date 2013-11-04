@@ -53,6 +53,11 @@ class cookie extends plugin\singleton {
 		return $o->name($name)->get()->value();
 	}
 
+	public function getRaw($name) {
+		$o = new oCookie();
+		return $o->name($name)->getRaw()->value();
+	}
+
 }
 
 class oCookie {
@@ -125,7 +130,7 @@ class oCookie {
 		$name = $this->_get_name();
 
 		if (b::param($name, false, $_COOKIE)) {
-			$value = $_COOKIE[$name];
+			$value = urldecode($_COOKIE[$name]);
 			if (substr($value, 0, 2) == 'e:') {
 				$value = $this->_crypt($value);
 			}
@@ -136,6 +141,14 @@ class oCookie {
 			$this->_value = $value;
 		}
 
+		return $this;
+	}
+
+	public function getRaw() {
+		$name = $this->_get_name();
+		if (b::param($name, false, $_COOKIE)) {
+			$this->_value = urldecode($_COOKIE[$name]);
+		}
 		return $this;
 	}
 
