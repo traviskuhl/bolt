@@ -227,7 +227,6 @@ class curl extends base {
             );
         }
 
-
         if (is_string($path)) {
             $path = array(
                     'scheme' => $this->scheme,
