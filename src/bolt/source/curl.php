@@ -217,7 +217,7 @@ class curl extends base {
         $cid = $this->_getCacheKey(func_get_args());
 
         // resp
-        if ( ($resp = $this->_cache($cid)) !== false) {
+        if ( $method == 'GET' AND ($resp = $this->_cache($cid)) !== false) {
             // return our re
             return $this->_last = new curlResponse(
                 $this,
