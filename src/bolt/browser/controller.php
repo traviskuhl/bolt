@@ -357,6 +357,7 @@ class controller extends \bolt\event implements iController {
         // call build
         $resp = call_user_func_array(array($this, $action), $_args);
 
+
         // if
         if (is_string($resp)) {
             $this->response($resp);

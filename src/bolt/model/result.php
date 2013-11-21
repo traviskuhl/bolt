@@ -123,7 +123,6 @@ class result implements \bolt\iBucket, \ArrayAccess, \Iterator, \Countable {
                 $keys = array_keys($this->_items);
                 $index = array_pop($keys);break;
         };
-
         if (array_key_exists($index, $this->_items)) {
             return $this->_items[$index];
         }

@@ -72,7 +72,6 @@ class browser extends \bolt\plugin\singleton {
             // route before
             $resp = $this->_route->fireBefore();
 
-
             if (b::isInterfaceOf($resp, '\bolt\browser\iController')) {
                 $resp->setResponseType($controller->getResponseType()); // match response type of original request
                 return $this->render($resp->invoke()->getResponseByType($type));
@@ -101,6 +100,7 @@ class browser extends \bolt\plugin\singleton {
 
         // ask the controller for it
         $resp = $controller->getResponseByType($type);
+
 
         // no response
         if (!$resp) {

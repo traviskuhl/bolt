@@ -69,6 +69,10 @@ class bString implements \bolt\iBucket, \JsonSerializable {
         return (string)$this->_value;
     }
 
+    public function asJson() {
+        return json_encode($this->_value);
+    }
+
     public function __isset($name) {
         return true;
     }
