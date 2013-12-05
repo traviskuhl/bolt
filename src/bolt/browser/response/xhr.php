@@ -27,6 +27,7 @@ class xhr extends base {
             @$dom->loadHTML($body, LIBXML_NOERROR & LIBXML_NOWARNING);
 
             foreach ($dom->getElementsByTagName('script') as $node) {
+                if (stripos($node->getAttribute('type'), 'template') !== false) {continue;}
                 $js[] = $node->nodeValue;
                 $node->parentNode->removeChild($node);
             }

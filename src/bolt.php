@@ -360,6 +360,40 @@ final class b {
 
     }
 
+    public static function initalizePackage() {
+        $p = self::$_package;
+
+        // config
+        foreach($p->getConfig() as $key => $value ) {
+            b::config()->set($key, $value);
+        }
+
+        // settings
+        b::settings()->set("project", $p->getSettings());
+
+        // set our root
+        b::config()->set('root', $p->getRoot());
+
+
+        // anything to load
+        if ($p->getDirectories('load')) {
+            b::load($p->getDirectories('load'));
+        }
+
+        // anything to load
+        if ($p->getFiles('load')) {
+            b::load($p->getFiles('load'));
+        }
+
+        // autoload
+        if ($p->getDirectories('autoload')) {
+            foreach ($p->getDirectories('autoload') as $dir) {
+                self::$autoload[] = $dir;
+            }
+        }
+
+    }
+
     /**
      * deside how to run the framework
      *
@@ -373,42 +407,8 @@ final class b {
         b::mode($mode);
 
         // package
-        $p = self::$_package;
-
-
-        if ($p) {
-
-            // config
-            foreach($p->getConfig() as $key => $value ) {
-                b::config()->set($key, $value);
-            }
-
-            // settings
-            b::settings()->set("project", $p->getSettings());
-
-            // set our root
-            b::config()->set('root', $p->getRoot());
-
-
-            // anything to load
-            if ($p->getDirectories('load')) {
-                b::load($p->getDirectories('load'));
-            }
-
-            // anything to load
-            if ($p->getFiles('load')) {
-                b::load($p->getFiles('load'));
-            }
-
-            // autoload
-            if ($p->getDirectories('autoload')) {
-                foreach ($p->getDirectories('autoload') as $dir) {
-                    self::$autoload[] = $dir;
-                }
-            }
-
-
-
+        if (self::$_package) {
+            self::initalizePackage();
         }
 
         // ready

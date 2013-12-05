@@ -64,7 +64,8 @@ class handlebars extends base {
                 $str = $this->_eng->render($str, $vars);
             }
         }
-        catch(LogicException $e) { return; }
+        catch(\RuntimeException $e) {return; }
+        catch(\LogicException $e) { return; }
 
         // give it back
         return $str;

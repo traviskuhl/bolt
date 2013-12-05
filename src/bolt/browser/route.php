@@ -233,7 +233,7 @@ class route extends \bolt\plugin\singleton {
         });
 
 
-        $route = false;
+        $route = false; $star = false;
 
         // routes
         foreach ($this->_routes as $item) {
@@ -247,7 +247,15 @@ class route extends \bolt\plugin\singleton {
             else if (!$route AND $item->match($path) !== false) {
                 $route = $item;
             }
+            else if (!$route AND trim($item->getPath(),'/') === "*") {
+                $star = $item;
+            }
 
+        }
+
+        // no view is bad
+        if (!$route AND $star) {
+            $route = $star;
         }
 
         if (!$route) {
@@ -259,11 +267,6 @@ class route extends \bolt\plugin\singleton {
 
         if ($method AND $route->getMethod() AND !in_array($method, $route->getMethod())) {
             return false;
-        }
-
-        // no view is bad
-        if (!$controller AND $path != '*') {
-            return $this->match('*', $method);
         }
 
         if (!$controller) {

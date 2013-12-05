@@ -165,6 +165,8 @@ abstract class base implements iModelBase {
             return $resp;
         }
 
+        if (!$resp) {return $this;}
+
         // return
         if ($resp->count() > 0) {
             $this->set($resp->asArray());
