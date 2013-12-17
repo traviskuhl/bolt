@@ -444,7 +444,6 @@ final class b {
     public static function load($paths) {
         if (is_string($paths)) { $paths = array($paths); }
 
-
         foreach($paths as $pattern) {
             $files = array();
 
@@ -473,7 +472,6 @@ final class b {
 
             // loop through each file
             foreach ($files as $oFile) {
-
 
                 // tests
                 if (basename($oFile) == 'tests') {continue;}
