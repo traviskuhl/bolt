@@ -1,5 +1,0 @@
-language: php
-php:
-  - 5.4
-install: php tests/setup
-script: phpunit --no-configuration --bootstrap=./tests/bootstrap.php ./tests
